@@ -15,7 +15,7 @@
 
     <header class="bg-blue-600 text-white p-4 shadow-lg sticky top-0 z-50 flex justify-between items-center">
         <h1 class="text-xl font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANPMART <span class="font-light text-blue-200">LIVE</span></h1>
-        <button onclick="loadDashboard()" class="bg-blue-500 w-10 h-10 rounded-full shadow hover:bg-blue-400 active:scale-90 transition transform flex justify-center items-center">
+        <button onclick="window.loadDashboard()" class="bg-blue-500 w-10 h-10 rounded-full shadow hover:bg-blue-400 active:scale-90 transition transform flex justify-center items-center">
             <i class="fas fa-sync-alt"></i>
         </button>
     </header>
@@ -25,11 +25,11 @@
         <div class="grid grid-cols-2 gap-4">
             <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-emerald-500">
                 <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Sales</p>
-                <p class="text-2xl font-black text-slate-800" id="kpi-sales">₹0.00</p>
+                <p class="text-2xl font-black text-slate-800" id="kpi-sales">₹0</p>
             </div>
             <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-rose-500">
                 <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Due</p>
-                <p class="text-2xl font-black text-slate-800" id="kpi-due">₹0.00</p>
+                <p class="text-2xl font-black text-slate-800" id="kpi-due">₹0</p>
             </div>
         </div>
 
@@ -48,7 +48,7 @@
                     <input type="number" id="bill-amt" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-2xl font-bold text-center transition">
                 </div>
 
-                <button onclick="submitQuickBill()" id="btn-submit" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md shadow-blue-500/30 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] transition flex justify-center items-center">
+                <button onclick="window.submitQuickBill()" id="btn-submit" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md shadow-blue-500/30 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] transition flex justify-center items-center">
                     <i class="fas fa-paper-plane mr-2"></i> Generate M-Bill
                 </button>
             </div>
@@ -66,58 +66,75 @@
         </div>
     </main>
 
-    <script>
-        async function loadDashboard() {
+    <script type="module">
+        import { createClient } from "https://esm.sh/@libsql/client/web";
+
+        // Connect directly to Turso from the Browser!
+        const client = createClient({
+            url: "https://anpmart-live-itagi99.aws-ap-south-1.turso.io",
+            authToken: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw"
+        });
+
+        window.loadDashboard = async function() {
             try {
-                const response = await fetch('/api/dashboard');
-                const data = await response.json();
+                // 1. Fetch KPIs
+                const sales_rs = await client.execute("SELECT SUM(grand_total) FROM bills");
+                const total_sales = sales_rs.rows[0][0] || 0.0;
+
+                const due_rs = await client.execute("SELECT SUM(balance) FROM customers WHERE balance > 0");
+                const total_due = due_rs.rows[0][0] || 0.0;
+
+                document.getElementById('kpi-sales').innerText = '₹' + Number(total_sales).toLocaleString('en-IN', {minimumFractionDigits: 0});
+                document.getElementById('kpi-due').innerText = '₹' + Number(total_due).toLocaleString('en-IN', {minimumFractionDigits: 0});
+
+                // 2. Fetch Customers for Dropdown
+                const cust_rs = await client.execute("SELECT name FROM customers ORDER BY name");
+                const datalist = document.getElementById('cust-list');
+                datalist.innerHTML = '';
+                cust_rs.rows.forEach(r => {
+                    datalist.innerHTML += `<option value="${r[0]}">`;
+                });
+
+                // 3. Fetch Recent Bills
+                const bills_rs = await client.execute("SELECT bill_no, customer_name, grand_total, created_at FROM bills ORDER BY id DESC LIMIT 15");
+                const list = document.getElementById('bills-list');
+                list.innerHTML = '';
                 
-                if (data.status === 'success') {
-                    document.getElementById('kpi-sales').innerText = '₹' + data.total_sales.toLocaleString('en-IN', {minimumFractionDigits: 0});
-                    document.getElementById('kpi-due').innerText = '₹' + data.total_due.toLocaleString('en-IN', {minimumFractionDigits: 0});
+                bills_rs.rows.forEach(r => {
+                    const bno = r[0], cust = r[1], amt = Number(r[2]), date = String(r[3]).substring(0, 10);
+                    const isMobile = bno.startsWith('M-');
+                    const badgeColor = isMobile ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200';
+                    const icon = isMobile ? 'fa-mobile-screen' : 'fa-desktop';
                     
-                    // Populate Datalist
-                    const datalist = document.getElementById('cust-list');
-                    datalist.innerHTML = '';
-                    data.customers.forEach(c => {
-                        datalist.innerHTML += `<option value="${c}">`;
-                    });
-
-                    // Render Bills
-                    const list = document.getElementById('bills-list');
-                    list.innerHTML = '';
-                    data.recent_bills.forEach(bill => {
-                        const isMobile = bill.bill_no.startsWith('M-');
-                        const badgeColor = isMobile ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200';
-                        const icon = isMobile ? 'fa-mobile-screen' : 'fa-desktop';
-                        
-                        list.innerHTML += `
-                            <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
-                                <div>
-                                    <p class="text-md font-bold text-slate-800">${bill.customer}</p>
-                                    <p class="text-xs font-medium text-slate-400 mt-0.5"><i class="far fa-calendar-alt mr-1"></i> ${bill.date}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-lg font-black text-slate-800">₹${bill.amount.toLocaleString('en-IN')}</p>
-                                    <span class="inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${badgeColor}">
-                                        <i class="fas ${icon} mr-1"></i> ${bill.bill_no}
-                                    </span>
-                                </div>
+                    list.innerHTML += `
+                        <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
+                            <div>
+                                <p class="text-md font-bold text-slate-800">${cust}</p>
+                                <p class="text-xs font-medium text-slate-400 mt-0.5"><i class="far fa-calendar-alt mr-1"></i> ${date}</p>
                             </div>
-                        `;
-                    });
-                }
+                            <div class="text-right">
+                                <p class="text-lg font-black text-slate-800">₹${amt.toLocaleString('en-IN')}</p>
+                                <span class="inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${badgeColor}">
+                                    <i class="fas ${icon} mr-1"></i> ${bno}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error loading dashboard:", error);
+                alert("Failed to connect to database.");
             }
-        }
+        };
 
-        async function submitQuickBill() {
+        window.submitQuickBill = async function() {
             const btn = document.getElementById('btn-submit');
-            const customer = document.getElementById('cust-name').value;
-            const amount = document.getElementById('bill-amt').value;
+            let customer = document.getElementById('cust-name').value.trim();
+            if (!customer) customer = 'Walk-in';
+            
+            const amount = parseFloat(document.getElementById('bill-amt').value);
 
-            if (!amount || amount <= 0) {
+            if (isNaN(amount) || amount <= 0) {
                 alert("Please enter a valid amount.");
                 return;
             }
@@ -127,30 +144,52 @@
             btn.classList.add('opacity-75');
 
             try {
-                const response = await fetch('/api/quick_bill', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ customer: customer, amount: amount })
-                });
+                // Generate M-APP Bill Number
+                const cntRs = await client.execute("SELECT COUNT(id) FROM bills WHERE bill_no LIKE 'M-APP-%'");
+                const count = Number(cntRs.rows[0][0]) || 0;
+                const bill_no = `M-APP-${String(count + 1).padStart(4, '0')}`;
                 
-                const result = await response.json();
-                if (result.status === 'success') {
-                    document.getElementById('cust-name').value = '';
-                    document.getElementById('bill-amt').value = '';
-                    await loadDashboard(); 
-                } else {
-                    alert("Error: " + result.message);
+                // Get current date string
+                const d = new Date();
+                const pad = n => String(n).padStart(2, '0');
+                const date_str = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+                // Handle Customer Balance
+                let old_bal = 0.0;
+                const custCheckRs = await client.execute({ sql: "SELECT id, balance FROM customers WHERE name = ?", args: [customer] });
+                
+                if (custCheckRs.rows.length > 0) {
+                    old_bal = Number(custCheckRs.rows[0][1] || 0.0);
+                    await client.execute({ sql: "UPDATE customers SET balance = balance + ? WHERE name = ?", args: [amount, customer] });
+                } else if (customer !== 'Walk-in') {
+                    await client.execute({ sql: "INSERT INTO customers (name, mobile, address, balance, group_name) VALUES (?, '', '', ?, 'General')", args: [customer, amount] });
                 }
+
+                // Insert Bill
+                const bill_data = JSON.stringify([{name: "Mobile Quick Sale", qty: 1, rate: amount, tot: amount}]);
+                
+                await client.execute({
+                    sql: `INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) 
+                          VALUES (?, ?, ?, 0, ?, 0, ?, 'Due/Cash', ?, ?, ?, 'Generated via Mobile App')`,
+                    args: [bill_no, customer, amount, amount, amount, bill_data, date_str, old_bal]
+                });
+
+                document.getElementById('cust-name').value = '';
+                document.getElementById('bill-amt').value = '';
+                await window.loadDashboard(); 
+                
             } catch (error) {
+                console.error(error);
                 alert("Connection error. Check internet.");
             } finally {
                 btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Generate M-Bill';
                 btn.disabled = false;
                 btn.classList.remove('opacity-75');
             }
-        }
+        };
 
-        window.onload = loadDashboard;
+        // Load data when page loads
+        window.onload = window.loadDashboard;
     </script>
 </body>
 </html>
