@@ -20,20 +20,25 @@
 </head>
 <body class="bg-slate-100 font-sans antialiased text-slate-800 h-screen flex flex-col overflow-hidden">
 
-    <div id="login-screen" class="absolute inset-0 z-[100] bg-slate-900 flex flex-col justify-center items-center p-6">
+    <div id="loading-screen" class="absolute inset-0 z-[200] bg-blue-600 flex flex-col justify-center items-center p-6 text-white">
+        <i class="fas fa-circle-notch fa-spin text-5xl mb-4"></i>
+        <h2 class="text-xl font-bold">Booting ERP...</h2>
+    </div>
+
+    <div id="login-screen" class="hidden absolute inset-0 z-[100] bg-slate-900 flex flex-col justify-center items-center p-6">
         <div class="glass-card w-full max-w-sm p-8 rounded-3xl shadow-2xl text-center">
             <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"><i class="fas fa-lock text-3xl text-white"></i></div>
             <h2 class="text-2xl font-black text-slate-800 mb-2">ANPMART ERP</h2>
             <p class="text-sm text-slate-500 font-bold mb-6">Restricted Access</p>
             <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-4 bg-slate-100 border border-slate-300 rounded-xl text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            <button onclick="checkLogin()" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition">Unlock System</button>
+            <button onclick="window.checkLogin()" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition">Unlock System</button>
         </div>
     </div>
 
     <div id="app-screen" class="hidden flex-col h-full relative">
         <header class="bg-blue-600 text-white p-3 shadow-md z-40 flex justify-between items-center shrink-0">
             <h1 class="text-lg font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANP<span class="font-light text-blue-200" id="header-title">DASH</span></h1>
-            <button onclick="syncData()" id="btn-sync" class="bg-blue-500 w-9 h-9 rounded-full shadow active:scale-90 flex justify-center items-center"><i class="fas fa-sync-alt"></i></button>
+            <button onclick="window.syncData()" id="btn-sync" class="bg-blue-500 w-9 h-9 rounded-full shadow active:scale-90 flex justify-center items-center"><i class="fas fa-sync-alt"></i></button>
         </header>
 
         <main class="flex-1 overflow-y-auto hide-scroll p-3 pb-20" id="main-content">
@@ -58,12 +63,12 @@
                 </div>
                 
                 <div class="relative">
-                    <input type="text" id="pos-cust" onkeyup="filterAC('pos-cust', 'ac-cust')" placeholder="Customer Name (Walk-in)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="pos-cust" onkeyup="window.filterAC('pos-cust', 'ac-cust')" placeholder="Customer Name (Walk-in)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500">
                     <div id="ac-cust" class="ac-dropdown"></div>
                 </div>
 
                 <div class="bg-blue-50 p-2 rounded-xl border border-blue-100 shadow-sm relative">
-                    <input type="text" id="pos-item" onkeyup="filterAC('pos-item', 'ac-item')" placeholder="Search Item..." class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold mb-2 focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="pos-item" onkeyup="window.filterAC('pos-item', 'ac-item')" onchange="window.autoFillPrice()" placeholder="Search Item..." class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold mb-2 focus:ring-2 focus:ring-blue-500">
                     <div id="ac-item" class="ac-dropdown"></div>
                     
                     <div class="flex space-x-2 mb-2">
@@ -71,7 +76,7 @@
                         <select id="pos-unit" class="w-1/4 p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold bg-white"></select>
                         <input type="number" id="pos-rate" placeholder="Rate (₹)" class="w-2/4 p-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold">
                     </div>
-                    <button onclick="addToCart()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-lg active:scale-95 text-sm shadow-md"><i class="fas fa-plus mr-1"></i> ADD TO CART</button>
+                    <button onclick="window.addToCart()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-lg active:scale-95 text-sm shadow-md"><i class="fas fa-plus mr-1"></i> ADD TO CART</button>
                 </div>
 
                 <div class="flex-1 bg-white rounded-xl border border-slate-200 p-2 overflow-y-auto hide-scroll min-h-[150px]">
@@ -83,52 +88,52 @@
                         <span class="text-xs font-bold text-slate-300">Grand Total</span>
                         <span class="text-xl font-black text-emerald-400" id="pos-total">₹0.00</span>
                     </div>
-                    <button onclick="saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 font-black text-sm py-3 rounded-lg shadow-md active:scale-95 transition">COMPLETE SALE</button>
+                    <button onclick="window.saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 font-black text-sm py-3 rounded-lg shadow-md active:scale-95 transition">COMPLETE SALE</button>
                 </div>
             </div>
 
             <div id="tab-sales" class="tab-content hidden space-y-3">
-                <input type="text" id="search-sales" onkeyup="renderSales()" placeholder="Search Bills..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
+                <input type="text" id="search-sales" onkeyup="window.renderSales()" placeholder="Search Bills..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
                 <div id="sales-list" class="space-y-2"></div>
             </div>
 
             <div id="tab-ledger" class="tab-content hidden space-y-3">
-                <input type="text" id="search-ledger" onkeyup="renderLedger()" placeholder="Search Dues..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
+                <input type="text" id="search-ledger" onkeyup="window.renderLedger()" placeholder="Search Dues..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
                 <div id="ledger-list" class="space-y-2"></div>
             </div>
 
             <div id="tab-more" class="tab-content hidden space-y-3">
-                <button onclick="switchTab('stock', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                <button onclick="window.switchTab('stock', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
                     <div class="flex items-center text-blue-600 font-bold"><i class="fas fa-box-open text-xl mr-3"></i> Master Stock</div>
                     <i class="fas fa-chevron-right text-slate-400"></i>
                 </button>
-                <button onclick="switchTab('attendance', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                <button onclick="window.switchTab('attendance', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
                     <div class="flex items-center text-emerald-600 font-bold"><i class="fas fa-user-clock text-xl mr-3"></i> Attendance</div>
                     <i class="fas fa-chevron-right text-slate-400"></i>
                 </button>
             </div>
 
             <div id="tab-stock" class="tab-content hidden space-y-3">
-                <button onclick="switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
-                <input type="text" id="search-stock" onkeyup="renderStock()" placeholder="Search Master..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
+                <button onclick="window.switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
+                <input type="text" id="search-stock" onkeyup="window.renderStock()" placeholder="Search Master..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
                 <div id="stock-list" class="space-y-2"></div>
             </div>
 
             <div id="tab-attendance" class="tab-content hidden space-y-3">
-                <button onclick="switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
+                <button onclick="window.switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
                 <h2 class="font-bold text-slate-700">Mark Today's Attendance</h2>
                 <div id="attendance-list" class="space-y-2"></div>
-                <button onclick="saveAttendance()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow mt-4">💾 Save Attendance</button>
+                <button onclick="window.saveAttendance()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow mt-4">💾 Save Attendance</button>
             </div>
 
         </main>
 
         <nav class="bg-white border-t border-slate-200 flex justify-around pb-safe pt-2 shrink-0 z-50 absolute bottom-0 w-full">
-            <button onclick="switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-2 text-blue-600 w-1/5"><i class="fas fa-home text-lg mb-1"></i><span class="text-[9px] font-bold">Home</span></button>
-            <button onclick="switchTab('pos', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[9px] font-bold">POS</span></button>
-            <button onclick="switchTab('sales', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-receipt text-lg mb-1"></i><span class="text-[9px] font-bold">Sales</span></button>
-            <button onclick="switchTab('ledger', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-wallet text-lg mb-1"></i><span class="text-[9px] font-bold">Ledger</span></button>
-            <button onclick="switchTab('more', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-bars text-lg mb-1"></i><span class="text-[9px] font-bold">More</span></button>
+            <button onclick="window.switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-2 text-blue-600 w-1/5"><i class="fas fa-home text-lg mb-1"></i><span class="text-[9px] font-bold">Home</span></button>
+            <button onclick="window.switchTab('pos', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[9px] font-bold">POS</span></button>
+            <button onclick="window.switchTab('sales', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-receipt text-lg mb-1"></i><span class="text-[9px] font-bold">Sales</span></button>
+            <button onclick="window.switchTab('ledger', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-wallet text-lg mb-1"></i><span class="text-[9px] font-bold">Ledger</span></button>
+            <button onclick="window.switchTab('more', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-bars text-lg mb-1"></i><span class="text-[9px] font-bold">More</span></button>
         </nav>
 
         <div id="modal-bill" class="hidden absolute inset-0 z-[110] bg-slate-900/50 flex justify-center items-center p-4">
@@ -154,7 +159,7 @@
                 <p class="text-2xl font-black text-rose-500 mb-4" id="pay-due">₹0.00</p>
                 
                 <input type="number" id="pay-amt" placeholder="Enter Amount Received" class="w-full p-4 bg-slate-50 border border-slate-300 rounded-xl text-center text-xl font-bold mb-4 focus:ring-2 focus:ring-blue-500">
-                <button onclick="savePayment()" class="w-full bg-blue-600 text-white font-bold p-4 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Save Payment</button>
+                <button onclick="window.savePayment()" class="w-full bg-blue-600 text-white font-bold p-4 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Save Payment</button>
             </div>
         </div>
 
@@ -178,19 +183,30 @@
                         <input type="number" id="edit-stock" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-center font-bold focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
-                <button onclick="saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Update Item</button>
+                <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Update Item</button>
             </div>
         </div>
 
     </div>
 
     <script type="module">
-        import { createClient } from "https://esm.sh/@libsql/client/web";
+        // ⚡ Added ?bundle to fix strict browser environment missing dependencies
+        import { createClient } from "https://esm.sh/@libsql/client/web?bundle";
 
-        const client = createClient({
-            url: "https://anpmart-live-itagi99.aws-ap-south-1.turso.io",
-            authToken: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw"
-        });
+        let client;
+
+        try {
+            client = createClient({
+                url: "https://anpmart-live-itagi99.aws-ap-south-1.turso.io",
+                authToken: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw"
+            });
+            // Reveal Login Screen once JS successfully parses
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        } catch (e) {
+            document.getElementById('loading-screen').innerHTML = '<h2 class="text-xl font-bold text-red-300">Connection Error. Please refresh.</h2>';
+            console.error("LibSQL Init Error:", e);
+        }
 
         window.erpData = { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 };
 
@@ -204,7 +220,9 @@
                 window.syncData();
             } else alert("Incorrect PIN.");
         };
+
         if(localStorage.getItem('erp_auth') === 'true') {
+            document.getElementById('loading-screen').classList.add('hidden');
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('flex');
@@ -213,6 +231,7 @@
 
         // 🔄 SYNC
         window.syncData = async function() {
+            if (!client) return;
             document.getElementById('btn-sync').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             try {
                 // KPIs
@@ -244,7 +263,7 @@
                 window.renderStock();
                 window.renderAttendance();
 
-            } catch (err) { alert("Sync Failed."); console.error(err); }
+            } catch (err) { alert("Sync Failed. Check internet."); console.error(err); }
             document.getElementById('btn-sync').innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
@@ -318,12 +337,12 @@
             document.getElementById('pos-qty').value = '1';
             document.getElementById('pos-rate').value = '';
             document.getElementById('pos-unit').innerHTML = '';
-            renderCart();
+            window.renderCart();
         };
 
-        window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); renderCart(); };
+        window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); window.renderCart(); };
 
-        function renderCart() {
+        window.renderCart = function() {
             const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = '';
             window.erpData.cartTotal = 0;
             if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-xs mt-10">Cart Empty</p>';
@@ -333,12 +352,12 @@
                     ui.innerHTML += `
                         <div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm">
                             <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[10px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
-                            <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
+                            <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="window.removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
                         </div>`;
                 });
             }
             document.getElementById('pos-total').innerText = '₹' + window.erpData.cartTotal.toFixed(2);
-        }
+        };
 
         window.saveMobileBill = async function() {
             if(window.erpData.cart.length === 0) return;
@@ -370,7 +389,7 @@
                     args: [bno, cust, total, total, total, JSON.stringify(window.erpData.cart), dt, old_bal]
                 });
 
-                document.getElementById('pos-cust').value = ''; window.erpData.cart = []; renderCart();
+                document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
                 await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
                 alert("Bill Saved!");
             } catch (err) { alert("Save failed."); }
@@ -382,11 +401,11 @@
             const val = (document.getElementById('search-sales').value || "").toLowerCase();
             const list = document.getElementById('sales-list'); list.innerHTML = '';
             
-            window.erpData.bills.filter(b => b[1].toLowerCase().includes(val) || b[2].toLowerCase().includes(val)).slice(0,20).forEach(b => {
+            window.erpData.bills.filter(b => b[1].toLowerCase().includes(val) || String(b[2]).toLowerCase().includes(val)).slice(0,20).forEach(b => {
                 const bno = b[1], cust = b[2], amt = Number(b[3]), dt = String(b[4]).substring(0,10);
                 const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
                 list.innerHTML += `
-                    <div onclick="viewBill(${b[0]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50">
+                    <div onclick="window.viewBill(${b[0]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50">
                         <div><p class="text-sm font-bold text-slate-800">${cust}</p><p class="text-[10px] text-slate-500">${dt}</p></div>
                         <div class="text-right"><p class="text-md font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[9px] font-bold px-1 rounded ${badge}">${bno}</span></div>
                     </div>`;
@@ -424,15 +443,20 @@
             const list = document.getElementById('ledger-list'); list.innerHTML = '';
             
             window.erpData.customers.filter(c => c[2] > 0 && c[0].toLowerCase().includes(val)).forEach(c => {
+                // Safely escape the name for the onclick handler
+                const safeName = c[0].replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="openPayModal('${c[0]}', ${c[2]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50">
+                    <div onclick="window.openPayModal('${safeName}')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50">
                         <div><p class="text-sm font-bold text-slate-800">${c[0]}</p><p class="text-[10px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c[1]||'N/A'}</p></div>
                         <div class="text-right"><p class="text-xs text-slate-400">Due</p><p class="text-md font-black text-rose-500">₹${Number(c[2]).toFixed(2)}</p></div>
                     </div>`;
             });
         };
 
-        window.openPayModal = function(name, due) {
+        window.openPayModal = function(name) {
+            const cust = window.erpData.customers.find(c => c[0] === name);
+            if(!cust) return;
+            const due = Number(cust[2]);
             document.getElementById('pay-cust-name').innerText = name;
             document.getElementById('pay-due').innerText = `₹${due.toFixed(2)}`;
             document.getElementById('pay-amt').value = due.toFixed(2);
@@ -462,18 +486,20 @@
             window.erpData.products.filter(p => p[1].toLowerCase().includes(val)).slice(0,30).forEach(p => {
                 let color = p[3] <= 0 ? 'text-red-500' : 'text-emerald-500';
                 list.innerHTML += `
-                    <div onclick="openEditItem(${p[0]}, '${p[1]}', ${p[2]}, ${p[3]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50">
+                    <div onclick="window.openEditItem(${p[0]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50">
                         <p class="text-sm font-bold text-slate-800">${p[1]}</p>
                         <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p[2]}</p><p class="text-[10px] font-bold ${color}">Stock: ${p[3]}</p></div>
                     </div>`;
             });
         };
 
-        window.openEditItem = function(id, name, rate, stock) {
-            document.getElementById('edit-id').value = id;
-            document.getElementById('edit-name').value = name;
-            document.getElementById('edit-rate').value = rate;
-            document.getElementById('edit-stock').value = stock;
+        window.openEditItem = function(id) {
+            const p = window.erpData.products.find(x => x[0] === id);
+            if(!p) return;
+            document.getElementById('edit-id').value = p[0];
+            document.getElementById('edit-name').value = p[1];
+            document.getElementById('edit-rate').value = p[2];
+            document.getElementById('edit-stock').value = p[3];
             document.getElementById('modal-edit-item').classList.remove('hidden');
         };
 
