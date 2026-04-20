@@ -1,0 +1,15 @@
+{
+  "name": "ANPMART Live ERP",
+  "short_name": "ANPMART",
+  "start_url": "/erp/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3081/3081840.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
