@@ -8,18 +8,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Modern Mobile Resets */
         body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         .ac-dropdown { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; display: none; }
-        .ac-item { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b; }
+        .ac-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b; font-size: 14px; }
         .ac-item:active { background-color: #e0f2fe; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans antialiased text-slate-800 h-screen flex flex-col overflow-hidden relative">
 
-    <div id="login-screen" class="absolute inset-0 z-[100] bg-slate-900 flex flex-col justify-center items-center p-6">
+<body class="bg-slate-100 font-sans antialiased text-slate-800 h-[100dvh] flex flex-col overflow-hidden">
+
+    <div id="login-screen" class="absolute inset-0 z-[200] bg-slate-900 flex flex-col justify-center items-center p-6">
         <div class="glass-card w-full max-w-sm p-8 rounded-3xl shadow-2xl text-center">
             <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"><i class="fas fa-lock text-3xl text-white"></i></div>
             <h2 class="text-2xl font-black text-slate-800 mb-2">ANPMART ERP</h2>
@@ -29,190 +31,181 @@
         </div>
     </div>
 
-    <div id="app-screen" class="hidden flex-col h-full w-full absolute inset-0">
+    <header class="bg-blue-600 text-white p-3 shadow-md z-40 flex justify-between items-center shrink-0">
+        <h1 class="text-lg font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANP<span class="font-light text-blue-200" id="header-title">DASH</span></h1>
+        <button onclick="window.syncData()" id="btn-sync" class="bg-blue-500 w-9 h-9 rounded-full shadow active:scale-90 flex justify-center items-center"><i class="fas fa-sync-alt"></i></button>
+    </header>
+
+    <main class="flex-1 overflow-y-auto hide-scroll p-3 bg-slate-100" id="main-content">
         
-        <header class="bg-blue-600 text-white p-3 shadow-md z-40 flex justify-between items-center shrink-0">
-            <h1 class="text-lg font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANP<span class="font-light text-blue-200" id="header-title">DASH</span></h1>
-            <button onclick="window.syncData()" id="btn-sync" class="bg-blue-500 w-9 h-9 rounded-full shadow active:scale-90 flex justify-center items-center"><i class="fas fa-sync-alt"></i></button>
-        </header>
+        <div id="tab-dashboard" class="tab-content space-y-4 block">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="glass-card p-4 rounded-2xl shadow-sm border-b-4 border-b-emerald-500">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Sales</p>
+                    <p class="text-xl font-black text-slate-800" id="kpi-sales">₹0</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl shadow-sm border-b-4 border-b-rose-500">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Due</p>
+                    <p class="text-xl font-black text-slate-800" id="kpi-due">₹0</p>
+                </div>
+            </div>
+            <div class="flex justify-between items-end mt-4 mb-2">
+                <h2 class="text-md font-bold text-slate-800">Recent Global Bills</h2>
+                <span class="text-[10px] font-bold text-emerald-500 bg-emerald-100 px-2 py-1 rounded-md animate-pulse">LIVE</span>
+            </div>
+            <div id="dashboard-feed" class="space-y-3 pb-4"></div>
+        </div>
 
-        <main class="flex-1 overflow-y-auto hide-scroll p-3 pb-24" id="main-content">
+        <div id="tab-pos" class="tab-content hidden h-full flex-col space-y-2">
+            <div class="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-slate-200 shrink-0">
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Customer</span>
+                <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded" id="pos-bill-no">M-NEW</span>
+            </div>
             
-            <div id="tab-dashboard" class="tab-content space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="glass-card p-4 rounded-2xl shadow-sm border-b-4 border-b-emerald-500">
-                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Sales</p>
-                        <p class="text-xl font-black text-slate-800" id="kpi-sales">₹0</p>
-                    </div>
-                    <div class="glass-card p-4 rounded-2xl shadow-sm border-b-4 border-b-rose-500">
-                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Due</p>
-                        <p class="text-xl font-black text-slate-800" id="kpi-due">₹0</p>
-                    </div>
-                </div>
-                <div class="flex justify-between items-end mt-4 mb-2">
-                    <h2 class="text-md font-bold text-slate-800">Recent Global Bills</h2>
-                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-100 px-2 py-1 rounded-md animate-pulse">LIVE</span>
-                </div>
-                <div id="dashboard-feed" class="space-y-3"></div>
+            <div class="relative shrink-0">
+                <input type="text" id="pos-cust" onkeyup="window.filterAC('pos-cust', 'ac-cust')" placeholder="Customer Name (Walk-in)" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500">
+                <div id="ac-cust" class="ac-dropdown"></div>
             </div>
 
-            <div id="tab-pos" class="tab-content hidden flex flex-col h-full space-y-2">
-                <div class="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-slate-200">
-                    <span class="text-xs font-bold text-slate-500 uppercase">Customer</span>
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded" id="pos-bill-no">M-NEW</span>
-                </div>
+            <div class="bg-blue-50 p-2 rounded-xl border border-blue-100 shadow-sm relative shrink-0">
+                <input type="text" id="pos-item" onkeyup="window.filterAC('pos-item', 'ac-item')" onchange="window.autoFillPrice()" placeholder="Search Item..." class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm font-bold mb-2 focus:ring-2 focus:ring-blue-500">
+                <div id="ac-item" class="ac-dropdown"></div>
                 
-                <div class="relative">
-                    <input type="text" id="pos-cust" onkeyup="window.filterAC('pos-cust', 'ac-cust')" placeholder="Customer Name (Walk-in)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500">
-                    <div id="ac-cust" class="ac-dropdown"></div>
+                <div class="flex space-x-2 mb-2">
+                    <input type="number" id="pos-qty" value="1" placeholder="Qty" class="w-1/4 p-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold">
+                    <select id="pos-unit" class="w-1/4 p-2 bg-white border border-slate-300 rounded-lg text-[10px] font-bold bg-white"><option>Pcs</option></select>
+                    <input type="number" id="pos-rate" placeholder="Rate (₹)" class="w-2/4 p-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold">
                 </div>
-
-                <div class="bg-blue-50 p-2 rounded-xl border border-blue-100 shadow-sm relative">
-                    <input type="text" id="pos-item" onkeyup="window.filterAC('pos-item', 'ac-item')" onchange="window.autoFillPrice()" placeholder="Search Item..." class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold mb-2 focus:ring-2 focus:ring-blue-500">
-                    <div id="ac-item" class="ac-dropdown"></div>
-                    
-                    <div class="flex space-x-2 mb-2">
-                        <input type="number" id="pos-qty" value="1" placeholder="Qty" class="w-1/4 p-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold">
-                        <select id="pos-unit" class="w-1/4 p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold bg-white"></select>
-                        <input type="number" id="pos-rate" placeholder="Rate (₹)" class="w-2/4 p-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold">
-                    </div>
-                    <button onclick="window.addToCart()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-lg active:scale-95 text-sm shadow-md"><i class="fas fa-plus mr-1"></i> ADD TO CART</button>
-                </div>
-
-                <div class="flex-1 bg-white rounded-xl border border-slate-200 p-2 overflow-y-auto hide-scroll min-h-[150px]">
-                    <div id="pos-cart-ui" class="space-y-1"><p class="text-center text-slate-400 text-xs mt-10">Cart Empty</p></div>
-                </div>
-
-                <div class="bg-slate-800 text-white p-3 rounded-xl shadow-lg mt-auto">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-xs font-bold text-slate-300">Grand Total</span>
-                        <span class="text-xl font-black text-emerald-400" id="pos-total">₹0.00</span>
-                    </div>
-                    <button onclick="window.saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 font-black text-sm py-3 rounded-lg shadow-md active:scale-95 transition">COMPLETE SALE</button>
-                </div>
+                <button onclick="window.addToCart()" class="w-full bg-slate-800 text-white font-bold py-2 rounded-lg active:scale-95 text-sm shadow-md"><i class="fas fa-plus mr-1"></i> ADD TO CART</button>
             </div>
 
-            <div id="tab-sales" class="tab-content hidden space-y-3">
-                <input type="text" id="search-sales" onkeyup="window.renderSales()" placeholder="Search Bills..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
-                <div id="sales-list" class="space-y-2"></div>
+            <div class="flex-1 bg-white rounded-xl border border-slate-200 p-2 overflow-y-auto hide-scroll relative min-h-[100px]">
+                <div id="pos-cart-ui" class="space-y-1"><p class="text-center text-slate-400 text-xs mt-4">Cart Empty</p></div>
             </div>
 
-            <div id="tab-ledger" class="tab-content hidden space-y-3">
-                <input type="text" id="search-ledger" onkeyup="window.renderLedger()" placeholder="Search Dues..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
-                <div id="ledger-list" class="space-y-2"></div>
-            </div>
-
-            <div id="tab-more" class="tab-content hidden space-y-3">
-                <button onclick="window.switchTab('stock', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
-                    <div class="flex items-center text-blue-600 font-bold"><i class="fas fa-box-open text-xl mr-3"></i> Master Stock</div>
-                    <i class="fas fa-chevron-right text-slate-400"></i>
-                </button>
-                <button onclick="window.switchTab('attendance', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
-                    <div class="flex items-center text-emerald-600 font-bold"><i class="fas fa-user-clock text-xl mr-3"></i> Attendance</div>
-                    <i class="fas fa-chevron-right text-slate-400"></i>
-                </button>
-            </div>
-
-            <div id="tab-stock" class="tab-content hidden space-y-3">
-                <button onclick="window.switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
-                <input type="text" id="search-stock" onkeyup="window.renderStock()" placeholder="Search Master..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
-                <div id="stock-list" class="space-y-2"></div>
-            </div>
-
-            <div id="tab-attendance" class="tab-content hidden space-y-3">
-                <button onclick="window.switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
-                <h2 class="font-bold text-slate-700">Mark Today's Attendance</h2>
-                <div id="attendance-list" class="space-y-2"></div>
-                <button onclick="window.saveAttendance()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow mt-4">💾 Save Attendance</button>
-            </div>
-
-        </main>
-
-        <nav class="bg-white border-t border-slate-200 flex justify-around pb-5 pt-2 shrink-0 z-50 absolute bottom-0 w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-            <button onclick="window.switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-2 text-blue-600 w-1/5"><i class="fas fa-home text-lg mb-1"></i><span class="text-[9px] font-bold">Home</span></button>
-            <button onclick="window.switchTab('pos', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[9px] font-bold">POS</span></button>
-            <button onclick="window.switchTab('sales', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-receipt text-lg mb-1"></i><span class="text-[9px] font-bold">Sales</span></button>
-            <button onclick="window.switchTab('ledger', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-wallet text-lg mb-1"></i><span class="text-[9px] font-bold">Ledger</span></button>
-            <button onclick="window.switchTab('more', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-bars text-lg mb-1"></i><span class="text-[9px] font-bold">More</span></button>
-        </nav>
-
-        <div id="modal-bill" class="hidden absolute inset-0 z-[110] bg-slate-900/50 flex justify-center items-center p-4">
-            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
-                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                    <h3 class="font-bold text-slate-800" id="m-bill-title">Bill Details</h3>
-                    <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+            <div class="bg-slate-800 text-white p-3 rounded-xl shadow-lg shrink-0 mt-1">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-slate-300">Grand Total</span>
+                    <span class="text-xl font-black text-emerald-400" id="pos-total">₹0.00</span>
                 </div>
-                <div class="p-4 overflow-y-auto text-xs font-mono text-slate-700 whitespace-pre-wrap flex-1" id="m-bill-content"></div>
-                <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
-                    <button id="btn-wa" class="w-full bg-emerald-500 text-white font-bold p-3 rounded-xl shadow active:scale-95 flex justify-center items-center"><i class="fab fa-whatsapp text-lg mr-2"></i> Send WhatsApp</button>
-                </div>
+                <button onclick="window.saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 font-black text-sm py-3 rounded-lg shadow-md active:scale-95 transition">COMPLETE SALE</button>
             </div>
         </div>
 
-        <div id="modal-pay" class="hidden absolute inset-0 z-[110] bg-slate-900/50 flex justify-center items-end p-0">
-            <div class="bg-white w-full rounded-t-3xl shadow-2xl p-6 pb-10 transform transition-transform">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-slate-800 text-lg" id="pay-cust-name">Receive Cash</h3>
-                    <button onclick="document.getElementById('modal-pay').classList.add('hidden')" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
-                </div>
-                <p class="text-xs font-bold text-slate-500 mb-1">Pending Due</p>
-                <p class="text-2xl font-black text-rose-500 mb-4" id="pay-due">₹0.00</p>
-                
-                <input type="number" id="pay-amt" placeholder="Enter Amount Received" class="w-full p-4 bg-slate-50 border border-slate-300 rounded-xl text-center text-xl font-bold mb-4 focus:ring-2 focus:ring-blue-500">
-                <button onclick="window.savePayment()" class="w-full bg-blue-600 text-white font-bold p-4 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Save Payment</button>
-            </div>
+        <div id="tab-sales" class="tab-content hidden space-y-3">
+            <input type="text" id="search-sales" onkeyup="window.renderSales()" placeholder="Search Bills..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm sticky top-0 z-10">
+            <div id="sales-list" class="space-y-2 pb-4"></div>
         </div>
 
-        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/50 flex justify-center items-center p-4">
-            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-slate-800 text-lg">Edit Master</h3>
-                    <button onclick="document.getElementById('modal-edit-item').classList.add('hidden')" class="text-slate-400"><i class="fas fa-times"></i></button>
-                </div>
-                <input type="hidden" id="edit-id">
-                <label class="text-[10px] font-bold text-slate-500 uppercase">Item Name</label>
-                <input type="text" id="edit-name" class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold mb-3" readonly>
-                
-                <div class="flex space-x-3 mb-4">
-                    <div class="w-1/2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase">Rate (₹)</label>
-                        <input type="number" id="edit-rate" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-center font-bold focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="w-1/2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase">Stock</label>
-                        <input type="number" id="edit-stock" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-center font-bold focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-                <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Update Item</button>
-            </div>
+        <div id="tab-ledger" class="tab-content hidden space-y-3">
+            <input type="text" id="search-ledger" onkeyup="window.renderLedger()" placeholder="Search Dues..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm sticky top-0 z-10">
+            <div id="ledger-list" class="space-y-2 pb-4"></div>
         </div>
 
+        <div id="tab-more" class="tab-content hidden space-y-3">
+            <button onclick="window.switchTab('stock', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                <div class="flex items-center text-blue-600 font-bold"><i class="fas fa-box-open text-xl mr-3"></i> Master Stock</div>
+                <i class="fas fa-chevron-right text-slate-400"></i>
+            </button>
+            <button onclick="window.switchTab('attendance', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                <div class="flex items-center text-emerald-600 font-bold"><i class="fas fa-user-clock text-xl mr-3"></i> Attendance</div>
+                <i class="fas fa-chevron-right text-slate-400"></i>
+            </button>
+        </div>
+
+        <div id="tab-stock" class="tab-content hidden space-y-3">
+            <button onclick="window.switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-1"><i class="fas fa-arrow-left mr-1"></i> Back</button>
+            <input type="text" id="search-stock" onkeyup="window.renderStock()" placeholder="Search Master..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm sticky top-0 z-10">
+            <div id="stock-list" class="space-y-2 pb-4"></div>
+        </div>
+
+        <div id="tab-attendance" class="tab-content hidden space-y-3">
+            <button onclick="window.switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-1"><i class="fas fa-arrow-left mr-1"></i> Back</button>
+            <h2 class="font-bold text-slate-700">Mark Today's Attendance</h2>
+            <div id="attendance-list" class="space-y-2"></div>
+            <button onclick="window.saveAttendance()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow mt-4">💾 Save Attendance</button>
+        </div>
+
+    </main>
+
+    <nav class="shrink-0 bg-white border-t border-slate-200 flex justify-around p-2 pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+        <button onclick="window.switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center text-blue-600 w-1/5"><i class="fas fa-home text-lg mb-1"></i><span class="text-[10px] font-bold">Home</span></button>
+        <button onclick="window.switchTab('pos', this)" class="nav-btn flex flex-col items-center text-slate-400 w-1/5"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[10px] font-bold">POS</span></button>
+        <button onclick="window.switchTab('sales', this)" class="nav-btn flex flex-col items-center text-slate-400 w-1/5"><i class="fas fa-receipt text-lg mb-1"></i><span class="text-[10px] font-bold">Sales</span></button>
+        <button onclick="window.switchTab('ledger', this)" class="nav-btn flex flex-col items-center text-slate-400 w-1/5"><i class="fas fa-wallet text-lg mb-1"></i><span class="text-[10px] font-bold">Ledger</span></button>
+        <button onclick="window.switchTab('more', this)" class="nav-btn flex flex-col items-center text-slate-400 w-1/5"><i class="fas fa-bars text-lg mb-1"></i><span class="text-[10px] font-bold">More</span></button>
+    </nav>
+
+    <div id="modal-bill" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                <h3 class="font-bold text-slate-800 text-sm" id="m-bill-title">Bill Details</h3>
+                <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="text-slate-400 text-xl px-2"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto text-xs font-mono text-slate-700 whitespace-pre-wrap flex-1" id="m-bill-content"></div>
+            <div class="p-3 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+                <button id="btn-wa" class="w-full bg-emerald-500 text-white font-bold p-3 rounded-xl shadow active:scale-95 flex justify-center items-center"><i class="fab fa-whatsapp text-lg mr-2"></i> Send WhatsApp</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-pay" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-end p-0">
+        <div class="bg-white w-full rounded-t-3xl shadow-2xl p-6 pb-12">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-slate-800 text-lg" id="pay-cust-name">Receive Cash</h3>
+                <button onclick="document.getElementById('modal-pay').classList.add('hidden')" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <p class="text-xs font-bold text-slate-500 mb-1">Pending Due</p>
+            <p class="text-2xl font-black text-rose-500 mb-4" id="pay-due">₹0.00</p>
+            
+            <input type="number" id="pay-amt" placeholder="Amount Received" class="w-full p-4 bg-slate-50 border border-slate-300 rounded-xl text-center text-xl font-bold mb-4 focus:ring-2 focus:ring-blue-500">
+            <button onclick="window.savePayment()" class="w-full bg-blue-600 text-white font-bold p-4 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Save Payment</button>
+        </div>
+    </div>
+
+    <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-slate-800 text-lg">Edit Master</h3>
+                <button onclick="document.getElementById('modal-edit-item').classList.add('hidden')" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <input type="hidden" id="edit-id">
+            <label class="text-[10px] font-bold text-slate-500 uppercase">Item Name</label>
+            <input type="text" id="edit-name" class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold mb-3" readonly>
+            
+            <div class="flex space-x-3 mb-4">
+                <div class="w-1/2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Rate (₹)</label>
+                    <input type="number" id="edit-rate" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-center font-bold focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="w-1/2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase">Stock</label>
+                    <input type="number" id="edit-stock" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-center font-bold focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Update Item</button>
+        </div>
     </div>
 
     <script>
         const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
         const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
 
-        // This powerful engine talks directly to Turso and handles all errors safely.
+        // Bulletproof HTTP Fetch explicitly mapping data without crashing on missing columns
         async function runQuery(sql) {
             try {
                 const req = await fetch(TURSO_URL, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${TURSO_TOKEN}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        requests: [
-                            { type: "execute", stmt: { sql: sql } },
-                            { type: "close" }
-                        ]
-                    })
+                    body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
                 });
                 
-                if (!req.ok) throw new Error("Network response was not ok");
+                if (!req.ok) return [];
                 const data = await req.json();
                 
                 if (data.results[0].type === "error") {
                     console.log("Safe SQL Skip:", data.results[0].error.message);
-                    return []; // Return empty array if column/table missing (Crash Prevented)
+                    return [];
                 }
                 
                 const res = data.results[0].response.result;
@@ -250,25 +243,22 @@
             window.syncData();
         }
 
-        // 🔄 MASTER SYNC
+        // 🔄 MASTER SYNC (EXPLICIT COLUMNS FIXES DATA MISMATCH)
         window.syncData = async function() {
             const btn = document.getElementById('btn-sync');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             try {
-                // KPIs
                 let s_res = await runQuery("SELECT SUM(grand_total) as t FROM bills");
-                let tot_sales = s_res.length > 0 ? Number(s_res[0].t || 0) : 0;
-                document.getElementById('kpi-sales').innerText = '₹' + tot_sales.toLocaleString('en-IN');
+                document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
                 
                 let d_res = await runQuery("SELECT SUM(balance) as t FROM customers WHERE balance > 0");
-                let tot_due = d_res.length > 0 ? Number(d_res[0].t || 0) : 0;
-                document.getElementById('kpi-due').innerText = '₹' + tot_due.toLocaleString('en-IN');
+                document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
 
-                // Fetch All Data Safely (SELECT * prevents missing column crashes)
-                window.erpData.products = await runQuery("SELECT * FROM products ORDER BY name");
-                window.erpData.customers = await runQuery("SELECT * FROM customers ORDER BY name");
-                window.erpData.bills = await runQuery("SELECT * FROM bills ORDER BY id DESC LIMIT 100");
-                window.erpData.emps = await runQuery("SELECT * FROM employees");
+                // Explicit Columns to prevent undefined errors
+                window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
+                window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
+                window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 50");
+                window.erpData.emps = await runQuery("SELECT id, name FROM employees");
 
                 window.renderSales();
                 window.renderLedger();
@@ -354,7 +344,7 @@
         window.renderCart = function() {
             const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = '';
             window.erpData.cartTotal = 0;
-            if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-xs mt-10">Cart Empty</p>';
+            if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-xs mt-4">Cart Empty</p>';
             else {
                 window.erpData.cart.forEach((item, i) => {
                     window.erpData.cartTotal += item.tot;
@@ -377,7 +367,7 @@
 
             try {
                 let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
-                const bno = `M-APP-${String((Number(cntRs[0].c)||0) + 1).padStart(4, '0')}`;
+                const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
                 
                 const d = new Date(); const pad = n => String(n).padStart(2, '0');
                 const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
@@ -418,7 +408,7 @@
                 const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
                 const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
                 const html = `
-                    <div onclick="window.viewBill(${b.id})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50">
+                    <div onclick="window.viewBill(${b.id})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-2">
                         <div><p class="text-sm font-bold text-slate-800">${cust}</p><p class="text-[10px] text-slate-500">${dt}</p></div>
                         <div class="text-right"><p class="text-md font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[9px] font-bold px-1 rounded ${badge}">${bno}</span></div>
                     </div>`;
@@ -459,7 +449,7 @@
             window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val)).forEach(c => {
                 const safeName = (c.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openPayModal('${safeName}', ${c.balance})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50">
+                    <div onclick="window.openPayModal('${safeName}', ${c.balance})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-2">
                         <div><p class="text-sm font-bold text-slate-800">${c.name}</p><p class="text-[10px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
                         <div class="text-right"><p class="text-xs text-slate-400">Due</p><p class="text-md font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
                     </div>`;
@@ -498,7 +488,7 @@
                 let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
                 const safeName = (p.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50">
+                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2">
                         <p class="text-sm font-bold text-slate-800">${p.name}</p>
                         <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[10px] font-bold ${color}">Stock: ${stk}</p></div>
                     </div>`;
@@ -531,11 +521,11 @@
             
             window.erpData.emps.forEach(e => {
                 list.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">
                         <p class="font-bold text-slate-800 mb-2">${e.name}</p>
                         <div class="flex space-x-2">
                             <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
-                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e[0]}" value="Half Day"> HD</label>
+                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
                             <label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
                         </div>
                     </div>`;
