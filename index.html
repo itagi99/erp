@@ -12,167 +12,198 @@
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        /* Custom Autocomplete Dropdown */
+        .ac-dropdown { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; display: none; }
+        .ac-item { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b; }
+        .ac-item:active { background-color: #e0f2fe; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans antialiased text-slate-800 h-screen flex flex-col overflow-hidden">
 
     <div id="login-screen" class="absolute inset-0 z-[100] bg-slate-900 flex flex-col justify-center items-center p-6">
         <div class="glass-card w-full max-w-sm p-8 rounded-3xl shadow-2xl text-center">
-            <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <i class="fas fa-lock text-3xl text-white"></i>
-            </div>
+            <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"><i class="fas fa-lock text-3xl text-white"></i></div>
             <h2 class="text-2xl font-black text-slate-800 mb-2">ANPMART ERP</h2>
             <p class="text-sm text-slate-500 font-bold mb-6">Restricted Access</p>
-            
-            <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-4 bg-slate-100 border border-slate-300 rounded-xl text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 transition">
-            
-            <button onclick="checkLogin()" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition">
-                Unlock System
-            </button>
+            <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-4 bg-slate-100 border border-slate-300 rounded-xl text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <button onclick="checkLogin()" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition">Unlock System</button>
         </div>
     </div>
 
-    <div id="app-screen" class="hidden flex-col h-full">
-        
-        <header class="bg-blue-600 text-white p-4 shadow-md z-40 flex justify-between items-center shrink-0">
-            <h1 class="text-xl font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANPMART <span class="font-light text-blue-200" id="header-title">DASH</span></h1>
-            <button onclick="syncData()" id="btn-sync" class="bg-blue-500 w-10 h-10 rounded-full shadow hover:bg-blue-400 active:scale-90 transition flex justify-center items-center">
-                <i class="fas fa-sync-alt"></i>
-            </button>
+    <div id="app-screen" class="hidden flex-col h-full relative">
+        <header class="bg-blue-600 text-white p-3 shadow-md z-40 flex justify-between items-center shrink-0">
+            <h1 class="text-lg font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANP<span class="font-light text-blue-200" id="header-title">DASH</span></h1>
+            <button onclick="syncData()" id="btn-sync" class="bg-blue-500 w-9 h-9 rounded-full shadow active:scale-90 flex justify-center items-center"><i class="fas fa-sync-alt"></i></button>
         </header>
 
-        <main class="flex-1 overflow-y-auto hide-scroll p-4 pb-24" id="main-content">
+        <main class="flex-1 overflow-y-auto hide-scroll p-3 pb-20" id="main-content">
             
             <div id="tab-dashboard" class="tab-content space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-emerald-500">
-                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Sales</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="glass-card p-4 rounded-2xl shadow-sm border-b-4 border-b-emerald-500">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Sales</p>
                         <p class="text-xl font-black text-slate-800" id="kpi-sales">₹0</p>
                     </div>
-                    <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-rose-500">
-                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Due</p>
+                    <div class="glass-card p-4 rounded-2xl shadow-sm border-b-4 border-b-rose-500">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Due</p>
                         <p class="text-xl font-black text-slate-800" id="kpi-due">₹0</p>
                     </div>
                 </div>
-                <div class="flex justify-between items-end mt-4 mb-2">
-                    <h2 class="text-md font-bold text-slate-800">Recent Global Bills</h2>
-                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-100 px-2 py-1 rounded-md animate-pulse">LIVE</span>
-                </div>
-                <div id="dashboard-feed" class="space-y-3"></div>
             </div>
 
-            <div id="tab-pos" class="tab-content hidden space-y-4">
-                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <h2 class="text-sm font-bold text-slate-500 uppercase">Customer Info</h2>
-                        <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-md" id="pos-bill-no">M-APP-NEW</span>
-                    </div>
-                    <input type="text" id="pos-cust" list="cust-list" placeholder="Walk-in Customer" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-700">
-                    <datalist id="cust-list"></datalist>
+            <div id="tab-pos" class="tab-content hidden flex flex-col h-full space-y-2">
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-slate-200">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Customer</span>
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded" id="pos-bill-no">M-NEW</span>
+                </div>
+                
+                <div class="relative">
+                    <input type="text" id="pos-cust" onkeyup="filterAC('pos-cust', 'ac-cust')" placeholder="Customer Name (Walk-in)" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-blue-500">
+                    <div id="ac-cust" class="ac-dropdown"></div>
                 </div>
 
-                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-4 bg-blue-50">
-                    <h2 class="text-sm font-bold text-slate-500 uppercase mb-3">Add Item</h2>
-                    <input type="text" id="pos-item" list="item-list" onchange="autoFillPrice()" placeholder="Search Item..." class="w-full p-3 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-700 mb-3">
-                    <datalist id="item-list"></datalist>
+                <div class="bg-blue-50 p-2 rounded-xl border border-blue-100 shadow-sm relative">
+                    <input type="text" id="pos-item" onkeyup="filterAC('pos-item', 'ac-item')" placeholder="Search Item..." class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm font-bold mb-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="ac-item" class="ac-dropdown"></div>
                     
-                    <div class="flex space-x-2 mb-3">
-                        <div class="w-1/3">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase">Qty</label>
-                            <input type="number" id="pos-qty" value="1" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center font-bold">
-                        </div>
-                        <div class="w-2/3">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase">Rate (₹)</label>
-                            <input type="number" id="pos-rate" placeholder="0.00" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center font-bold">
-                        </div>
+                    <div class="flex space-x-2 mb-2">
+                        <input type="number" id="pos-qty" value="1" placeholder="Qty" class="w-1/4 p-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold">
+                        <select id="pos-unit" class="w-1/4 p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold bg-white"></select>
+                        <input type="number" id="pos-rate" placeholder="Rate (₹)" class="w-2/4 p-2 bg-white border border-slate-300 rounded-lg text-center text-sm font-bold">
                     </div>
-                    <button onclick="addToCart()" class="w-full bg-slate-800 text-white font-bold p-3 rounded-xl shadow-md active:scale-95 transition">
-                        <i class="fas fa-plus mr-2"></i> Add To Cart
-                    </button>
+                    <button onclick="addToCart()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-lg active:scale-95 text-sm shadow-md"><i class="fas fa-plus mr-1"></i> ADD TO CART</button>
                 </div>
 
-                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-2 min-h-[150px]">
-                    <div id="pos-cart-ui" class="space-y-2">
-                        <p class="text-center text-slate-400 text-sm mt-10">Cart is empty</p>
-                    </div>
+                <div class="flex-1 bg-white rounded-xl border border-slate-200 p-2 overflow-y-auto hide-scroll min-h-[150px]">
+                    <div id="pos-cart-ui" class="space-y-1"><p class="text-center text-slate-400 text-xs mt-10">Cart Empty</p></div>
                 </div>
 
-                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-4 bg-slate-800 text-white sticky bottom-0">
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-bold text-slate-300">Grand Total</span>
-                        <span class="text-2xl font-black text-emerald-400" id="pos-total">₹0.00</span>
+                <div class="bg-slate-800 text-white p-3 rounded-xl shadow-lg mt-auto">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-slate-300">Grand Total</span>
+                        <span class="text-xl font-black text-emerald-400" id="pos-total">₹0.00</span>
                     </div>
-                    <button onclick="saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 text-white font-black text-lg p-4 rounded-xl shadow-lg active:scale-95 transition">
-                        <i class="fas fa-check-circle mr-2"></i> COMPLETE SALE
-                    </button>
+                    <button onclick="saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 font-black text-sm py-3 rounded-lg shadow-md active:scale-95 transition">COMPLETE SALE</button>
                 </div>
             </div>
 
-            <div id="tab-stock" class="tab-content hidden space-y-4">
-                <h2 class="text-lg font-bold text-slate-800 mb-2">Inventory Master</h2>
-                <input type="text" id="search-stock" onkeyup="filterStock()" placeholder="Search Inventory..." class="w-full p-3 bg-white border border-slate-200 rounded-xl mb-4 shadow-sm">
-                <div id="stock-list" class="space-y-3"></div>
+            <div id="tab-sales" class="tab-content hidden space-y-3">
+                <input type="text" id="search-sales" onkeyup="renderSales()" placeholder="Search Bills..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
+                <div id="sales-list" class="space-y-2"></div>
             </div>
 
-            <div id="tab-contacts" class="tab-content hidden space-y-4">
-                <h2 class="text-lg font-bold text-slate-800 mb-2">Customer Ledger</h2>
-                <input type="text" id="search-cust" onkeyup="filterCust()" placeholder="Search Customers..." class="w-full p-3 bg-white border border-slate-200 rounded-xl mb-4 shadow-sm">
-                <div id="contacts-list" class="space-y-3"></div>
+            <div id="tab-ledger" class="tab-content hidden space-y-3">
+                <input type="text" id="search-ledger" onkeyup="renderLedger()" placeholder="Search Dues..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
+                <div id="ledger-list" class="space-y-2"></div>
+            </div>
+
+            <div id="tab-more" class="tab-content hidden space-y-3">
+                <button onclick="switchTab('stock', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                    <div class="flex items-center text-blue-600 font-bold"><i class="fas fa-box-open text-xl mr-3"></i> Master Stock</div>
+                    <i class="fas fa-chevron-right text-slate-400"></i>
+                </button>
+                <button onclick="switchTab('attendance', this)" class="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                    <div class="flex items-center text-emerald-600 font-bold"><i class="fas fa-user-clock text-xl mr-3"></i> Attendance</div>
+                    <i class="fas fa-chevron-right text-slate-400"></i>
+                </button>
+            </div>
+
+            <div id="tab-stock" class="tab-content hidden space-y-3">
+                <button onclick="switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
+                <input type="text" id="search-stock" onkeyup="renderStock()" placeholder="Search Master..." class="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm shadow-sm">
+                <div id="stock-list" class="space-y-2"></div>
+            </div>
+
+            <div id="tab-attendance" class="tab-content hidden space-y-3">
+                <button onclick="switchTab('more', this)" class="text-sm font-bold text-blue-600 mb-2"><i class="fas fa-arrow-left mr-1"></i> Back to Menu</button>
+                <h2 class="font-bold text-slate-700">Mark Today's Attendance</h2>
+                <div id="attendance-list" class="space-y-2"></div>
+                <button onclick="saveAttendance()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow mt-4">💾 Save Attendance</button>
             </div>
 
         </main>
 
-        <nav class="bg-white border-t border-slate-200 flex justify-around pb-safe pt-2 shrink-0 z-50 fixed bottom-0 w-full max-w-md mx-auto">
-            <button onclick="switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-2 text-blue-600 w-1/4">
-                <i class="fas fa-chart-pie text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Home</span>
-            </button>
-            <button onclick="switchTab('pos', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 w-1/4">
-                <i class="fas fa-cash-register text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">POS</span>
-            </button>
-            <button onclick="switchTab('stock', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 w-1/4">
-                <i class="fas fa-box-open text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Stock</span>
-            </button>
-            <button onclick="switchTab('contacts', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 w-1/4">
-                <i class="fas fa-users text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Ledger</span>
-            </button>
+        <nav class="bg-white border-t border-slate-200 flex justify-around pb-safe pt-2 shrink-0 z-50 absolute bottom-0 w-full">
+            <button onclick="switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-2 text-blue-600 w-1/5"><i class="fas fa-home text-lg mb-1"></i><span class="text-[9px] font-bold">Home</span></button>
+            <button onclick="switchTab('pos', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-cash-register text-lg mb-1"></i><span class="text-[9px] font-bold">POS</span></button>
+            <button onclick="switchTab('sales', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-receipt text-lg mb-1"></i><span class="text-[9px] font-bold">Sales</span></button>
+            <button onclick="switchTab('ledger', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-wallet text-lg mb-1"></i><span class="text-[9px] font-bold">Ledger</span></button>
+            <button onclick="switchTab('more', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 w-1/5"><i class="fas fa-bars text-lg mb-1"></i><span class="text-[9px] font-bold">More</span></button>
         </nav>
+
+        <div id="modal-bill" class="hidden absolute inset-0 z-[110] bg-slate-900/50 flex justify-center items-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+                    <h3 class="font-bold text-slate-800" id="m-bill-title">Bill Details</h3>
+                    <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-4 overflow-y-auto text-xs font-mono text-slate-700 whitespace-pre-wrap flex-1" id="m-bill-content"></div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+                    <button id="btn-wa" class="w-full bg-emerald-500 text-white font-bold p-3 rounded-xl shadow active:scale-95 flex justify-center items-center"><i class="fab fa-whatsapp text-lg mr-2"></i> Send WhatsApp</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-pay" class="hidden absolute inset-0 z-[110] bg-slate-900/50 flex justify-center items-end p-0">
+            <div class="bg-white w-full rounded-t-3xl shadow-2xl p-6 pb-10 transform transition-transform">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-slate-800 text-lg" id="pay-cust-name">Receive Cash</h3>
+                    <button onclick="document.getElementById('modal-pay').classList.add('hidden')" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+                </div>
+                <p class="text-xs font-bold text-slate-500 mb-1">Pending Due</p>
+                <p class="text-2xl font-black text-rose-500 mb-4" id="pay-due">₹0.00</p>
+                
+                <input type="number" id="pay-amt" placeholder="Enter Amount Received" class="w-full p-4 bg-slate-50 border border-slate-300 rounded-xl text-center text-xl font-bold mb-4 focus:ring-2 focus:ring-blue-500">
+                <button onclick="savePayment()" class="w-full bg-blue-600 text-white font-bold p-4 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Save Payment</button>
+            </div>
+        </div>
+
+        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/50 flex justify-center items-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-slate-800 text-lg">Edit Master</h3>
+                    <button onclick="document.getElementById('modal-edit-item').classList.add('hidden')" class="text-slate-400"><i class="fas fa-times"></i></button>
+                </div>
+                <input type="hidden" id="edit-id">
+                <label class="text-[10px] font-bold text-slate-500 uppercase">Item Name</label>
+                <input type="text" id="edit-name" class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold mb-3" readonly>
+                
+                <div class="flex space-x-3 mb-4">
+                    <div class="w-1/2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Rate (₹)</label>
+                        <input type="number" id="edit-rate" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-center font-bold focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="w-1/2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase">Stock</label>
+                        <input type="number" id="edit-stock" class="w-full p-3 bg-white border border-slate-300 rounded-xl text-center font-bold focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <button onclick="saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-xl shadow active:scale-95"><i class="fas fa-save mr-2"></i> Update Item</button>
+            </div>
+        </div>
+
     </div>
 
     <script type="module">
         import { createClient } from "https://esm.sh/@libsql/client/web";
 
-        // ==========================================
-        // 🌐 TURSO DATABASE CONNECTION
-        // ==========================================
         const client = createClient({
             url: "https://anpmart-live-itagi99.aws-ap-south-1.turso.io",
             authToken: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw"
         });
 
-        // Global State
-        window.erpData = { products: [], customers: [], cart: [], cartTotal: 0.0 };
+        window.erpData = { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 };
 
-        // ==========================================
-        // 🔒 SECURITY (Basic UI Gate)
-        // ==========================================
+        // 🔒 LOGIN
         window.checkLogin = function() {
-            const pin = document.getElementById('login-pin').value;
-            if(pin === "1234") { // <-- Change your password here
+            if(document.getElementById('login-pin').value === "1234") {
                 localStorage.setItem('erp_auth', 'true');
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 document.getElementById('app-screen').classList.add('flex');
-                window.syncData(); // Load data on unlock
-            } else {
-                alert("Incorrect PIN.");
-            }
+                window.syncData();
+            } else alert("Incorrect PIN.");
         };
-
-        // Auto-login if previously unlocked
         if(localStorage.getItem('erp_auth') === 'true') {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
@@ -180,119 +211,129 @@
             window.syncData();
         }
 
-        // ==========================================
-        // 🔄 MASTER SYNC ENGINE
-        // ==========================================
+        // 🔄 SYNC
         window.syncData = async function() {
-            const btn = document.getElementById('btn-sync');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            document.getElementById('btn-sync').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             try {
-                // 1. Fetch KPIs
+                // KPIs
                 const sales_rs = await client.execute("SELECT SUM(grand_total) FROM bills");
                 document.getElementById('kpi-sales').innerText = '₹' + Number(sales_rs.rows[0][0] || 0).toLocaleString('en-IN');
-
                 const due_rs = await client.execute("SELECT SUM(balance) FROM customers WHERE balance > 0");
                 document.getElementById('kpi-due').innerText = '₹' + Number(due_rs.rows[0][0] || 0).toLocaleString('en-IN');
 
-                // 2. Fetch Products (For POS & Stock Tab)
-                const prod_rs = await client.execute("SELECT name, rate, stock, category FROM products ORDER BY name");
+                // Products
+                const prod_rs = await client.execute("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
                 window.erpData.products = prod_rs.rows;
-                
-                const itemDatalist = document.getElementById('item-list');
-                const stockListUI = document.getElementById('stock-list');
-                itemDatalist.innerHTML = ''; stockListUI.innerHTML = '';
-                
-                window.erpData.products.forEach(p => {
-                    itemDatalist.innerHTML += `<option value="${p[0]}">`;
-                    let stockColor = p[2] <= 0 ? 'text-red-500' : 'text-emerald-500';
-                    stockListUI.innerHTML += `
-                        <div class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center stock-card">
-                            <div><p class="font-bold text-slate-800 text-sm">${p[0]}</p><p class="text-xs text-slate-400">${p[3] || 'General'}</p></div>
-                            <div class="text-right"><p class="font-black text-slate-800">₹${p[1]}</p><p class="text-xs font-bold ${stockColor}">Stock: ${p[2]}</p></div>
-                        </div>`;
-                });
 
-                // 3. Fetch Customers (For POS & Ledger Tab)
-                const cust_rs = await client.execute("SELECT name, mobile, balance FROM customers ORDER BY name");
+                // Customers
+                const cust_rs = await client.execute("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
                 window.erpData.customers = cust_rs.rows;
-                
-                const custDatalist = document.getElementById('cust-list');
-                const contactsListUI = document.getElementById('contacts-list');
-                custDatalist.innerHTML = ''; contactsListUI.innerHTML = '';
-                
-                window.erpData.customers.forEach(c => {
-                    custDatalist.innerHTML += `<option value="${c[0]}">`;
-                    let dueColor = c[2] > 0 ? 'text-red-500' : 'text-emerald-500';
-                    contactsListUI.innerHTML += `
-                        <div class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center cust-card">
-                            <div><p class="font-bold text-slate-800 text-sm">${c[0]}</p><p class="text-xs text-slate-400"><i class="fas fa-phone mr-1"></i>${c[1] || 'N/A'}</p></div>
-                            <div class="text-right"><p class="text-xs font-bold text-slate-400">Balance</p><p class="font-black ${dueColor}">₹${Number(c[2]).toFixed(2)}</p></div>
-                        </div>`;
-                });
 
-                // 4. Fetch Recent Bills
-                const bills_rs = await client.execute("SELECT bill_no, customer_name, grand_total, created_at FROM bills ORDER BY id DESC LIMIT 15");
-                const feed = document.getElementById('dashboard-feed');
-                feed.innerHTML = '';
-                bills_rs.rows.forEach(r => {
-                    const isMob = r[0].startsWith('M-');
-                    const badge = isMob ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
-                    const icon = isMob ? 'fa-mobile-screen' : 'fa-desktop';
-                    feed.innerHTML += `
-                        <div class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center">
-                            <div><p class="text-sm font-bold text-slate-800">${r[1]}</p><p class="text-[10px] text-slate-400">${String(r[3]).substring(0,10)}</p></div>
-                            <div class="text-right"><p class="text-md font-black text-slate-800">₹${Number(r[2]).toLocaleString('en-IN')}</p><span class="text-[9px] font-extrabold px-2 py-0.5 rounded border ${badge}"><i class="fas ${icon} mr-1"></i>${r[0]}</span></div>
-                        </div>`;
-                });
+                // Bills
+                const bills_rs = await client.execute("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 100");
+                window.erpData.bills = bills_rs.rows;
 
-            } catch (err) { alert("Sync Failed. Check internet."); console.error(err); }
-            btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+                // Emps
+                try {
+                    const emp_rs = await client.execute("SELECT id, name FROM employees");
+                    window.erpData.emps = emp_rs.rows;
+                } catch(e){}
+
+                window.renderSales();
+                window.renderLedger();
+                window.renderStock();
+                window.renderAttendance();
+
+            } catch (err) { alert("Sync Failed."); console.error(err); }
+            document.getElementById('btn-sync').innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
-        // ==========================================
-        // 🧾 POS ENGINE LOGIC
-        // ==========================================
+        // 🎨 UI CONTROLS
+        window.switchTab = function(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400');
+            });
+            if(btnElement && btnElement.tagName === 'BUTTON') {
+                btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active');
+            }
+            const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
+            document.getElementById('header-title').innerText = titles[tabId];
+        };
+
+        // 🔍 CUSTOM AUTOCOMPLETE
+        window.filterAC = function(inputId, dropId) {
+            const val = document.getElementById(inputId).value.toLowerCase();
+            const drop = document.getElementById(dropId);
+            drop.innerHTML = '';
+            if(!val) { drop.style.display = 'none'; return; }
+            
+            let list = inputId === 'pos-cust' ? window.erpData.customers.map(c=>c[0]) : window.erpData.products.map(p=>p[1]);
+            let matches = list.filter(i => i.toLowerCase().includes(val)).slice(0, 10);
+            
+            matches.forEach(m => {
+                let div = document.createElement('div');
+                div.className = 'ac-item'; div.innerText = m;
+                div.onclick = function() {
+                    document.getElementById(inputId).value = m;
+                    drop.style.display = 'none';
+                    if(inputId === 'pos-item') window.autoFillPrice();
+                };
+                drop.appendChild(div);
+            });
+            drop.style.display = matches.length ? 'block' : 'none';
+        };
+
+        // Click outside to close AC
+        document.addEventListener('click', function(e) {
+            if(!e.target.closest('.relative')) {
+                document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none');
+            }
+        });
+
+        // 🧾 POS LOGIC
         window.autoFillPrice = function() {
-            const itemName = document.getElementById('pos-item').value;
-            const prod = window.erpData.products.find(p => p[0] === itemName);
-            if(prod) document.getElementById('pos-rate').value = prod[1];
+            const name = document.getElementById('pos-item').value;
+            const p = window.erpData.products.find(x => x[1] === name);
+            if(p) {
+                document.getElementById('pos-rate').value = p[2];
+                const uSel = document.getElementById('pos-unit');
+                uSel.innerHTML = `<option value="${p[4]}">${p[4]}</option>`;
+                if(p[5]) uSel.innerHTML += `<option value="${p[5]}">${p[5]}</option>`;
+            }
         };
 
         window.addToCart = function() {
             const name = document.getElementById('pos-item').value;
             const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
             const rate = parseFloat(document.getElementById('pos-rate').value) || 0;
-            if(!name || rate <= 0) return alert("Enter valid item and rate.");
-
-            const tot = qty * rate;
-            window.erpData.cart.push({name, qty, rate, tot});
+            const unit = document.getElementById('pos-unit').value || 'Pcs';
             
+            if(!name || rate <= 0) return alert("Valid item and rate required.");
+
+            window.erpData.cart.push({name, qty, rate, unit, tot: qty*rate});
             document.getElementById('pos-item').value = '';
             document.getElementById('pos-qty').value = '1';
             document.getElementById('pos-rate').value = '';
-            
+            document.getElementById('pos-unit').innerHTML = '';
             renderCart();
         };
 
-        window.removeCartItem = function(index) {
-            window.erpData.cart.splice(index, 1);
-            renderCart();
-        };
+        window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); renderCart(); };
 
         function renderCart() {
-            const ui = document.getElementById('pos-cart-ui');
-            ui.innerHTML = '';
+            const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = '';
             window.erpData.cartTotal = 0;
-            
-            if(window.erpData.cart.length === 0) {
-                ui.innerHTML = '<p class="text-center text-slate-400 text-sm mt-10">Cart is empty</p>';
-            } else {
+            if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-xs mt-10">Cart Empty</p>';
+            else {
                 window.erpData.cart.forEach((item, i) => {
                     window.erpData.cartTotal += item.tot;
                     ui.innerHTML += `
-                        <div class="bg-white p-2 rounded-lg border border-slate-100 flex justify-between items-center text-sm shadow-sm">
-                            <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[10px] text-slate-500">${item.qty} x ₹${item.rate.toFixed(2)}</p></div>
-                            <div class="flex items-center space-x-3"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="removeCartItem(${i})" class="text-red-400 hover:text-red-600"><i class="fas fa-times-circle"></i></button></div>
+                        <div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm">
+                            <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[10px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
+                            <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
                         </div>`;
                 });
             }
@@ -300,97 +341,184 @@
         }
 
         window.saveMobileBill = async function() {
-            if(window.erpData.cart.length === 0) return alert("Cart is empty!");
+            if(window.erpData.cart.length === 0) return;
             const btn = document.getElementById('btn-save-bill');
             let cust = document.getElementById('pos-cust').value.trim() || "Walk-in";
             let total = window.erpData.cartTotal;
-
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> SAVING...';
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...'; btn.disabled = true;
 
             try {
-                // Generate M-APP Bill Number
                 const cntRs = await client.execute("SELECT COUNT(id) FROM bills WHERE bill_no LIKE 'M-APP-%'");
-                const count = Number(cntRs.rows[0][0]) || 0;
-                const bill_no = `M-APP-${String(count + 1).padStart(4, '0')}`;
+                const bno = `M-APP-${String((Number(cntRs.rows[0][0])||0) + 1).padStart(4, '0')}`;
                 
-                const d = new Date();
-                const pad = n => String(n).padStart(2, '0');
-                const date_str = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+                const d = new Date(); const pad = n => String(n).padStart(2, '0');
+                const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
-                // Handle Customer
                 let old_bal = 0.0;
                 const custRs = await client.execute({ sql: "SELECT id, balance FROM customers WHERE name = ?", args: [cust] });
                 if (custRs.rows.length > 0) {
-                    old_bal = Number(custRs.rows[0][1] || 0.0);
+                    old_bal = Number(custRs.rows[0][1] || 0);
                     await client.execute({ sql: "UPDATE customers SET balance = balance + ? WHERE name = ?", args: [total, cust] });
                 } else if (cust !== 'Walk-in') {
                     await client.execute({ sql: "INSERT INTO customers (name, mobile, address, balance, group_name) VALUES (?, '', '', ?, 'General')", args: [cust, total] });
                 }
 
-                // Deduct Stock
-                for(let item of window.erpData.cart) {
-                    await client.execute({ sql: "UPDATE products SET stock = stock - ? WHERE name = ?", args: [item.qty, item.name] });
-                }
+                for(let item of window.erpData.cart) await client.execute({ sql: "UPDATE products SET stock = stock - ? WHERE name = ?", args: [item.qty, item.name] });
 
-                // Insert Bill
                 await client.execute({
-                    sql: `INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) 
-                          VALUES (?, ?, ?, 0, ?, 0, ?, 'Due/Cash', ?, ?, ?, 'Generated via Mobile PWA')`,
-                    args: [bill_no, cust, total, total, total, JSON.stringify(window.erpData.cart), date_str, old_bal]
+                    sql: `INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES (?, ?, ?, 0, ?, 0, ?, 'Due/Cash', ?, ?, ?, 'Mobile PWA')`,
+                    args: [bno, cust, total, total, total, JSON.stringify(window.erpData.cart), dt, old_bal]
                 });
 
-                alert(`Success! Bill ${bill_no} saved.`);
-                document.getElementById('pos-cust').value = '';
-                window.erpData.cart = [];
-                renderCart();
-                window.syncData();
-                window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
-
-            } catch (err) {
-                console.error(err); alert("Failed to save bill. Check internet.");
-            } finally {
-                btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> COMPLETE SALE';
-                btn.disabled = false;
-            }
+                document.getElementById('pos-cust').value = ''; window.erpData.cart = []; renderCart();
+                await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+                alert("Bill Saved!");
+            } catch (err) { alert("Save failed."); }
+            btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
-        // ==========================================
-        // 📱 UI & NAVIGATION CONTROLS
-        // ==========================================
-        window.switchTab = function(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
+        // 📜 SALES REGISTER
+        window.renderSales = function() {
+            const val = (document.getElementById('search-sales').value || "").toLowerCase();
+            const list = document.getElementById('sales-list'); list.innerHTML = '';
             
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('text-blue-600', 'active');
-                b.classList.add('text-slate-400');
+            window.erpData.bills.filter(b => b[1].toLowerCase().includes(val) || b[2].toLowerCase().includes(val)).slice(0,20).forEach(b => {
+                const bno = b[1], cust = b[2], amt = Number(b[3]), dt = String(b[4]).substring(0,10);
+                const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+                list.innerHTML += `
+                    <div onclick="viewBill(${b[0]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50">
+                        <div><p class="text-sm font-bold text-slate-800">${cust}</p><p class="text-[10px] text-slate-500">${dt}</p></div>
+                        <div class="text-right"><p class="text-md font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[9px] font-bold px-1 rounded ${badge}">${bno}</span></div>
+                    </div>`;
             });
-            btnElement.classList.remove('text-slate-400');
-            btnElement.classList.add('text-blue-600', 'active');
+        };
+
+        window.viewBill = function(id) {
+            const b = window.erpData.bills.find(x => x[0] === id);
+            if(!b) return;
+            document.getElementById('m-bill-title').innerText = b[1];
             
-            const titles = { 'dashboard': 'DASH', 'pos': 'POS', 'stock': 'STOCK', 'contacts': 'LEDGER' };
-            document.getElementById('header-title').innerText = titles[tabId];
+            let html = `Customer : ${b[2]}\nDate     : ${b[4]}\n--------------------------\n`;
+            try {
+                let items = JSON.parse(b[5]);
+                items.forEach(i => html += `${i.name.substring(0,15).padEnd(15)} ${i.qty} x ${i.rate} = ${i.tot}\n`);
+            } catch(e){}
+            html += `--------------------------\nGRAND TOTAL : ₹${b[3]}\n`;
+            
+            document.getElementById('m-bill-content').innerText = html;
+            
+            const cObj = window.erpData.customers.find(c => c[0] === b[2]);
+            const mob = cObj ? (cObj[3] || cObj[1]) : '';
+            const waBtn = document.getElementById('btn-wa');
+            waBtn.onclick = () => {
+                if(!mob) return alert("No phone number saved for this customer.");
+                window.open(`https://wa.me/${mob}?text=${encodeURIComponent(html)}`, '_blank');
+            };
+            
+            document.getElementById('modal-bill').classList.remove('hidden');
         };
 
-        window.filterStock = function() {
-            let val = document.getElementById('search-stock').value.toLowerCase();
-            document.querySelectorAll('.stock-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+        // 💰 LEDGER & PAYMENT
+        window.renderLedger = function() {
+            const val = (document.getElementById('search-ledger').value || "").toLowerCase();
+            const list = document.getElementById('ledger-list'); list.innerHTML = '';
+            
+            window.erpData.customers.filter(c => c[2] > 0 && c[0].toLowerCase().includes(val)).forEach(c => {
+                list.innerHTML += `
+                    <div onclick="openPayModal('${c[0]}', ${c[2]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50">
+                        <div><p class="text-sm font-bold text-slate-800">${c[0]}</p><p class="text-[10px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c[1]||'N/A'}</p></div>
+                        <div class="text-right"><p class="text-xs text-slate-400">Due</p><p class="text-md font-black text-rose-500">₹${Number(c[2]).toFixed(2)}</p></div>
+                    </div>`;
             });
         };
 
-        window.filterCust = function() {
-            let val = document.getElementById('search-cust').value.toLowerCase();
-            document.querySelectorAll('.cust-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+        window.openPayModal = function(name, due) {
+            document.getElementById('pay-cust-name').innerText = name;
+            document.getElementById('pay-due').innerText = `₹${due.toFixed(2)}`;
+            document.getElementById('pay-amt').value = due.toFixed(2);
+            document.getElementById('modal-pay').classList.remove('hidden');
+        };
+
+        window.savePayment = async function() {
+            const name = document.getElementById('pay-cust-name').innerText;
+            const amt = parseFloat(document.getElementById('pay-amt').value);
+            if(!amt || amt <= 0) return alert("Invalid amount.");
+            
+            try {
+                const dt = new Date().toISOString().replace('T',' ').substring(0, 19);
+                await client.execute({ sql: "UPDATE customers SET balance = balance - ? WHERE name = ?", args: [amt, name] });
+                await client.execute({ sql: "INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES (?, ?, ?, 'Cash', 'Mobile Received')", args: [name, amt, dt] });
+                
+                document.getElementById('modal-pay').classList.add('hidden');
+                await window.syncData(); alert("Payment Logged!");
+            } catch(e) { alert("Error saving payment."); }
+        };
+
+        // 📦 STOCK MASTER
+        window.renderStock = function() {
+            const val = (document.getElementById('search-stock').value || "").toLowerCase();
+            const list = document.getElementById('stock-list'); list.innerHTML = '';
+            
+            window.erpData.products.filter(p => p[1].toLowerCase().includes(val)).slice(0,30).forEach(p => {
+                let color = p[3] <= 0 ? 'text-red-500' : 'text-emerald-500';
+                list.innerHTML += `
+                    <div onclick="openEditItem(${p[0]}, '${p[1]}', ${p[2]}, ${p[3]})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50">
+                        <p class="text-sm font-bold text-slate-800">${p[1]}</p>
+                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p[2]}</p><p class="text-[10px] font-bold ${color}">Stock: ${p[3]}</p></div>
+                    </div>`;
             });
         };
 
-        // Initialize PWA Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        window.openEditItem = function(id, name, rate, stock) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-rate').value = rate;
+            document.getElementById('edit-stock').value = stock;
+            document.getElementById('modal-edit-item').classList.remove('hidden');
+        };
+
+        window.saveMasterEdit = async function() {
+            const id = document.getElementById('edit-id').value;
+            const rate = parseFloat(document.getElementById('edit-rate').value);
+            const stock = parseFloat(document.getElementById('edit-stock').value);
+            
+            try {
+                await client.execute({ sql: "UPDATE products SET rate=?, stock=? WHERE id=?", args: [rate, stock, id] });
+                document.getElementById('modal-edit-item').classList.add('hidden');
+                await window.syncData();
+            } catch(e) { alert("Error saving."); }
+        };
+
+        // 👥 ATTENDANCE
+        window.renderAttendance = function() {
+            const list = document.getElementById('attendance-list'); list.innerHTML = '';
+            if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-xs text-slate-500'>No employees found.</p>";
+            
+            window.erpData.emps.forEach(e => {
+                list.innerHTML += `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                        <p class="font-bold text-slate-800 mb-2">${e[1]}</p>
+                        <div class="flex space-x-2">
+                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e[0]}" value="Present" checked> P</label>
+                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e[0]}" value="Half Day"> HD</label>
+                            <label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e[0]}" value="Absent"> A</label>
+                        </div>
+                    </div>`;
+            });
+        };
+
+        window.saveAttendance = async function() {
+            const dt = new Date().toISOString().substring(0, 10);
+            try {
+                for(let e of window.erpData.emps) {
+                    const status = document.querySelector(`input[name="att_${e[0]}"]:checked`).value;
+                    await client.execute({ sql: "INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (?, ?, ?, ?)", args: [e[0], e[1], dt, status] });
+                }
+                alert("Attendance Saved!"); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+            } catch(err) { alert("Error saving attendance."); }
+        };
+
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
     </script>
 </body>
 </html>
