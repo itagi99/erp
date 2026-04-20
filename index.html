@@ -213,48 +213,21 @@
                 <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Update Item</button>
             </div>
         </div>
-
     </div>
 
-    <script>
-        const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
-        const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
+    <script type="module">
+        // Using the official securely bundled client to prevent GitHub Pages from blocking it!
+        import { createClient } from "https://esm.sh/@libsql/client/web?bundle";
 
-        // Bulletproof HTTP Fetch explicitly mapping data without crashing on missing columns
-        async function runQuery(sql) {
-            try {
-                const req = await fetch(TURSO_URL, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${TURSO_TOKEN}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
-                });
-                
-                if (!req.ok) return [];
-                const data = await req.json();
-                
-                if (data.results[0].type === "error") {
-                    console.log("Safe SQL Skip:", data.results[0].error.message);
-                    return [];
-                }
-                
-                const res = data.results[0].response.result;
-                if (!res.cols || !res.rows) return [];
+        const client = createClient({
+            url: "https://anpmart-live-itagi99.aws-ap-south-1.turso.io",
+            authToken: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw"
+        });
 
-                const cols = res.cols.map(c => c.name);
-                return res.rows.map(row => {
-                    let obj = {};
-                    row.forEach((v, i) => { obj[cols[i]] = (v.type === "null") ? null : v.value; });
-                    return obj;
-                });
-            } catch (e) {
-                console.error("Query Failed:", e);
-                return []; 
-            }
-        }
-
+        // Global Data Store
         window.erpData = { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 };
 
-        // 🔒 LOGIN
+        // 🔒 LOGIN LOGIC
         window.checkLogin = function() {
             if(document.getElementById('login-pin').value === "1234") {
                 localStorage.setItem('erp_auth', 'true');
@@ -264,7 +237,7 @@
                 window.syncData();
             } else alert("Incorrect PIN.");
         };
-        
+
         if(localStorage.getItem('erp_auth') === 'true') {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
@@ -272,33 +245,46 @@
             window.syncData();
         }
 
-        // 🔄 MASTER SYNC (EXPLICIT COLUMNS FIXES DATA MISMATCH)
+        // 🔄 SYNC LOGIC (With Strict Object Mapping)
         window.syncData = async function() {
             const btn = document.getElementById('btn-sync');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             try {
-                let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
-                document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
+                // Fetch KPIs strictly cast to REAL numbers
+                const s_res = await client.execute("SELECT SUM(CAST(grand_total AS REAL)) FROM bills");
+                document.getElementById('kpi-sales').innerText = '₹' + Number(s_res.rows[0][0] || 0).toLocaleString('en-IN');
                 
-                let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
-                document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
+                const d_res = await client.execute("SELECT SUM(CAST(balance AS REAL)) FROM customers WHERE balance > 0");
+                document.getElementById('kpi-due').innerText = '₹' + Number(d_res.rows[0][0] || 0).toLocaleString('en-IN');
 
-                // Explicit Columns to prevent undefined errors
-                window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
-                window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
-                window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
-                window.erpData.emps = await runQuery("SELECT id, name FROM employees");
+                // Mappers map arrays to strict objects so the UI never crashes
+                const prod_rs = await client.execute("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
+                window.erpData.products = prod_rs.rows.map(r => ({id: r[0], name: r[1], rate: Number(r[2]||0), stock: Number(r[3]||0), unit_main: r[4], unit_pack: r[5]}));
+
+                const cust_rs = await client.execute("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
+                window.erpData.customers = cust_rs.rows.map(r => ({name: r[0], mobile: r[1], balance: Number(r[2]||0), whatsapp: r[3]}));
+
+                const bills_rs = await client.execute("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
+                window.erpData.bills = bills_rs.rows.map(r => ({id: r[0], bill_no: r[1], customer_name: r[2], grand_total: Number(r[3]||0), created_at: r[4], bill_data: r[5]}));
+
+                try { 
+                    const emp_rs = await client.execute("SELECT id, name FROM employees"); 
+                    window.erpData.emps = emp_rs.rows.map(r => ({id: r[0], name: r[1]}));
+                } catch(e){}
 
                 window.renderSales();
                 window.renderLedger();
                 window.renderStock();
                 window.renderAttendance();
 
-            } catch (err) { alert("Sync Failed. Check internet."); console.error(err); }
+            } catch (err) { 
+                alert("Sync Error: " + err.message); 
+                console.error(err); 
+            }
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
-        // 🎨 UI CONTROLS
+        // 🎨 UI TAB LOGIC
         window.switchTab = function(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
@@ -313,7 +299,7 @@
             document.getElementById('header-title').innerText = titles[tabId];
         };
 
-        // 🔍 CUSTOM AUTOCOMPLETE
+        // 🔍 AUTOCOMPLETE LOGIC
         window.filterAC = function(inputId, dropId) {
             const val = document.getElementById(inputId).value.toLowerCase();
             const drop = document.getElementById(dropId);
@@ -340,7 +326,7 @@
             if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
         });
 
-        // 🧾 POS LOGIC
+        // 🧾 POS ENGINE
         window.autoFillPrice = function() {
             const name = document.getElementById('pos-item').value;
             const p = window.erpData.products.find(x => x.name === name);
@@ -368,12 +354,12 @@
             window.renderCart();
         };
 
-        window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); window.renderCart(); }
+        window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); window.renderCart(); };
 
         window.renderCart = function() {
             const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = '';
             window.erpData.cartTotal = 0;
-            if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-4">Cart Empty</p>';
+            if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-2">Cart Empty</p>';
             else {
                 window.erpData.cart.forEach((item, i) => {
                     window.erpData.cartTotal += item.tot;
@@ -395,28 +381,31 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...'; btn.disabled = true;
 
             try {
-                let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
-                const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
+                let cntRs = await client.execute("SELECT COUNT(id) FROM bills WHERE bill_no LIKE 'M-APP-%'");
+                const bno = `M-APP-${String((Number(cntRs.rows[0][0])||0) + 1).padStart(4, '0')}`;
                 
                 const d = new Date(); const pad = n => String(n).padStart(2, '0');
                 const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
                 let old_bal = 0.0;
-                let custRs = await runQuery(`SELECT id, balance FROM customers WHERE name = '${cust.replace(/'/g, "''")}'`);
+                let custRs = await client.execute({ sql: "SELECT id, balance FROM customers WHERE name = ?", args: [cust] });
                 
-                if (custRs.length > 0) {
-                    old_bal = Number(custRs[0].balance || 0);
-                    await runQuery(`UPDATE customers SET balance = balance + ${total} WHERE name = '${cust.replace(/'/g, "''")}'`);
+                if (custRs.rows.length > 0) {
+                    old_bal = Number(custRs.rows[0][1] || 0);
+                    await client.execute({ sql: "UPDATE customers SET balance = balance + ? WHERE name = ?", args: [total, cust] });
                 } else if (cust !== 'Walk-in') {
-                    await runQuery(`INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('${cust.replace(/'/g, "''")}', '', '', ${total}, 'General')`);
+                    await client.execute({ sql: "INSERT INTO customers (name, mobile, address, balance, group_name) VALUES (?, '', '', ?, 'General')", args: [cust, total] });
                 }
 
                 for(let item of window.erpData.cart) {
-                    await runQuery(`UPDATE products SET stock = stock - ${item.qty} WHERE name = '${item.name.replace(/'/g, "''")}'`);
+                    await client.execute({ sql: "UPDATE products SET stock = stock - ? WHERE name = ?", args: [item.qty, item.name] });
                 }
 
-                const cartJson = JSON.stringify(window.erpData.cart).replace(/'/g, "''");
-                await runQuery(`INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('${bno}', '${cust.replace(/'/g, "''")}', ${total}, 0, ${total}, 0, ${total}, 'Due/Cash', '${cartJson}', '${dt}', ${old_bal}, 'Mobile PWA')`);
+                const cartJson = JSON.stringify(window.erpData.cart);
+                await client.execute({
+                    sql: "INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES (?, ?, ?, 0, ?, 0, ?, 'Due/Cash', ?, ?, ?, 'Mobile PWA')",
+                    args: [bno, cust, total, total, total, cartJson, dt, old_bal]
+                });
 
                 document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
                 await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
@@ -425,7 +414,7 @@
             btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
-        // 📜 SALES REGISTER (WITH FILTERS)
+        // 📜 SALES REGISTER
         window.renderSales = function() {
             const val = (document.getElementById('search-sales').value || "").toLowerCase();
             const timeFilter = document.getElementById('filter-sales-time').value;
@@ -456,10 +445,10 @@
             
             if(sortFilter === 'newest') filtered.sort((a,b) => b.id - a.id);
             else if(sortFilter === 'oldest') filtered.sort((a,b) => a.id - b.id);
-            else if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.grand_total) - Number(a.grand_total));
+            else if(sortFilter === 'highest') filtered.sort((a,b) => b.grand_total - a.grand_total);
             
             filtered.slice(0, 50).forEach((b, i) => {
-                const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
+                const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = b.grand_total || 0, dt = String(b.created_at || "").substring(0,10);
                 const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
                 const html = `
                     <div onclick="window.viewBill(${b.id})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-1.5 shadow-sm">
@@ -495,24 +484,23 @@
             document.getElementById('modal-bill').classList.remove('hidden');
         };
 
-        // 💰 LEDGER & PAYMENT (WITH SORTING)
+        // 💰 LEDGER LOGIC
         window.renderLedger = function() {
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
             const list = document.getElementById('ledger-list'); list.innerHTML = '';
             
-            let filtered = window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val));
+            let filtered = window.erpData.customers.filter(c => c.balance > 0 && (c.name||"").toLowerCase().includes(val));
             
-            if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.balance) - Number(a.balance));
-            else if(sortFilter === 'lowest') filtered.sort((a,b) => Number(a.balance) - Number(b.balance));
+            if(sortFilter === 'highest') filtered.sort((a,b) => b.balance - a.balance);
+            else if(sortFilter === 'lowest') filtered.sort((a,b) => a.balance - b.balance);
             else if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
             
             filtered.forEach(c => {
-                const safeName = (c.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openPayModal('${safeName}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-1.5 shadow-sm">
+                    <div onclick="window.openPayModal('${c.name.replace(/'/g, "\\'")}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-1.5 shadow-sm">
                         <div><p class="text-xs font-bold text-slate-800">${c.name}</p><p class="text-[9px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
-                        <div class="text-right"><p class="text-[9px] text-slate-400">Due</p><p class="text-sm font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
+                        <div class="text-right"><p class="text-[9px] text-slate-400">Due</p><p class="text-sm font-black text-rose-500">₹${c.balance.toFixed(2)}</p></div>
                     </div>`;
             });
         };
@@ -531,15 +519,15 @@
             
             try {
                 const dt = new Date().toISOString().replace('T',' ').substring(0, 19);
-                await runQuery(`UPDATE customers SET balance = balance - ${amt} WHERE name = '${name.replace(/'/g, "''")}'`);
-                await runQuery(`INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES ('${name.replace(/'/g, "''")}', ${amt}, '${dt}', 'Cash', 'Mobile Received')`);
+                await client.execute({ sql: "UPDATE customers SET balance = balance - ? WHERE name = ?", args: [amt, name] });
+                await client.execute({ sql: "INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES (?, ?, ?, 'Cash', 'Mobile Received')", args: [name, amt, dt] });
                 
                 document.getElementById('modal-pay').classList.add('hidden');
                 await window.syncData(); alert("Payment Logged!");
             } catch(e) { alert("Error saving payment."); }
         };
 
-        // 📦 STOCK MASTER (WITH SORTING)
+        // 📦 STOCK MASTER
         window.renderStock = function() {
             const val = (document.getElementById('search-stock').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-stock').value;
@@ -548,17 +536,15 @@
             let filtered = window.erpData.products.filter(p => (p.name||"").toLowerCase().includes(val));
             
             if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
-            else if(sortFilter === 'low') filtered.sort((a,b) => Number(a.stock||0) - Number(b.stock||0));
-            else if(sortFilter === 'high') filtered.sort((a,b) => Number(b.stock||0) - Number(a.stock||0));
+            else if(sortFilter === 'low') filtered.sort((a,b) => a.stock - b.stock);
+            else if(sortFilter === 'high') filtered.sort((a,b) => b.stock - a.stock);
             
             filtered.slice(0,50).forEach(p => {
-                const stk = Number(p.stock || 0);
-                let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
-                const safeName = (p.name||"").replace(/'/g, "\\'");
+                let color = p.stock <= 0 ? 'text-red-500' : 'text-emerald-500';
                 list.innerHTML += `
-                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
+                    <div onclick="window.openEditItem(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.rate||0}, ${p.stock})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
                         <p class="text-xs font-bold text-slate-800">${p.name}</p>
-                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color}">Stock: ${stk}</p></div>
+                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color}">Stock: ${p.stock}</p></div>
                     </div>`;
             });
         };
@@ -576,7 +562,7 @@
             const rate = parseFloat(document.getElementById('edit-rate').value);
             const stock = parseFloat(document.getElementById('edit-stock').value);
             try {
-                await runQuery(`UPDATE products SET rate=${rate}, stock=${stock} WHERE id=${id}`);
+                await client.execute({ sql: "UPDATE products SET rate=?, stock=? WHERE id=?", args: [rate, stock, id] });
                 document.getElementById('modal-edit-item').classList.add('hidden');
                 await window.syncData();
             } catch(e) { alert("Error saving."); }
@@ -605,11 +591,12 @@
             try {
                 for(let e of window.erpData.emps) {
                     const status = document.querySelector(`input[name="att_${e.id}"]:checked`).value;
-                    await runQuery(`INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (${e.id}, '${e.name.replace(/'/g, "''")}', '${dt}', '${status}')`);
+                    await client.execute({ sql: "INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (?, ?, ?, ?)", args: [e.id, e.name, dt, status] });
                 }
                 alert("Attendance Saved!"); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
             } catch(err) { alert("Error saving attendance."); }
         };
+
     </script>
 </body>
 </html>
