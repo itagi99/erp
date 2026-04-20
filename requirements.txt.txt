@@ -1,2 +1,0 @@
-Flask==3.0.3
-libsql-client==0.0.18
