@@ -74,10 +74,11 @@ async function syncData() {
     const btn = document.getElementById('btn-sync');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     try {
-        let s_res = await runQuery("SELECT SUM(grand_total) as t FROM bills");
+        // ⚡ FIX: Force Strict Number Casting for all-time KPIs
+        let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
         document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
         
-        let d_res = await runQuery("SELECT SUM(balance) as t FROM customers WHERE balance > 0");
+        let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
         document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
 
         window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
@@ -170,13 +171,13 @@ function removeCartItem(index) { window.erpData.cart.splice(index, 1); renderCar
 function renderCart() {
     const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = '';
     window.erpData.cartTotal = 0;
-    if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-xs mt-4">Cart Empty</p>';
+    if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-4">Cart Empty</p>';
     else {
         window.erpData.cart.forEach((item, i) => {
             window.erpData.cartTotal += item.tot;
             ui.innerHTML += `
                 <div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm mb-1">
-                    <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[10px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
+                    <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[9px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
                     <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
                 </div>`;
         });
@@ -223,7 +224,7 @@ async function saveMobileBill() {
 }
 
 // ==========================================
-// 📜 TAB RENDERERS (Sales, Ledger, Stock, Attendance)
+// 📜 TAB RENDERERS (Compact UI)
 // ==========================================
 function renderSales() {
     const val = (document.getElementById('search-sales').value || "").toLowerCase();
@@ -236,9 +237,9 @@ function renderSales() {
         const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
         const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
         const html = `
-            <div onclick="viewBill(${b.id})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-2">
-                <div><p class="text-sm font-bold text-slate-800">${cust}</p><p class="text-[10px] text-slate-500">${dt}</p></div>
-                <div class="text-right"><p class="text-md font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[9px] font-bold px-1 rounded ${badge}">${bno}</span></div>
+            <div onclick="viewBill(${b.id})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-1.5 shadow-sm">
+                <div><p class="text-xs font-bold text-slate-800">${cust}</p><p class="text-[9px] text-slate-500">${dt}</p></div>
+                <div class="text-right"><p class="text-sm font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[8px] font-bold px-1 rounded ${badge}">${bno}</span></div>
             </div>`;
         list.innerHTML += html;
         if(i < 5 && val === "") feed.innerHTML += html;
@@ -275,9 +276,9 @@ function renderLedger() {
     window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val)).forEach(c => {
         const safeName = (c.name||"").replace(/'/g, "\\'");
         list.innerHTML += `
-            <div onclick="openPayModal('${safeName}', ${c.balance})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-2">
-                <div><p class="text-sm font-bold text-slate-800">${c.name}</p><p class="text-[10px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
-                <div class="text-right"><p class="text-xs text-slate-400">Due</p><p class="text-md font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
+            <div onclick="openPayModal('${safeName}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-1.5 shadow-sm">
+                <div><p class="text-xs font-bold text-slate-800">${c.name}</p><p class="text-[9px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
+                <div class="text-right"><p class="text-[9px] text-slate-400">Due</p><p class="text-sm font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
             </div>`;
     });
 }
@@ -313,9 +314,9 @@ function renderStock() {
         let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
         const safeName = (p.name||"").replace(/'/g, "\\'");
         list.innerHTML += `
-            <div onclick="openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2">
-                <p class="text-sm font-bold text-slate-800">${p.name}</p>
-                <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[10px] font-bold ${color}">Stock: ${stk}</p></div>
+            <div onclick="openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
+                <p class="text-xs font-bold text-slate-800">${p.name}</p>
+                <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color}">Stock: ${stk}</p></div>
             </div>`;
     });
 }
@@ -341,16 +342,16 @@ async function saveMasterEdit() {
 
 function renderAttendance() {
     const list = document.getElementById('attendance-list'); list.innerHTML = '';
-    if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-xs text-slate-500'>No employees found.</p>";
+    if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
     
     window.erpData.emps.forEach(e => {
         list.innerHTML += `
-            <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">
-                <p class="font-bold text-slate-800 mb-2">${e.name}</p>
-                <div class="flex space-x-2">
-                    <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
-                    <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
-                    <label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded text-xs font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
+            <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm mb-1.5">
+                <p class="font-bold text-slate-800 text-xs mb-2">${e.name}</p>
+                <div class="flex space-x-1.5">
+                    <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
+                    <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
+                    <label class="flex-1 text-center bg-red-50 text-red-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
                 </div>
             </div>`;
     });
@@ -367,5 +368,12 @@ async function saveAttendance() {
     } catch(err) { alert("Error saving attendance."); }
 }
 
-// Register PWA
+// Attach globals
+window.checkLogin = checkLogin; window.syncData = syncData; window.switchTab = switchTab;
+window.filterAC = filterAC; window.autoFillPrice = autoFillPrice; window.addToCart = addToCart;
+window.removeCartItem = removeCartItem; window.saveMobileBill = saveMobileBill;
+window.renderSales = renderSales; window.viewBill = viewBill; window.renderLedger = renderLedger;
+window.openPayModal = openPayModal; window.savePayment = savePayment; window.renderStock = renderStock;
+window.openEditItem = openEditItem; window.saveMasterEdit = saveMasterEdit; window.saveAttendance = saveAttendance;
+
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
