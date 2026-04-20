@@ -4,144 +4,309 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ANPMART Mobile ERP</title>
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { -webkit-tap-highlight-color: transparent; }
+        body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans antialiased text-slate-800 pb-24">
+<body class="bg-slate-100 font-sans antialiased text-slate-800 h-screen flex flex-col overflow-hidden">
 
-    <header class="bg-blue-600 text-white p-4 shadow-lg sticky top-0 z-50 flex justify-between items-center">
-        <h1 class="text-xl font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANPMART <span class="font-light text-blue-200">LIVE</span></h1>
-        <button onclick="window.loadDashboard()" class="bg-blue-500 w-10 h-10 rounded-full shadow hover:bg-blue-400 active:scale-90 transition transform flex justify-center items-center">
-            <i class="fas fa-sync-alt"></i>
-        </button>
-    </header>
-
-    <main class="p-4 max-w-md mx-auto space-y-5">
-        
-        <div class="grid grid-cols-2 gap-4">
-            <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-emerald-500">
-                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Sales</p>
-                <p class="text-2xl font-black text-slate-800" id="kpi-sales">₹0</p>
+    <div id="login-screen" class="absolute inset-0 z-[100] bg-slate-900 flex flex-col justify-center items-center p-6">
+        <div class="glass-card w-full max-w-sm p-8 rounded-3xl shadow-2xl text-center">
+            <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fas fa-lock text-3xl text-white"></i>
             </div>
-            <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-rose-500">
-                <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Due</p>
-                <p class="text-2xl font-black text-slate-800" id="kpi-due">₹0</p>
-            </div>
-        </div>
-
-        <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-5">
-            <h2 class="text-lg font-bold text-slate-800 mb-4"><i class="fas fa-bolt text-yellow-500 mr-2"></i> Fast Mobile Billing</h2>
+            <h2 class="text-2xl font-black text-slate-800 mb-2">ANPMART ERP</h2>
+            <p class="text-sm text-slate-500 font-bold mb-6">Restricted Access</p>
             
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Select or Type Customer</label>
-                    <input type="text" id="cust-name" list="cust-list" placeholder="Walk-in" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-lg transition">
+            <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-4 bg-slate-100 border border-slate-300 rounded-xl text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4 transition">
+            
+            <button onclick="checkLogin()" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md hover:bg-blue-700 active:scale-95 transition">
+                Unlock System
+            </button>
+        </div>
+    </div>
+
+    <div id="app-screen" class="hidden flex-col h-full">
+        
+        <header class="bg-blue-600 text-white p-4 shadow-md z-40 flex justify-between items-center shrink-0">
+            <h1 class="text-xl font-extrabold tracking-tight"><i class="fas fa-store mr-2"></i> ANPMART <span class="font-light text-blue-200" id="header-title">DASH</span></h1>
+            <button onclick="syncData()" id="btn-sync" class="bg-blue-500 w-10 h-10 rounded-full shadow hover:bg-blue-400 active:scale-90 transition flex justify-center items-center">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </header>
+
+        <main class="flex-1 overflow-y-auto hide-scroll p-4 pb-24" id="main-content">
+            
+            <div id="tab-dashboard" class="tab-content space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-emerald-500">
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Sales</p>
+                        <p class="text-xl font-black text-slate-800" id="kpi-sales">₹0</p>
+                    </div>
+                    <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 border-b-4 border-b-rose-500">
+                        <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider mb-1">Total Due</p>
+                        <p class="text-xl font-black text-slate-800" id="kpi-due">₹0</p>
+                    </div>
+                </div>
+                <div class="flex justify-between items-end mt-4 mb-2">
+                    <h2 class="text-md font-bold text-slate-800">Recent Global Bills</h2>
+                    <span class="text-[10px] font-bold text-emerald-500 bg-emerald-100 px-2 py-1 rounded-md animate-pulse">LIVE</span>
+                </div>
+                <div id="dashboard-feed" class="space-y-3"></div>
+            </div>
+
+            <div id="tab-pos" class="tab-content hidden space-y-4">
+                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-sm font-bold text-slate-500 uppercase">Customer Info</h2>
+                        <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded-md" id="pos-bill-no">M-APP-NEW</span>
+                    </div>
+                    <input type="text" id="pos-cust" list="cust-list" placeholder="Walk-in Customer" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-700">
                     <datalist id="cust-list"></datalist>
                 </div>
-                
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Bill Amount (₹)</label>
-                    <input type="number" id="bill-amt" placeholder="0.00" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-2xl font-bold text-center transition">
+
+                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-4 bg-blue-50">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase mb-3">Add Item</h2>
+                    <input type="text" id="pos-item" list="item-list" onchange="autoFillPrice()" placeholder="Search Item..." class="w-full p-3 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-bold text-slate-700 mb-3">
+                    <datalist id="item-list"></datalist>
+                    
+                    <div class="flex space-x-2 mb-3">
+                        <div class="w-1/3">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Qty</label>
+                            <input type="number" id="pos-qty" value="1" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center font-bold">
+                        </div>
+                        <div class="w-2/3">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase">Rate (₹)</label>
+                            <input type="number" id="pos-rate" placeholder="0.00" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center font-bold">
+                        </div>
+                    </div>
+                    <button onclick="addToCart()" class="w-full bg-slate-800 text-white font-bold p-3 rounded-xl shadow-md active:scale-95 transition">
+                        <i class="fas fa-plus mr-2"></i> Add To Cart
+                    </button>
                 </div>
 
-                <button onclick="window.submitQuickBill()" id="btn-submit" class="w-full bg-blue-600 text-white font-bold text-lg p-4 rounded-xl shadow-md shadow-blue-500/30 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] transition flex justify-center items-center">
-                    <i class="fas fa-paper-plane mr-2"></i> Generate M-Bill
-                </button>
-            </div>
-        </div>
+                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-2 min-h-[150px]">
+                    <div id="pos-cart-ui" class="space-y-2">
+                        <p class="text-center text-slate-400 text-sm mt-10">Cart is empty</p>
+                    </div>
+                </div>
 
-        <div>
-            <div class="flex justify-between items-end mb-3">
-                <h2 class="text-lg font-bold text-slate-800">Live Global Feed</h2>
-                <span class="text-xs font-bold text-emerald-500 bg-emerald-100 px-2 py-1 rounded-md animate-pulse">LIVE</span>
+                <div class="glass-card rounded-2xl shadow-sm border border-slate-200 p-4 bg-slate-800 text-white sticky bottom-0">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-bold text-slate-300">Grand Total</span>
+                        <span class="text-2xl font-black text-emerald-400" id="pos-total">₹0.00</span>
+                    </div>
+                    <button onclick="saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 text-white font-black text-lg p-4 rounded-xl shadow-lg active:scale-95 transition">
+                        <i class="fas fa-check-circle mr-2"></i> COMPLETE SALE
+                    </button>
+                </div>
             </div>
-            
-            <div id="bills-list" class="space-y-3">
-                <p class="text-center text-slate-400 py-10"><i class="fas fa-spinner fa-spin text-2xl mb-2"></i><br>Syncing with Turso Cloud...</p>
+
+            <div id="tab-stock" class="tab-content hidden space-y-4">
+                <h2 class="text-lg font-bold text-slate-800 mb-2">Inventory Master</h2>
+                <input type="text" id="search-stock" onkeyup="filterStock()" placeholder="Search Inventory..." class="w-full p-3 bg-white border border-slate-200 rounded-xl mb-4 shadow-sm">
+                <div id="stock-list" class="space-y-3"></div>
             </div>
-        </div>
-    </main>
+
+            <div id="tab-contacts" class="tab-content hidden space-y-4">
+                <h2 class="text-lg font-bold text-slate-800 mb-2">Customer Ledger</h2>
+                <input type="text" id="search-cust" onkeyup="filterCust()" placeholder="Search Customers..." class="w-full p-3 bg-white border border-slate-200 rounded-xl mb-4 shadow-sm">
+                <div id="contacts-list" class="space-y-3"></div>
+            </div>
+
+        </main>
+
+        <nav class="bg-white border-t border-slate-200 flex justify-around pb-safe pt-2 shrink-0 z-50 fixed bottom-0 w-full max-w-md mx-auto">
+            <button onclick="switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-2 text-blue-600 w-1/4">
+                <i class="fas fa-chart-pie text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </button>
+            <button onclick="switchTab('pos', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 w-1/4">
+                <i class="fas fa-cash-register text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">POS</span>
+            </button>
+            <button onclick="switchTab('stock', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 w-1/4">
+                <i class="fas fa-box-open text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Stock</span>
+            </button>
+            <button onclick="switchTab('contacts', this)" class="nav-btn flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 w-1/4">
+                <i class="fas fa-users text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Ledger</span>
+            </button>
+        </nav>
+    </div>
 
     <script type="module">
         import { createClient } from "https://esm.sh/@libsql/client/web";
 
-        // Connect directly to Turso from the Browser!
+        // ==========================================
+        // 🌐 TURSO DATABASE CONNECTION
+        // ==========================================
         const client = createClient({
             url: "https://anpmart-live-itagi99.aws-ap-south-1.turso.io",
             authToken: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw"
         });
 
-        window.loadDashboard = async function() {
-            try {
-                // 1. Fetch KPIs
-                const sales_rs = await client.execute("SELECT SUM(grand_total) FROM bills");
-                const total_sales = sales_rs.rows[0][0] || 0.0;
+        // Global State
+        window.erpData = { products: [], customers: [], cart: [], cartTotal: 0.0 };
 
-                const due_rs = await client.execute("SELECT SUM(balance) FROM customers WHERE balance > 0");
-                const total_due = due_rs.rows[0][0] || 0.0;
-
-                document.getElementById('kpi-sales').innerText = '₹' + Number(total_sales).toLocaleString('en-IN', {minimumFractionDigits: 0});
-                document.getElementById('kpi-due').innerText = '₹' + Number(total_due).toLocaleString('en-IN', {minimumFractionDigits: 0});
-
-                // 2. Fetch Customers for Dropdown
-                const cust_rs = await client.execute("SELECT name FROM customers ORDER BY name");
-                const datalist = document.getElementById('cust-list');
-                datalist.innerHTML = '';
-                cust_rs.rows.forEach(r => {
-                    datalist.innerHTML += `<option value="${r[0]}">`;
-                });
-
-                // 3. Fetch Recent Bills
-                const bills_rs = await client.execute("SELECT bill_no, customer_name, grand_total, created_at FROM bills ORDER BY id DESC LIMIT 15");
-                const list = document.getElementById('bills-list');
-                list.innerHTML = '';
-                
-                bills_rs.rows.forEach(r => {
-                    const bno = r[0], cust = r[1], amt = Number(r[2]), date = String(r[3]).substring(0, 10);
-                    const isMobile = bno.startsWith('M-');
-                    const badgeColor = isMobile ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-blue-100 text-blue-700 border-blue-200';
-                    const icon = isMobile ? 'fa-mobile-screen' : 'fa-desktop';
-                    
-                    list.innerHTML += `
-                        <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
-                            <div>
-                                <p class="text-md font-bold text-slate-800">${cust}</p>
-                                <p class="text-xs font-medium text-slate-400 mt-0.5"><i class="far fa-calendar-alt mr-1"></i> ${date}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-lg font-black text-slate-800">₹${amt.toLocaleString('en-IN')}</p>
-                                <span class="inline-block mt-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${badgeColor}">
-                                    <i class="fas ${icon} mr-1"></i> ${bno}
-                                </span>
-                            </div>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                console.error("Error loading dashboard:", error);
-                alert("Failed to connect to database.");
+        // ==========================================
+        // 🔒 SECURITY (Basic UI Gate)
+        // ==========================================
+        window.checkLogin = function() {
+            const pin = document.getElementById('login-pin').value;
+            if(pin === "1234") { // <-- Change your password here
+                localStorage.setItem('erp_auth', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('flex');
+                window.syncData(); // Load data on unlock
+            } else {
+                alert("Incorrect PIN.");
             }
         };
 
-        window.submitQuickBill = async function() {
-            const btn = document.getElementById('btn-submit');
-            let customer = document.getElementById('cust-name').value.trim();
-            if (!customer) customer = 'Walk-in';
+        // Auto-login if previously unlocked
+        if(localStorage.getItem('erp_auth') === 'true') {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('app-screen').classList.add('flex');
+            window.syncData();
+        }
+
+        // ==========================================
+        // 🔄 MASTER SYNC ENGINE
+        // ==========================================
+        window.syncData = async function() {
+            const btn = document.getElementById('btn-sync');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                // 1. Fetch KPIs
+                const sales_rs = await client.execute("SELECT SUM(grand_total) FROM bills");
+                document.getElementById('kpi-sales').innerText = '₹' + Number(sales_rs.rows[0][0] || 0).toLocaleString('en-IN');
+
+                const due_rs = await client.execute("SELECT SUM(balance) FROM customers WHERE balance > 0");
+                document.getElementById('kpi-due').innerText = '₹' + Number(due_rs.rows[0][0] || 0).toLocaleString('en-IN');
+
+                // 2. Fetch Products (For POS & Stock Tab)
+                const prod_rs = await client.execute("SELECT name, rate, stock, category FROM products ORDER BY name");
+                window.erpData.products = prod_rs.rows;
+                
+                const itemDatalist = document.getElementById('item-list');
+                const stockListUI = document.getElementById('stock-list');
+                itemDatalist.innerHTML = ''; stockListUI.innerHTML = '';
+                
+                window.erpData.products.forEach(p => {
+                    itemDatalist.innerHTML += `<option value="${p[0]}">`;
+                    let stockColor = p[2] <= 0 ? 'text-red-500' : 'text-emerald-500';
+                    stockListUI.innerHTML += `
+                        <div class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center stock-card">
+                            <div><p class="font-bold text-slate-800 text-sm">${p[0]}</p><p class="text-xs text-slate-400">${p[3] || 'General'}</p></div>
+                            <div class="text-right"><p class="font-black text-slate-800">₹${p[1]}</p><p class="text-xs font-bold ${stockColor}">Stock: ${p[2]}</p></div>
+                        </div>`;
+                });
+
+                // 3. Fetch Customers (For POS & Ledger Tab)
+                const cust_rs = await client.execute("SELECT name, mobile, balance FROM customers ORDER BY name");
+                window.erpData.customers = cust_rs.rows;
+                
+                const custDatalist = document.getElementById('cust-list');
+                const contactsListUI = document.getElementById('contacts-list');
+                custDatalist.innerHTML = ''; contactsListUI.innerHTML = '';
+                
+                window.erpData.customers.forEach(c => {
+                    custDatalist.innerHTML += `<option value="${c[0]}">`;
+                    let dueColor = c[2] > 0 ? 'text-red-500' : 'text-emerald-500';
+                    contactsListUI.innerHTML += `
+                        <div class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center cust-card">
+                            <div><p class="font-bold text-slate-800 text-sm">${c[0]}</p><p class="text-xs text-slate-400"><i class="fas fa-phone mr-1"></i>${c[1] || 'N/A'}</p></div>
+                            <div class="text-right"><p class="text-xs font-bold text-slate-400">Balance</p><p class="font-black ${dueColor}">₹${Number(c[2]).toFixed(2)}</p></div>
+                        </div>`;
+                });
+
+                // 4. Fetch Recent Bills
+                const bills_rs = await client.execute("SELECT bill_no, customer_name, grand_total, created_at FROM bills ORDER BY id DESC LIMIT 15");
+                const feed = document.getElementById('dashboard-feed');
+                feed.innerHTML = '';
+                bills_rs.rows.forEach(r => {
+                    const isMob = r[0].startsWith('M-');
+                    const badge = isMob ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+                    const icon = isMob ? 'fa-mobile-screen' : 'fa-desktop';
+                    feed.innerHTML += `
+                        <div class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center">
+                            <div><p class="text-sm font-bold text-slate-800">${r[1]}</p><p class="text-[10px] text-slate-400">${String(r[3]).substring(0,10)}</p></div>
+                            <div class="text-right"><p class="text-md font-black text-slate-800">₹${Number(r[2]).toLocaleString('en-IN')}</p><span class="text-[9px] font-extrabold px-2 py-0.5 rounded border ${badge}"><i class="fas ${icon} mr-1"></i>${r[0]}</span></div>
+                        </div>`;
+                });
+
+            } catch (err) { alert("Sync Failed. Check internet."); console.error(err); }
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        };
+
+        // ==========================================
+        // 🧾 POS ENGINE LOGIC
+        // ==========================================
+        window.autoFillPrice = function() {
+            const itemName = document.getElementById('pos-item').value;
+            const prod = window.erpData.products.find(p => p[0] === itemName);
+            if(prod) document.getElementById('pos-rate').value = prod[1];
+        };
+
+        window.addToCart = function() {
+            const name = document.getElementById('pos-item').value;
+            const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
+            const rate = parseFloat(document.getElementById('pos-rate').value) || 0;
+            if(!name || rate <= 0) return alert("Enter valid item and rate.");
+
+            const tot = qty * rate;
+            window.erpData.cart.push({name, qty, rate, tot});
             
-            const amount = parseFloat(document.getElementById('bill-amt').value);
+            document.getElementById('pos-item').value = '';
+            document.getElementById('pos-qty').value = '1';
+            document.getElementById('pos-rate').value = '';
+            
+            renderCart();
+        };
 
-            if (isNaN(amount) || amount <= 0) {
-                alert("Please enter a valid amount.");
-                return;
+        window.removeCartItem = function(index) {
+            window.erpData.cart.splice(index, 1);
+            renderCart();
+        };
+
+        function renderCart() {
+            const ui = document.getElementById('pos-cart-ui');
+            ui.innerHTML = '';
+            window.erpData.cartTotal = 0;
+            
+            if(window.erpData.cart.length === 0) {
+                ui.innerHTML = '<p class="text-center text-slate-400 text-sm mt-10">Cart is empty</p>';
+            } else {
+                window.erpData.cart.forEach((item, i) => {
+                    window.erpData.cartTotal += item.tot;
+                    ui.innerHTML += `
+                        <div class="bg-white p-2 rounded-lg border border-slate-100 flex justify-between items-center text-sm shadow-sm">
+                            <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[10px] text-slate-500">${item.qty} x ₹${item.rate.toFixed(2)}</p></div>
+                            <div class="flex items-center space-x-3"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="removeCartItem(${i})" class="text-red-400 hover:text-red-600"><i class="fas fa-times-circle"></i></button></div>
+                        </div>`;
+                });
             }
+            document.getElementById('pos-total').innerText = '₹' + window.erpData.cartTotal.toFixed(2);
+        }
 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+        window.saveMobileBill = async function() {
+            if(window.erpData.cart.length === 0) return alert("Cart is empty!");
+            const btn = document.getElementById('btn-save-bill');
+            let cust = document.getElementById('pos-cust').value.trim() || "Walk-in";
+            let total = window.erpData.cartTotal;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> SAVING...';
             btn.disabled = true;
-            btn.classList.add('opacity-75');
 
             try {
                 // Generate M-APP Bill Number
@@ -149,47 +314,83 @@
                 const count = Number(cntRs.rows[0][0]) || 0;
                 const bill_no = `M-APP-${String(count + 1).padStart(4, '0')}`;
                 
-                // Get current date string
                 const d = new Date();
                 const pad = n => String(n).padStart(2, '0');
                 const date_str = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
-                // Handle Customer Balance
+                // Handle Customer
                 let old_bal = 0.0;
-                const custCheckRs = await client.execute({ sql: "SELECT id, balance FROM customers WHERE name = ?", args: [customer] });
-                
-                if (custCheckRs.rows.length > 0) {
-                    old_bal = Number(custCheckRs.rows[0][1] || 0.0);
-                    await client.execute({ sql: "UPDATE customers SET balance = balance + ? WHERE name = ?", args: [amount, customer] });
-                } else if (customer !== 'Walk-in') {
-                    await client.execute({ sql: "INSERT INTO customers (name, mobile, address, balance, group_name) VALUES (?, '', '', ?, 'General')", args: [customer, amount] });
+                const custRs = await client.execute({ sql: "SELECT id, balance FROM customers WHERE name = ?", args: [cust] });
+                if (custRs.rows.length > 0) {
+                    old_bal = Number(custRs.rows[0][1] || 0.0);
+                    await client.execute({ sql: "UPDATE customers SET balance = balance + ? WHERE name = ?", args: [total, cust] });
+                } else if (cust !== 'Walk-in') {
+                    await client.execute({ sql: "INSERT INTO customers (name, mobile, address, balance, group_name) VALUES (?, '', '', ?, 'General')", args: [cust, total] });
+                }
+
+                // Deduct Stock
+                for(let item of window.erpData.cart) {
+                    await client.execute({ sql: "UPDATE products SET stock = stock - ? WHERE name = ?", args: [item.qty, item.name] });
                 }
 
                 // Insert Bill
-                const bill_data = JSON.stringify([{name: "Mobile Quick Sale", qty: 1, rate: amount, tot: amount}]);
-                
                 await client.execute({
                     sql: `INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) 
-                          VALUES (?, ?, ?, 0, ?, 0, ?, 'Due/Cash', ?, ?, ?, 'Generated via Mobile App')`,
-                    args: [bill_no, customer, amount, amount, amount, bill_data, date_str, old_bal]
+                          VALUES (?, ?, ?, 0, ?, 0, ?, 'Due/Cash', ?, ?, ?, 'Generated via Mobile PWA')`,
+                    args: [bill_no, cust, total, total, total, JSON.stringify(window.erpData.cart), date_str, old_bal]
                 });
 
-                document.getElementById('cust-name').value = '';
-                document.getElementById('bill-amt').value = '';
-                await window.loadDashboard(); 
-                
-            } catch (error) {
-                console.error(error);
-                alert("Connection error. Check internet.");
+                alert(`Success! Bill ${bill_no} saved.`);
+                document.getElementById('pos-cust').value = '';
+                window.erpData.cart = [];
+                renderCart();
+                window.syncData();
+                window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+
+            } catch (err) {
+                console.error(err); alert("Failed to save bill. Check internet.");
             } finally {
-                btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Generate M-Bill';
+                btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> COMPLETE SALE';
                 btn.disabled = false;
-                btn.classList.remove('opacity-75');
             }
         };
 
-        // Load data when page loads
-        window.onload = window.loadDashboard;
+        // ==========================================
+        // 📱 UI & NAVIGATION CONTROLS
+        // ==========================================
+        window.switchTab = function(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-blue-600', 'active');
+                b.classList.add('text-slate-400');
+            });
+            btnElement.classList.remove('text-slate-400');
+            btnElement.classList.add('text-blue-600', 'active');
+            
+            const titles = { 'dashboard': 'DASH', 'pos': 'POS', 'stock': 'STOCK', 'contacts': 'LEDGER' };
+            document.getElementById('header-title').innerText = titles[tabId];
+        };
+
+        window.filterStock = function() {
+            let val = document.getElementById('search-stock').value.toLowerCase();
+            document.querySelectorAll('.stock-card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+            });
+        };
+
+        window.filterCust = function() {
+            let val = document.getElementById('search-cust').value.toLowerCase();
+            document.querySelectorAll('.cust-card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(val) ? 'flex' : 'none';
+            });
+        };
+
+        // Initialize PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
     </script>
 </body>
 </html>
