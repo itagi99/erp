@@ -1,9 +1,7 @@
-// ==========================================
-// ⚡ TURSO DATABASE CONNECTION (NATIVE REST)
-// ==========================================
 const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
 const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
 
+// ⚡ CORE DATABASE ENGINE
 async function runQuery(sql, args = []) {
     const formattedArgs = args.map(arg => {
         if (typeof arg === 'number') return { type: "float", value: arg };
@@ -23,10 +21,11 @@ async function runQuery(sql, args = []) {
             })
         });
         
-        if (!req.ok) return [];
+        if (!req.ok) throw new Error("Network Error");
         const data = await req.json();
+        
         if (data.results[0].type === "error") {
-            console.log("SQL Safe Skip:", data.results[0].error.message);
+            console.log("Safe Skip:", data.results[0].error.message);
             return [];
         }
         
@@ -40,60 +39,59 @@ async function runQuery(sql, args = []) {
             return obj;
         });
     } catch (e) {
-        console.error("Fetch Error:", e);
+        console.error("Query Failed:", e);
         return []; 
     }
 }
 
-// ==========================================
-// 🔒 APP STATE & LOGIN
-// ==========================================
+// 🌐 GLOBAL STATE
 window.erpData = { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 };
 
-function checkLogin() {
+// 🔒 LOGIN
+window.checkLogin = function() {
     if(document.getElementById('login-pin').value === "1234") {
         localStorage.setItem('erp_auth', 'true');
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('app-screen').classList.remove('hidden');
         document.getElementById('app-screen').classList.add('flex');
-        syncData();
+        window.syncData();
     } else alert("Incorrect PIN.");
-}
+};
 
 if(localStorage.getItem('erp_auth') === 'true') {
     document.getElementById('login-screen').classList.add('hidden');
     document.getElementById('app-screen').classList.remove('hidden');
     document.getElementById('app-screen').classList.add('flex');
-    syncData();
+    window.syncData();
 }
 
-// ==========================================
-// 🔄 MASTER SYNC & RENDER ENGINE
-// ==========================================
-async function syncData() {
+// 🔄 MASTER SYNC
+window.syncData = async function() {
     const btn = document.getElementById('btn-sync');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     try {
-        // ⚡ FIX: Force Strict Number Casting for all-time KPIs
         let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
-        document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
+        document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0] && s_res[0].t) || 0).toLocaleString('en-IN');
         
         let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
-        document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
+        document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0] && d_res[0].t) || 0).toLocaleString('en-IN');
 
         window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
         window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
-        window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 50");
+        window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
         
         try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
-        renderSales(); renderLedger(); renderStock(); renderAttendance();
-
-    } catch (err) { alert("Sync Failed. Check internet."); }
+        window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
+    } catch (err) { 
+        alert("Sync Failed. Check your network."); 
+        document.getElementById('debug-text').innerText = "Sync Failed: " + err.message;
+    }
     btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-}
+};
 
-function switchTab(tabId, btnElement) {
+// 🎨 UI CONTROLS
+window.switchTab = function(tabId, btnElement) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
     document.getElementById('tab-' + tabId).classList.remove('hidden');
     
@@ -105,12 +103,10 @@ function switchTab(tabId, btnElement) {
     }
     const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
     document.getElementById('header-title').innerText = titles[tabId];
-}
+};
 
-// ==========================================
-// 🔍 AUTOCOMPLETE ENGINE
-// ==========================================
-function filterAC(inputId, dropId) {
+// 🔍 AUTOCOMPLETE
+window.filterAC = function(inputId, dropId) {
     const val = document.getElementById(inputId).value.toLowerCase();
     const drop = document.getElementById(dropId);
     drop.innerHTML = '';
@@ -125,21 +121,19 @@ function filterAC(inputId, dropId) {
         div.onclick = function() {
             document.getElementById(inputId).value = m;
             drop.style.display = 'none';
-            if(inputId === 'pos-item') autoFillPrice();
+            if(inputId === 'pos-item') window.autoFillPrice();
         };
         drop.appendChild(div);
     });
     drop.style.display = matches.length ? 'block' : 'none';
-}
+};
 
 document.addEventListener('click', function(e) {
     if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
 });
 
-// ==========================================
 // 🧾 POS ENGINE
-// ==========================================
-function autoFillPrice() {
+window.autoFillPrice = function() {
     const name = document.getElementById('pos-item').value;
     const p = window.erpData.products.find(x => x.name === name);
     if(p) {
@@ -148,9 +142,9 @@ function autoFillPrice() {
         uSel.innerHTML = `<option value="${p.unit_main || 'Pcs'}">${p.unit_main || 'Pcs'}</option>`;
         if(p.unit_pack) uSel.innerHTML += `<option value="${p.unit_pack}">${p.unit_pack}</option>`;
     }
-}
+};
 
-function addToCart() {
+window.addToCart = function() {
     const name = document.getElementById('pos-item').value;
     const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
     const rate = parseFloat(document.getElementById('pos-rate').value) || 0;
@@ -163,29 +157,29 @@ function addToCart() {
     document.getElementById('pos-qty').value = '1';
     document.getElementById('pos-rate').value = '';
     document.getElementById('pos-unit').innerHTML = '';
-    renderCart();
-}
+    window.renderCart();
+};
 
-function removeCartItem(index) { window.erpData.cart.splice(index, 1); renderCart(); }
+window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); window.renderCart(); };
 
-function renderCart() {
+window.renderCart = function() {
     const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = '';
     window.erpData.cartTotal = 0;
-    if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-4">Cart Empty</p>';
+    if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-2">Cart Empty</p>';
     else {
         window.erpData.cart.forEach((item, i) => {
             window.erpData.cartTotal += item.tot;
             ui.innerHTML += `
                 <div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm mb-1">
                     <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[9px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
-                    <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
+                    <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="window.removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
                 </div>`;
         });
     }
     document.getElementById('pos-total').innerText = '₹' + window.erpData.cartTotal.toFixed(2);
-}
+};
 
-async function saveMobileBill() {
+window.saveMobileBill = async function() {
     if(window.erpData.cart.length === 0) return;
     const btn = document.getElementById('btn-save-bill');
     let cust = document.getElementById('pos-cust').value.trim() || "Walk-in";
@@ -194,7 +188,7 @@ async function saveMobileBill() {
 
     try {
         let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
-        const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
+        const bno = `M-APP-${String((Number(cntRs[0] && cntRs[0].c)||0) + 1).padStart(4, '0')}`;
         
         const d = new Date(); const pad = n => String(n).padStart(2, '0');
         const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
@@ -216,37 +210,60 @@ async function saveMobileBill() {
         const cartJson = JSON.stringify(window.erpData.cart).replace(/'/g, "''");
         await runQuery(`INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('${bno}', '${cust.replace(/'/g, "''")}', ${total}, 0, ${total}, 0, ${total}, 'Due/Cash', '${cartJson}', '${dt}', ${old_bal}, 'Mobile PWA')`);
 
-        document.getElementById('pos-cust').value = ''; window.erpData.cart = []; renderCart();
-        await syncData(); switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+        document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
+        await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
         alert("Bill Saved Successfully!");
     } catch (err) { alert("Save failed. Check Connection."); console.error(err); }
     btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
-}
+};
 
-// ==========================================
-// 📜 TAB RENDERERS (Compact UI)
-// ==========================================
-function renderSales() {
+// 📜 SALES REGISTER
+window.renderSales = function() {
     const val = (document.getElementById('search-sales').value || "").toLowerCase();
+    const timeFilter = document.getElementById('filter-sales-time').value;
+    const sortFilter = document.getElementById('sort-sales').value;
+    
     const list = document.getElementById('sales-list'); list.innerHTML = '';
     const feed = document.getElementById('dashboard-feed'); feed.innerHTML = '';
     
-    let filtered = window.erpData.bills.filter(b => (b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val));
+    let filtered = window.erpData.bills.filter(b => {
+        if(!b) return false;
+        const matchSearch = (b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val);
+        if(!matchSearch) return false;
+        
+        if(timeFilter !== 'all') {
+            const bDate = new Date(b.created_at);
+            const now = new Date();
+            if(timeFilter === 'today') {
+                if(bDate.toDateString() !== now.toDateString()) return false;
+            } else if(timeFilter === '7days') {
+                const diff = (now - bDate) / (1000 * 60 * 60 * 24);
+                if(diff > 7) return false;
+            } else if(timeFilter === 'month') {
+                if(bDate.getMonth() !== now.getMonth() || bDate.getFullYear() !== now.getFullYear()) return false;
+            }
+        }
+        return true;
+    });
     
-    filtered.slice(0, 20).forEach((b, i) => {
+    if(sortFilter === 'newest') filtered.sort((a,b) => b.id - a.id);
+    else if(sortFilter === 'oldest') filtered.sort((a,b) => a.id - b.id);
+    else if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.grand_total) - Number(a.grand_total));
+    
+    filtered.slice(0, 50).forEach((b, i) => {
         const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
         const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
         const html = `
-            <div onclick="viewBill(${b.id})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-1.5 shadow-sm">
+            <div onclick="window.viewBill(${b.id})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-1.5 shadow-sm">
                 <div><p class="text-xs font-bold text-slate-800">${cust}</p><p class="text-[9px] text-slate-500">${dt}</p></div>
                 <div class="text-right"><p class="text-sm font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[8px] font-bold px-1 rounded ${badge}">${bno}</span></div>
             </div>`;
         list.innerHTML += html;
-        if(i < 5 && val === "") feed.innerHTML += html;
+        if(i < 5 && val === "" && timeFilter === 'all') feed.innerHTML += html;
     });
-}
+};
 
-function viewBill(id) {
+window.viewBill = function(id) {
     const b = window.erpData.bills.find(x => x.id === id);
     if(!b) return;
     document.getElementById('m-bill-title').innerText = b.bill_no || "Bill";
@@ -266,31 +283,40 @@ function viewBill(id) {
         if(!mob) return alert("No phone number saved for this customer.");
         window.open(`https://wa.me/${mob}?text=${encodeURIComponent(html)}`, '_blank');
     };
+    
     document.getElementById('modal-bill').classList.remove('hidden');
-}
+};
 
-function renderLedger() {
+// 💰 LEDGER
+window.renderLedger = function() {
     const val = (document.getElementById('search-ledger').value || "").toLowerCase();
+    const sortFilter = document.getElementById('sort-ledger').value;
     const list = document.getElementById('ledger-list'); list.innerHTML = '';
     
-    window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val)).forEach(c => {
+    let filtered = window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val));
+    
+    if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.balance) - Number(a.balance));
+    else if(sortFilter === 'lowest') filtered.sort((a,b) => Number(a.balance) - Number(b.balance));
+    else if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
+    
+    filtered.forEach(c => {
         const safeName = (c.name||"").replace(/'/g, "\\'");
         list.innerHTML += `
-            <div onclick="openPayModal('${safeName}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-1.5 shadow-sm">
+            <div onclick="window.openPayModal('${safeName}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-1.5 shadow-sm">
                 <div><p class="text-xs font-bold text-slate-800">${c.name}</p><p class="text-[9px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
                 <div class="text-right"><p class="text-[9px] text-slate-400">Due</p><p class="text-sm font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
             </div>`;
     });
-}
+};
 
-function openPayModal(name, due) {
+window.openPayModal = function(name, due) {
     document.getElementById('pay-cust-name').innerText = name;
     document.getElementById('pay-due').innerText = `₹${due.toFixed(2)}`;
     document.getElementById('pay-amt').value = due.toFixed(2);
     document.getElementById('modal-pay').classList.remove('hidden');
-}
+};
 
-async function savePayment() {
+window.savePayment = async function() {
     const name = document.getElementById('pay-cust-name').innerText;
     const amt = parseFloat(document.getElementById('pay-amt').value);
     if(!amt || amt <= 0) return alert("Invalid amount.");
@@ -301,46 +327,55 @@ async function savePayment() {
         await runQuery(`INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES ('${name.replace(/'/g, "''")}', ${amt}, '${dt}', 'Cash', 'Mobile Received')`);
         
         document.getElementById('modal-pay').classList.add('hidden');
-        await syncData(); alert("Payment Logged!");
+        await window.syncData(); alert("Payment Logged!");
     } catch(e) { alert("Error saving payment."); }
-}
+};
 
-function renderStock() {
+// 📦 STOCK MASTER
+window.renderStock = function() {
     const val = (document.getElementById('search-stock').value || "").toLowerCase();
+    const sortFilter = document.getElementById('sort-stock').value;
     const list = document.getElementById('stock-list'); list.innerHTML = '';
     
-    window.erpData.products.filter(p => (p.name||"").toLowerCase().includes(val)).slice(0,30).forEach(p => {
+    let filtered = window.erpData.products.filter(p => (p.name||"").toLowerCase().includes(val));
+    
+    if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
+    else if(sortFilter === 'low') filtered.sort((a,b) => Number(a.stock||0) - Number(b.stock||0));
+    else if(sortFilter === 'high') filtered.sort((a,b) => Number(b.stock||0) - Number(a.stock||0));
+    
+    filtered.slice(0,50).forEach(p => {
         const stk = Number(p.stock || 0);
         let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
         const safeName = (p.name||"").replace(/'/g, "\\'");
         list.innerHTML += `
-            <div onclick="openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
+            <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
                 <p class="text-xs font-bold text-slate-800">${p.name}</p>
                 <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color}">Stock: ${stk}</p></div>
             </div>`;
     });
-}
+};
 
-function openEditItem(id, name, rate, stock) {
+window.openEditItem = function(id, name, rate, stock) {
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-name').value = name;
     document.getElementById('edit-rate').value = rate;
     document.getElementById('edit-stock').value = stock;
     document.getElementById('modal-edit-item').classList.remove('hidden');
-}
+};
 
-async function saveMasterEdit() {
+window.saveMasterEdit = async function() {
     const id = document.getElementById('edit-id').value;
     const rate = parseFloat(document.getElementById('edit-rate').value);
     const stock = parseFloat(document.getElementById('edit-stock').value);
     try {
         await runQuery(`UPDATE products SET rate=${rate}, stock=${stock} WHERE id=${id}`);
         document.getElementById('modal-edit-item').classList.add('hidden');
-        await syncData();
+        await window.syncData();
     } catch(e) { alert("Error saving."); }
-}
+};
 
-function renderAttendance() {
+// 👥 ATTENDANCE
+window.renderAttendance = function() {
     const list = document.getElementById('attendance-list'); list.innerHTML = '';
     if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
     
@@ -355,25 +390,15 @@ function renderAttendance() {
                 </div>
             </div>`;
     });
-}
+};
 
-async function saveAttendance() {
+window.saveAttendance = async function() {
     const dt = new Date().toISOString().substring(0, 10);
     try {
         for(let e of window.erpData.emps) {
             const status = document.querySelector(`input[name="att_${e.id}"]:checked`).value;
             await runQuery(`INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (${e.id}, '${e.name.replace(/'/g, "''")}', '${dt}', '${status}')`);
         }
-        alert("Attendance Saved!"); switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+        alert("Attendance Saved!"); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
     } catch(err) { alert("Error saving attendance."); }
-}
-
-// Attach globals
-window.checkLogin = checkLogin; window.syncData = syncData; window.switchTab = switchTab;
-window.filterAC = filterAC; window.autoFillPrice = autoFillPrice; window.addToCart = addToCart;
-window.removeCartItem = removeCartItem; window.saveMobileBill = saveMobileBill;
-window.renderSales = renderSales; window.viewBill = viewBill; window.renderLedger = renderLedger;
-window.openPayModal = openPayModal; window.savePayment = savePayment; window.renderStock = renderStock;
-window.openEditItem = openEditItem; window.saveMasterEdit = saveMasterEdit; window.saveAttendance = saveAttendance;
-
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+};
