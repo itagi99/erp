@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- CACHE BUSTING META TAGS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>ANPMART Mobile ERP</title>
-    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -26,14 +29,15 @@
             <h2 class="text-xl font-black text-slate-800 mb-1">ANPMART ERP</h2>
             <p class="text-xs text-slate-500 font-bold mb-5">Restricted Access</p>
             <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg text-center text-xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            <button onclick="window.checkLogin()" class="w-full bg-blue-600 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition mb-4">Unlock System</button>
+            <button onclick="window.checkLogin()" class="w-full bg-blue-600 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition mb-2">Unlock System</button>
+            
+            <!-- ON-SCREEN ERROR LOGGER -->
+            <div id="error-log" class="mt-4 p-2 bg-red-50 rounded text-[10px] text-red-600 font-mono text-left hidden h-24 overflow-y-auto w-full border border-red-200"></div>
         </div>
     </div>
 
     <!-- 📱 APP SHELL -->
     <div id="app-screen" class="hidden flex-col h-full w-full absolute inset-0">
-        
-        <!-- Header -->
         <header class="bg-blue-600 text-white p-2 px-3 shadow-md z-40 flex justify-between items-center shrink-0">
             <h1 class="text-base font-extrabold tracking-tight"><i class="fas fa-store mr-1"></i> ANP<span class="font-light text-blue-200" id="header-title">DASH</span></h1>
             <button onclick="window.syncData()" id="btn-sync" class="bg-blue-500 w-7 h-7 rounded-full shadow active:scale-90 flex justify-center items-center text-xs"><i class="fas fa-sync-alt"></i></button>
@@ -92,10 +96,10 @@
                 </div>
             </div>
 
-            <!-- 📜 SALES REGISTER (WITH SORTS AND FILTERS) -->
+            <!-- 📜 SALES REGISTER -->
             <div id="tab-sales" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
-                    <input type="text" id="search-sales" onkeyup="window.renderSales()" placeholder="Search Bills or Customers..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="search-sales" onkeyup="window.renderSales()" placeholder="Search Bills..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
                     <div class="flex space-x-1.5">
                         <select id="filter-sales-time" onchange="window.renderSales()" class="w-1/2 p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
                             <option value="all">All Time</option>
@@ -113,7 +117,7 @@
                 <div id="sales-list" class="space-y-1.5 pb-2"></div>
             </div>
 
-            <!-- 💰 LEDGER & PAYMENTS (WITH SORTS) -->
+            <!-- 💰 LEDGER & PAYMENTS -->
             <div id="tab-ledger" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
                     <input type="text" id="search-ledger" onkeyup="window.renderLedger()" placeholder="Search Dues by Name..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
@@ -220,11 +224,29 @@
                 <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Update Item</button>
             </div>
         </div>
-
     </div>
 
-    <!-- ⚡ 100% NATIVE INLINE SCRIPT (NO EXTERNAL FILES TO BREAK) -->
+    <!-- ⚡ 100% NATIVE JAVASCRIPT ENGINE -->
     <script>
+        // --- CACHE KILLER ---
+        // This hunts down and deletes the broken PWA memory from your phone
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+
+        // --- GLOBAL ERROR LOGGER ---
+        window.onerror = function(msg, url, line) {
+            const errLog = document.getElementById('error-log');
+            if(errLog) {
+                errLog.classList.remove('hidden');
+                errLog.innerHTML += `► Error: ${msg}<br>`;
+            }
+        };
+
         const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
         const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
 
@@ -236,9 +258,9 @@
                     body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
                 });
 
-                if (!response.ok) return [];
+                if (!response.ok) throw new Error("HTTP Error " + response.status);
                 const data = await response.json();
-                if (data.results[0].type === "error") return [];
+                if (data.results[0].type === "error") throw new Error(data.results[0].error.message);
 
                 const result = data.results[0].response.result;
                 if (!result || !result.cols || !result.rows) return [];
@@ -249,33 +271,39 @@
                     row.forEach((v, i) => { obj[cols[i]] = (v && v.type === "null") ? null : (v ? v.value : null); });
                     return obj;
                 });
-            } catch (error) { return []; }
+            } catch (error) { 
+                console.error("Turso Query Failed:", error);
+                throw error; // Pass error up so the UI sees it
+            }
         }
 
         window.erpData = { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 };
 
         window.checkLogin = function() {
-            if(document.getElementById('login-pin').value === "1234") {
+            const pin = document.getElementById('login-pin').value;
+            if(pin === "1234") {
                 localStorage.setItem('erp_auth', 'true');
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-screen').classList.remove('hidden');
                 document.getElementById('app-screen').classList.add('flex');
                 window.syncData();
-            } else alert("Incorrect PIN.");
+            } else {
+                alert("Incorrect PIN.");
+            }
         };
 
         if(localStorage.getItem('erp_auth') === 'true') {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('flex');
-            window.syncData();
+            // Small delay to let DOM load
+            setTimeout(() => { window.syncData(); }, 300);
         }
 
         window.syncData = async function() {
             const btn = document.getElementById('btn-sync');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             try {
-                // ⚡ FIX: Strict Cast to REAL to fix Dashboard Mismatch
                 let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
                 document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
                 
@@ -288,17 +316,23 @@
                 try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                alert("Sync Failed: " + err.message); 
+                console.error(err);
+            }
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
+        // --- UI & TABS ---
         window.switchTab = function(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(t => {
                 t.classList.add('hidden'); t.classList.remove('block', 'flex');
             });
             const target = document.getElementById('tab-' + tabId);
-            target.classList.remove('hidden');
-            target.classList.add(tabId === 'pos' ? 'flex' : 'block');
+            if(target) {
+                target.classList.remove('hidden');
+                target.classList.add(tabId === 'pos' ? 'flex' : 'block');
+            }
             
             document.querySelectorAll('.nav-btn').forEach(b => {
                 b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400');
@@ -333,6 +367,7 @@
             if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
         });
 
+        // --- POS FUNCTIONS ---
         window.autoFillPrice = function() {
             const name = document.getElementById('pos-item').value;
             const p = window.erpData.products.find(x => x.name === name);
@@ -409,11 +444,11 @@
                 document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
                 await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
                 alert("Bill Saved Successfully!");
-            } catch (err) { alert("Save failed. Check Connection."); }
+            } catch (err) { alert("Save failed. Check Connection."); console.error(err); }
             btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
-        // 📜 SALES REGISTER (WITH FILTERS AND SORTS)
+        // --- SALES REGISTER ---
         window.renderSales = function() {
             const val = (document.getElementById('search-sales').value || "").toLowerCase();
             const timeFilter = document.getElementById('filter-sales-time').value;
@@ -451,7 +486,6 @@
             });
         };
 
-        // 🧾 VIEW BILL & SHARE WHATSAPP
         window.viewBill = function(id) {
             const b = window.erpData.bills.find(x => x.id === id);
             if(!b) return;
@@ -489,7 +523,7 @@
             document.getElementById('modal-bill').classList.remove('hidden');
         };
 
-        // 💰 LEDGER (WITH SORTS)
+        // --- LEDGER ---
         window.renderLedger = function() {
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
@@ -530,7 +564,7 @@
             } catch(e) { alert("Error saving payment."); }
         };
 
-        // 📦 STOCK (WITH SORTS)
+        // --- STOCK ---
         window.renderStock = function() {
             const val = (document.getElementById('search-stock').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-stock').value;
@@ -571,6 +605,7 @@
             } catch(e) { alert("Error saving."); }
         };
 
+        // --- ATTENDANCE ---
         window.renderAttendance = function() {
             const list = document.getElementById('attendance-list'); list.innerHTML = '';
             if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
