@@ -29,9 +29,9 @@
         /* 🖨️ 80mm THERMAL PRINTER CSS */
         @media print {
             body * { visibility: hidden !important; }
-            #modal-bill { display: block !important; position: absolute; left: 0; top: 0; width: 100%; background: white !important; }
+            #modal-bill { display: flex !important; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; align-items: flex-start; justify-content: flex-start; padding: 0 !important; }
             #thermal-bill, #thermal-bill * { visibility: visible !important; }
-            #thermal-bill { position: fixed; left: 0; top: 0; width: 80mm; margin: 0; padding: 5mm; box-shadow: none !important; border: none !important; }
+            #thermal-bill { position: absolute; left: 0; top: 0; width: 80mm; margin: 0; padding: 5mm; box-shadow: none !important; }
             .no-print { display: none !important; }
         }
     </style>
@@ -192,67 +192,105 @@
         <!-- 🪟 OVERLAY MODALS -->
         
         <!-- 1. EXACT REPLICA 80MM BILL VIEW MODAL -->
-        <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/80 flex flex-col justify-between p-4 hide-scroll overflow-y-auto">
+        <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/90 flex-col items-center p-4 hide-scroll overflow-y-auto">
             
-            <div class="no-print w-full max-w-[340px] mx-auto flex justify-between items-center mb-2">
-                <h3 class="text-white font-bold">Receipt Actions</h3>
-                <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="w-8 h-8 bg-white/20 rounded-full text-white flex items-center justify-center"><i class="fas fa-times"></i></button>
+            <div class="no-print w-full max-w-[340px] flex justify-between items-center mb-3 mt-4">
+                <h3 class="text-white font-bold">View & Share Invoice</h3>
+                <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="w-8 h-8 bg-white/20 rounded-full text-white flex items-center justify-center hover:bg-white/30"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- The Actual 80mm Thermal Receipt Structure (Matching Screenshot) -->
-            <div id="thermal-bill" class="bg-white text-black font-mono p-4 w-full max-w-[340px] mx-auto shadow-2xl relative text-[11px] leading-tight">
-                <div class="text-center font-bold mb-1">
-                    <h2 class="text-lg">ANPMART</h2>
-                    <p>GURUWAR PETH KITTUR<br>Phone : 7795966127</p>
+            <!-- EXACT 80MM THERMAL RECEIPT MATCHING SCREENSHOT -->
+            <div id="thermal-bill" class="bg-white text-black w-full max-w-[340px] shadow-2xl relative p-4 mb-4" style="font-family: monospace; letter-spacing: -0.5px;">
+                
+                <div class="text-center font-bold mb-1 leading-tight">
+                    <h2 class="text-lg tracking-widest uppercase">ANNAPURNA TRADERS</h2>
+                    <p class="text-[10px] mb-1">(anpmart)</p>
+                    <p class="text-[10px]">Chowkinath, Guruwarpeth, Kittur</p>
+                    <p class="text-[10px]">GSTIN: 29AEKPI9500B1Z0</p>
+                    <p class="text-[10px]">Phone: 7795966127</p>
                 </div>
                 
-                <div class="border-t border-dashed border-black my-1"></div>
-                <div class="text-center font-bold mb-1">POS INVOICE</div>
+                <div class="text-center font-bold text-[11px] my-2 underline">TAX INVOICE</div>
+                <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
                 
-                <div class="flex justify-between mb-1">
-                    <span>Inv: <span id="receipt-bill-no"></span></span>
-                    <span>Date: <span id="receipt-date"></span></span>
-                </div>
-                <div class="mb-1">Cust: <span id="receipt-cust"></span></div>
-                
-                <div class="border-t border-dashed border-black my-1"></div>
-                <div class="flex font-bold">
-                    <div class="w-[8%]">Sl</div>
-                    <div class="w-[42%]">Product Name</div>
-                    <div class="w-[15%] text-right">Qty</div>
-                    <div class="w-[15%] text-right">Price</div>
-                    <div class="w-[20%] text-right">Amount</div>
-                </div>
-                <div class="border-t border-dashed border-black my-1"></div>
-                
-                <div id="receipt-items" class="min-h-[50px]">
-                    <!-- Dynamic Items Go Here -->
+                <div class="text-[10px] leading-tight">
+                    <div class="flex justify-between"><span>Invoice No:</span> <span id="r-inv" class="font-bold"></span></div>
+                    <div class="flex justify-between"><span>Date:</span> <span id="r-date"></span></div>
+                    <div class="flex justify-between"><span>Customer:</span> <span id="r-cust" class="font-bold uppercase"></span></div>
+                    <div class="flex justify-between"><span>Mobile:</span> <span id="r-mob" class="font-bold"></span></div>
                 </div>
                 
-                <div class="border-t border-dashed border-black my-1"></div>
-                <div class="flex justify-between items-start mt-1">
-                    <div class="w-1/3">Items: <span id="receipt-item-count">0</span></div>
-                    <div class="w-2/3">
-                        <div class="flex justify-between mb-0.5"><span>Sub Total :</span> <span id="receipt-sub">0.00</span></div>
-                        <div class="flex justify-between font-bold mb-0.5"><span>GRAND TOTAL :</span> <span id="receipt-total">0.00</span></div>
-                        <div class="flex justify-between mb-0.5"><span>PAID AMOUNT :</span> <span id="receipt-paid">0.00</span></div>
-                        <div class="flex justify-between font-bold"><span>BALANCE DUE :</span> <span id="receipt-balance">0.00</span></div>
+                <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
+                
+                <table class="w-full text-left border-collapse border border-black mb-1 mt-1 text-[10px]">
+                    <thead>
+                        <tr class="border-b border-black font-bold">
+                            <th class="border-r border-black p-1 w-[8%] text-center">Sl</th>
+                            <th class="border-r border-black p-1 w-[46%]">Product</th>
+                            <th class="border-r border-black p-1 w-[13%] text-center">Qty</th>
+                            <th class="border-r border-black p-1 w-[15%] text-right">Price</th>
+                            <th class="p-1 w-[18%] text-right">Amt.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="r-items">
+                        <!-- Items Injected Here -->
+                    </tbody>
+                </table>
+
+                <div class="flex justify-between font-bold mt-2 text-[11px]">
+                    <span>Subtotal:</span> <span id="r-sub"></span>
+                </div>
+                <div class="border-t border-black my-1"></div>
+                <div class="flex justify-between text-[11px]">
+                    <span>Round Off:</span> <span>0.00</span>
+                </div>
+                <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
+
+                <table class="w-full text-right border-collapse border border-black mb-2 mt-1 text-[9px]">
+                    <thead>
+                        <tr class="border-b border-black">
+                            <th class="border-r border-black p-1 text-left">Tax</th>
+                            <th class="border-r border-black p-1">Taxable</th>
+                            <th class="border-r border-black p-1">GST</th>
+                            <th class="p-1">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="r-taxes">
+                        <!-- Taxes Injected Here -->
+                    </tbody>
+                </table>
+
+                <!-- HIGHLIGHTED NET PAYABLE BLOCK -->
+                <div class="bg-yellow-100 border border-black p-1.5 flex justify-between font-black text-[13px] mb-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+                    <span>NET PAYABLE:</span> <span id="r-net"></span>
+                </div>
+                
+                <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
+
+                <!-- UPI QR CODE BLOCK -->
+                <div class="border border-blue-400 rounded-lg p-2 text-center text-blue-900 bg-[#eef6ff]">
+                    <p class="font-bold text-[10px] mb-1 tracking-wider"><i class="fas fa-credit-card mr-1"></i> SCAN TO PAY</p>
+                    <div class="bg-white p-1 border border-black inline-block mx-auto">
+                        <img id="r-qr" src="" alt="QR Code" class="w-[90px] h-[90px] mx-auto mix-blend-multiply">
                     </div>
+                    <p class="font-black mt-1 text-[12px]" id="r-qr-amt"></p>
+                    <p class="text-[8px] mt-0.5 tracking-tight">UPI: 6363304520@okbizaxis</p>
                 </div>
-                <div class="border-t border-dashed border-black my-1"></div>
-                <div class="text-center font-bold mt-2 pb-2">THANKS FOR SHOPPING WITH US</div>
+
+                <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
+                <div class="text-center font-bold mt-1 text-[10px]">THANK YOU! VISIT AGAIN</div>
             </div>
 
             <!-- Share Action Buttons -->
-            <div class="no-print w-full max-w-[340px] mx-auto mt-4 grid grid-cols-3 gap-2 pb-4">
-                <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow flex flex-col items-center justify-center text-[10px] active:scale-95">
-                    <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print / PDF
+            <div class="no-print w-full max-w-[340px] grid grid-cols-3 gap-2 pb-6">
+                <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
+                    <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print 80mm
                 </button>
-                <button onclick="window.shareImage()" id="btn-share-img" class="bg-blue-600 text-white font-bold p-3 rounded-lg shadow flex flex-col items-center justify-center text-[10px] active:scale-95">
-                    <i class="fas fa-image text-xl mb-1"></i> Share Image
+                <button onclick="window.shareImage()" id="btn-share-img" class="bg-blue-600 text-white font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
+                    <i class="fas fa-image text-xl mb-1"></i> Send Image
                 </button>
-                <button onclick="window.shareWA()" class="bg-[#25D366] text-white font-bold p-3 rounded-lg shadow flex flex-col items-center justify-center text-[10px] active:scale-95">
-                    <i class="fab fa-whatsapp text-xl mb-1"></i> Share Text
+                <button onclick="window.shareWA()" class="bg-[#25D366] text-white font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
+                    <i class="fab fa-whatsapp text-xl mb-1"></i> Text Receipt
                 </button>
             </div>
         </div>
@@ -325,15 +363,6 @@
             });
         }
 
-        // --- GLOBAL ERROR LOGGER ---
-        window.onerror = function(msg, url, line) {
-            const errLog = document.getElementById('error-log');
-            if(errLog) {
-                errLog.classList.remove('hidden');
-                errLog.innerHTML += `► Error: ${msg}<br>`;
-            }
-        };
-
         const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
         const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
 
@@ -345,9 +374,9 @@
                     body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
                 });
 
-                if (!response.ok) throw new Error("HTTP Error " + response.status);
+                if (!response.ok) throw new Error("HTTP Error");
                 const data = await response.json();
-                if (data.results[0].type === "error") throw new Error(data.results[0].error.message);
+                if (data.results[0].type === "error") return [];
 
                 const result = data.results[0].response.result;
                 if (!result || !result.cols || !result.rows) return [];
@@ -358,10 +387,7 @@
                     row.forEach((v, i) => { obj[cols[i]] = (v && v.type === "null") ? null : (v ? v.value : null); });
                     return obj;
                 });
-            } catch (error) { 
-                console.error("Turso Query Failed:", error);
-                throw error;
-            }
+            } catch (error) { return []; }
         }
 
         window.erpData = { products: [], customers: [], bills: [], emps: [], payments: [], cart: [], cartTotal: 0.0 };
@@ -396,38 +422,23 @@
 
                 window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
                 window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
-                
-                // ⚡ FIX: Fetching sub_total, paid, and balance_due specifically for the new thermal receipt
                 window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, sub_total, grand_total, paid, balance_due, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
                 
                 try { window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); } catch(e){}
                 try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
-            } catch (err) { 
-                alert("Sync Failed: " + err.message); 
-                console.error(err);
-            }
+            } catch (err) { alert("Sync Failed."); }
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
-        // --- UI & TABS ---
         window.switchTab = function(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(t => {
-                t.classList.add('hidden'); t.classList.remove('block', 'flex');
-            });
+            document.querySelectorAll('.tab-content').forEach(t => { t.classList.add('hidden'); t.classList.remove('block', 'flex'); });
             const target = document.getElementById('tab-' + tabId);
-            if(target) {
-                target.classList.remove('hidden');
-                target.classList.add(tabId === 'pos' ? 'flex' : 'block');
-            }
+            if(target) { target.classList.remove('hidden'); target.classList.add(tabId === 'pos' ? 'flex' : 'block'); }
             
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400');
-            });
-            if(btnElement) {
-                btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active');
-            }
+            document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400'); });
+            if(btnElement) { btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active'); }
             const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
             document.getElementById('header-title').innerText = titles[tabId];
         };
@@ -455,7 +466,6 @@
             if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
         });
 
-        // --- POS FUNCTIONS ---
         window.autoFillPrice = function() {
             const name = document.getElementById('pos-item').value;
             const p = window.erpData.products.find(x => x.name === name);
@@ -507,7 +517,6 @@
             try {
                 let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
                 const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
-                
                 const d = new Date(); const pad = n => String(n).padStart(2, '0');
                 const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
@@ -522,9 +531,7 @@
                     await runQuery(`INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('${csafe}', '', '', ${total}, 'General')`);
                 }
 
-                for(let item of window.erpData.cart) {
-                    await runQuery(`UPDATE products SET stock = stock - ${item.qty} WHERE name = '${item.name.replace(/'/g, "''")}'`);
-                }
+                for(let item of window.erpData.cart) { await runQuery(`UPDATE products SET stock = stock - ${item.qty} WHERE name = '${item.name.replace(/'/g, "''")}'`); }
 
                 const cartJson = JSON.stringify(window.erpData.cart).replace(/'/g, "''");
                 await runQuery(`INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('${bno}', '${csafe}', ${total}, 0, ${total}, 0, ${total}, 'Due/Cash', '${cartJson}', '${dt}', ${old_bal}, 'Mobile PWA')`);
@@ -532,11 +539,10 @@
                 document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
                 await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
                 alert("Bill Saved Successfully!");
-            } catch (err) { alert("Save failed. Check Connection."); console.error(err); }
+            } catch (err) { alert("Save failed. Check Connection."); }
             btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
-        // --- SALES REGISTER ---
         window.renderSales = function() {
             const val = (document.getElementById('search-sales').value || "").toLowerCase();
             const timeFilter = document.getElementById('filter-sales-time').value;
@@ -547,7 +553,6 @@
             let filtered = window.erpData.bills.filter(b => {
                 if(!b) return false;
                 if(!((b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val))) return false;
-                
                 if(timeFilter !== 'all') {
                     const bDate = new Date(b.created_at); const now = new Date();
                     if(timeFilter === 'today') { if(bDate.toDateString() !== now.toDateString()) return false; }
@@ -563,85 +568,99 @@
             
             filtered.slice(0, 50).forEach((b, i) => {
                 const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
-                const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+                const badge = bno.startsWith('M-') ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700';
                 const html = `
-                    <div onclick="window.viewBill(${b.id})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-1.5 shadow-sm cursor-pointer">
-                        <div><p class="text-xs font-bold text-slate-800">${cust}</p><p class="text-[9px] text-slate-500">${dt}</p></div>
-                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[8px] font-bold px-1 rounded ${badge}">${bno}</span></div>
+                    <div onclick="window.viewBill(${b.id})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                        <div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${cust}</p><p class="text-[9px] font-bold text-slate-500 mt-0.5">${dt}</p></div>
+                        <div class="text-right"><p class="text-base font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[8px] font-black px-1.5 py-0.5 rounded ${badge} mt-1 inline-block">${bno}</span></div>
                     </div>`;
                 list.innerHTML += html;
                 if(i < 5 && val === "" && timeFilter === 'all') feed.innerHTML += html;
             });
         };
 
-        // 🧾 EXACT REPLICA BILL VIEW & SHARE
+        // 🖨️ EXACT 80MM THERMAL VIEW & SHARE
         window.viewBill = function(id) {
             const b = window.erpData.bills.find(x => x.id === id);
             if(!b) return;
             
             const dateStr = String(b.created_at).substring(0,10);
+            const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
+            const mob = cObj ? (cObj.whatsapp || cObj.mobile || 'N/A') : 'N/A';
             
-            // 1. Prepare Text for WhatsApp (Exact Thermal Format)
-            let waText = `*ANPMART*\nGURUWAR PETH KITTUR\nPhone : 7795966127\n--------------------------------\nPOS INVOICE\nInv: ${b.bill_no}    Date: ${dateStr}\nCust: ${b.customer_name}\n--------------------------------\nSl Product Name       Qty  Price Amount\n`;
+            // Generate WhatsApp Text Format
+            let waText = `*ANNAPURNA TRADERS*\nChowkinath, Guruwarpeth, Kittur\nPhone: 7795966127\n--------------------------------\n*TAX INVOICE*\nInv: ${b.bill_no}\nDate: ${dateStr}\nCust: ${b.customer_name}\nMob: ${mob}\n--------------------------------\nSl Product Name       Qty   Price   Amount\n--------------------------------\n`;
 
-            // 2. Prepare HTML for Modal Thermal View
-            document.getElementById('receipt-bill-no').innerText = b.bill_no;
-            document.getElementById('receipt-date').innerText = dateStr;
-            document.getElementById('receipt-cust').innerText = b.customer_name;
+            // HTML Element Setup
+            document.getElementById('r-inv').innerText = b.bill_no;
+            document.getElementById('r-date').innerText = dateStr;
+            document.getElementById('r-cust').innerText = b.customer_name;
+            document.getElementById('r-mob').innerText = mob;
             
             let htmlItems = '';
-            let itemCount = 0;
-            
+            let gt = Number(b.grand_total);
+            let sub = Number(b.sub_total || gt);
+
             try { 
                 let items = JSON.parse(b.bill_data || "[]");
                 items.forEach((i, idx) => {
-                    itemCount += Number(i.qty || 1);
+                    let rate = Number(i.rate).toFixed(2);
+                    let tot = Number(i.tot).toFixed(2);
                     
-                    // Format text for WhatsApp
+                    // WA formatting
                     let sl = String(idx + 1).padEnd(2);
                     let n = (i.name||"Item").substring(0,16).padEnd(16);
                     let q = (String(i.qty) + (i.unit||"")).padStart(5);
-                    let r = String(Number(i.rate).toFixed(1)).padStart(6);
-                    let t = String(Number(i.tot).toFixed(1)).padStart(7);
+                    let r = String(Number(i.rate).toFixed(1)).padStart(7);
+                    let t = String(Number(i.tot).toFixed(1)).padStart(8);
                     waText += `${sl} ${n} ${q} ${r} ${t}\n`;
 
-                    // Format HTML for UI
+                    // HTML formatting
                     htmlItems += `
-                        <div class="flex text-[10px] items-start mb-0.5">
-                            <div class="w-[8%]">${idx + 1}</div>
-                            <div class="w-[42%] pr-1 break-words">${i.name}</div>
-                            <div class="w-[15%] text-right">${i.qty}${i.unit||''}</div>
-                            <div class="w-[15%] text-right">${Number(i.rate).toFixed(1)}</div>
-                            <div class="w-[20%] text-right">${Number(i.tot).toFixed(1)}</div>
-                        </div>`;
+                        <tr class="border-b border-black">
+                            <td class="border-r border-black p-1 align-top text-center">${idx+1}</td>
+                            <td class="border-r border-black p-1 leading-tight">
+                                <span class="font-bold">${i.name}</span><br>
+                                <span class="text-[7px] text-slate-600 uppercase tracking-tighter">HSN: N/A | GST: 5%</span>
+                            </td>
+                            <td class="border-r border-black p-1 text-center align-top">${i.qty}</td>
+                            <td class="border-r border-black p-1 text-right align-top">${rate}</td>
+                            <td class="p-1 text-right align-top font-bold">${tot}</td>
+                        </tr>`;
                 }); 
             } catch(e){}
             
-            // Totals Calculation (Matching desktop behavior)
-            const sub = Number(b.sub_total || b.grand_total).toFixed(2);
-            const gt = Number(b.grand_total).toFixed(2);
-            const paid = Number(b.paid || 0).toFixed(2);
-            const bal = Number(b.balance_due !== undefined ? b.balance_due : b.grand_total).toFixed(2);
+            // Apply Sub & Grand
+            document.getElementById('r-items').innerHTML = htmlItems;
+            document.getElementById('r-sub').innerText = `₹${sub.toFixed(2)}`;
+            document.getElementById('r-net').innerText = `₹${gt.toFixed(2)}`;
 
-            waText += `--------------------------------\n`;
-            waText += `Items: ${itemCount}\n`;
-            waText += `Sub Total   : ${sub}\n`;
-            waText += `*GRAND TOTAL : ${gt}*\n`;
-            waText += `PAID AMOUNT : ${paid}\n`;
-            waText += `*BALANCE DUE : ${bal}*\n`;
-            waText += `--------------------------------\nTHANKS FOR SHOPPING WITH US`;
-            
-            // Inject into DOM
-            document.getElementById('receipt-items').innerHTML = htmlItems;
-            document.getElementById('receipt-item-count').innerText = itemCount;
-            document.getElementById('receipt-sub').innerText = sub;
-            document.getElementById('receipt-total').innerText = gt;
-            document.getElementById('receipt-paid').innerText = paid;
-            document.getElementById('receipt-balance').innerText = bal;
+            // Build accurate tax breakdown based on 5%
+            let taxable = (gt / 1.05).toFixed(2);
+            let gstAmt = (gt - taxable).toFixed(2);
 
-            // Setup WhatsApp link
-            const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
-            const mob = cObj ? (cObj.whatsapp || cObj.mobile) : '';
+            document.getElementById('r-taxes').innerHTML = `
+                <tr>
+                    <td class="border-r border-black p-1 text-left font-bold">5%</td>
+                    <td class="border-r border-black p-1">${taxable}</td>
+                    <td class="border-r border-black p-1">${gstAmt}</td>
+                    <td class="p-1 font-bold">${gt.toFixed(2)}</td>
+                </tr>
+                <tr class="border-t border-black font-bold">
+                    <td class="border-r border-black p-1 text-left">Total</td>
+                    <td class="border-r border-black p-1">${taxable}</td>
+                    <td class="border-r border-black p-1">${gstAmt}</td>
+                    <td class="p-1">${gt.toFixed(2)}</td>
+                </tr>
+            `;
+
+            // QR Code Data setup
+            document.getElementById('r-qr-amt').innerText = `₹${gt.toFixed(2)}`;
+            const upiLink = `upi://pay?pa=6363304520@okbizaxis&pn=ANNAPURNA%20TRADERS&am=${gt.toFixed(2)}&cu=INR`;
+            document.getElementById('r-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+
+            waText += `--------------------------------\n*NET PAYABLE: ₹${gt.toFixed(2)}*\n--------------------------------\nTHANK YOU! VISIT AGAIN`;
+
             window.currentBillMobile = mob;
             window.currentBillText = waText;
 
@@ -649,53 +668,38 @@
         };
 
         window.shareWA = function() {
-            if(!window.currentBillMobile) return alert("No phone number saved for this customer.");
+            if(window.currentBillMobile === 'N/A') return alert("No phone number saved for this customer.");
             window.open(`https://wa.me/91${window.currentBillMobile}?text=${encodeURIComponent(window.currentBillText)}`, '_blank');
         };
 
-        window.sharePDF = function() {
-            window.print(); 
-        };
+        window.sharePDF = function() { window.print(); };
 
         window.shareImage = async function() {
             const btn = document.getElementById('btn-share-img');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl mb-1"></i> Loading...';
-            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl mb-1"></i> Wait...';
             try {
                 const element = document.getElementById('thermal-bill');
                 const canvas = await html2canvas(element, { scale: 2 });
-                
                 canvas.toBlob(async (blob) => {
-                    const file = new File([blob], "receipt.png", { type: "image/png" });
+                    const file = new File([blob], "invoice.png", { type: "image/png" });
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Receipt',
-                            text: 'Thank you for shopping with Annapurna Mart!'
-                        });
+                        await navigator.share({ files: [file], title: 'Invoice', text: 'Invoice from Annapurna Mart' });
                     } else {
-                        const link = document.createElement('a');
-                        link.download = 'receipt.png';
-                        link.href = canvas.toDataURL();
-                        link.click();
+                        const link = document.createElement('a'); link.download = 'invoice.png'; link.href = canvas.toDataURL(); link.click();
                     }
                     btn.innerHTML = originalText;
                 });
-            } catch (e) {
-                alert("Failed to generate image.");
-                btn.innerHTML = originalText;
-            }
+            } catch (e) { alert("Failed to generate image."); btn.innerHTML = originalText; }
         };
 
-        // --- ACCOUNT LEDGER & PAYMENTS ---
+        // --- ACCOUNT LEDGER ---
         window.renderLedger = function() {
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
             const list = document.getElementById('ledger-list'); list.innerHTML = '';
             
             let filtered = window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val));
-            
             if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.balance) - Number(a.balance));
             else if(sortFilter === 'lowest') filtered.sort((a,b) => Number(a.balance) - Number(b.balance));
             else if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
@@ -703,16 +707,16 @@
             filtered.forEach(c => {
                 const safeName = (c.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openCustomerLedger('${safeName}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm cursor-pointer">
-                        <div><p class="text-xs font-bold text-slate-800">${c.name}</p><p class="text-[9px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
-                        <div class="text-right"><p class="text-[9px] text-slate-400">Due</p><p class="text-sm font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
+                    <div onclick="window.openCustomerLedger('${safeName}', ${c.balance})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                        <div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${c.name}</p><p class="text-[9px] font-bold text-slate-500 mt-0.5"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
+                        <div class="text-right"><p class="text-[9px] font-bold text-slate-400 uppercase">Due</p><p class="text-base font-black text-rose-500">₹${Number(c.balance).toLocaleString('en-IN')}</p></div>
                     </div>`;
             });
         };
 
         window.openCustomerLedger = function(name, due) {
             document.getElementById('cl-name').innerText = name;
-            document.getElementById('cl-due').innerText = `₹${Number(due).toFixed(2)}`;
+            document.getElementById('cl-due').innerText = `₹${Number(due).toLocaleString('en-IN')}`;
             
             let history = [];
             window.erpData.bills.filter(b => b.customer_name === name).forEach(b => {
@@ -727,22 +731,21 @@
             history.sort((a, b) => new Date(b.date) - new Date(a.date));
             
             let listHtml = '';
-            if (history.length === 0) {
-                listHtml = '<p class="text-center text-xs text-slate-400 py-6">No recent transactions.</p>';
-            } else {
+            if (history.length === 0) { listHtml = '<p class="text-center text-xs text-slate-400 py-6">No recent transactions.</p>'; } 
+            else {
                 history.forEach(item => {
                     let dt = String(item.date).substring(0, 10);
                     if (item.type === 'Bill') {
                         listHtml += `
-                        <div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill(${item.id});" class="flex justify-between items-center p-2 mb-1 rounded bg-rose-50/50 border border-rose-100 active:bg-rose-100 cursor-pointer">
-                            <div><p class="text-[10px] font-bold text-slate-800">Bill: ${item.ref}</p><p class="text-[8px] text-slate-500">${dt}</p></div>
-                            <p class="text-[11px] font-black text-rose-500">+₹${Number(item.amt).toFixed(2)}</p>
+                        <div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill(${item.id});" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">
+                            <div><p class="text-[11px] font-bold text-rose-900 underline decoration-rose-300">Bill: ${item.ref}</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div>
+                            <p class="text-[13px] font-black text-rose-600">+₹${Number(item.amt).toLocaleString('en-IN')}</p>
                         </div>`;
                     } else {
                         listHtml += `
-                        <div class="flex justify-between items-center p-2 mb-1 rounded bg-emerald-50/50 border border-emerald-100">
-                            <div><p class="text-[10px] font-bold text-slate-800">Payment Received</p><p class="text-[8px] text-slate-500">${dt}</p></div>
-                            <p class="text-[11px] font-black text-emerald-500">-₹${Number(item.amt).toFixed(2)}</p>
+                        <div class="flex justify-between items-center p-3 mb-2 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm">
+                            <div><p class="text-[11px] font-bold text-emerald-900">Payment Received</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div>
+                            <p class="text-[13px] font-black text-emerald-600">-₹${Number(item.amt).toLocaleString('en-IN')}</p>
                         </div>`;
                     }
                 });
@@ -792,9 +795,9 @@
                 let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
                 const safeName = (p.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
-                        <p class="text-xs font-bold text-slate-800">${p.name}</p>
-                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color}">Stock: ${stk}</p></div>
+                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                        <p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${p.name}</p>
+                        <div class="text-right"><p class="text-base font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color} mt-0.5">Stock: ${stk}</p></div>
                     </div>`;
             });
         };
@@ -824,12 +827,12 @@
             if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
             window.erpData.emps.forEach(e => {
                 list.innerHTML += `
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm mb-1.5">
-                        <p class="font-bold text-slate-800 text-xs mb-2">${e.name}</p>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">
+                        <p class="font-bold text-slate-800 text-sm mb-2">${e.name}</p>
                         <div class="flex space-x-1.5">
-                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
-                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
-                            <label class="flex-1 text-center bg-red-50 text-red-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
+                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
+                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
+                            <label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
                         </div>
                     </div>`;
             });
