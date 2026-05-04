@@ -4,1053 +4,555 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ANPMART Mobile ERP</title>
-    <!-- Tailwind CSS for Modern Styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
     <style>
-        /* Mobile Optimization Resets */
-        body { 
-            -webkit-tap-highlight-color: transparent; 
-            overscroll-behavior-y: none; 
-        }
-        .glass-panel { 
-            background: rgba(255, 255, 255, 0.98); 
-            backdrop-filter: blur(12px); 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
+        body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Custom Dense Autocomplete Dropdown */
-        .ac-dropdown { 
-            position: absolute; 
-            top: 100%; 
-            left: 0; 
-            right: 0; 
-            max-height: 180px; 
-            overflow-y: auto; 
-            background: white; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 0.5rem; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
-            z-index: 100; 
-            display: none; 
-        }
-        .ac-item { 
-            padding: 10px 12px; 
-            border-bottom: 1px solid #f1f5f9; 
-            font-weight: 600; 
-            color: #1e293b; 
-            font-size: 13px; 
-        }
+        .ac-dropdown { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; display: none; }
+        .ac-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b; font-size: 14px; }
         .ac-item:active { background-color: #e0f2fe; }
-        
-        /* Tab Navigation Animations */
-        .tab-content { display: none; animation: fadeIn 0.2s ease-in-out; }
-        .tab-content.active { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
+<body class="bg-slate-100 font-sans antialiased text-slate-800 h-[100dvh] flex flex-col overflow-hidden">
 
-<body class="bg-slate-50 font-sans antialiased text-slate-800 h-[100dvh] flex flex-col overflow-hidden relative selection:bg-blue-200">
-
-    <!-- ========================================== -->
-    <!-- 🔒 LOGIN SCREEN (With built-in diagnostics) -->
-    <!-- ========================================== -->
+    <!-- 🔒 LOGIN SCREEN -->
     <div id="login-screen" class="absolute inset-0 z-[200] bg-slate-900 flex flex-col justify-center items-center p-4">
-        <div class="glass-panel w-full max-w-sm p-6 rounded-3xl text-center border border-slate-200">
-            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg transform rotate-3">
-                <i class="fas fa-fingerprint text-2xl text-white transform -rotate-3"></i>
-            </div>
-            <h2 class="text-2xl font-black text-slate-800 mb-1 tracking-tight">ANPMART <span class="text-blue-600">ERP</span></h2>
-            <p class="text-[11px] text-slate-500 font-bold mb-6 uppercase tracking-widest">Enterprise Access</p>
-            
-            <div class="relative mb-4">
-                <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-                <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full pl-10 p-3 bg-slate-100 border-2 border-slate-200 rounded-xl text-center text-xl tracking-[0.3em] font-bold focus:outline-none focus:border-blue-500 transition-colors">
-            </div>
-            
-            <button onclick="window.appLogic.checkLogin()" class="w-full bg-slate-900 text-white font-bold text-sm p-3.5 rounded-xl shadow-md hover:bg-slate-800 active:scale-95 transition-transform mb-3">
-                Authenticate
-            </button>
-            <p id="debug-txt" class="text-[10px] font-mono text-slate-400">Initializing Engine...</p>
+        <div class="glass-card w-full max-w-sm p-6 rounded-2xl shadow-2xl text-center">
+            <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg"><i class="fas fa-lock text-2xl text-white"></i></div>
+            <h2 class="text-xl font-black text-slate-800 mb-1">ANPMART ERP</h2>
+            <p class="text-xs text-slate-500 font-bold mb-5">Restricted Access</p>
+            <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg text-center text-xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+            <button onclick="checkLogin()" class="w-full bg-blue-600 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition mb-4">Unlock System</button>
+            <p id="debug-text" class="text-[10px] font-bold text-emerald-500">System Ready</p>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 📱 APP SHELL (Hidden until login) -->
-    <!-- ========================================== -->
+    <!-- 📱 APP SHELL -->
     <div id="app-screen" class="hidden flex-col h-full w-full absolute inset-0">
         
         <!-- Header -->
-        <header class="bg-white text-slate-800 p-3 shadow-sm border-b border-slate-200 z-40 flex justify-between items-center shrink-0">
-            <h1 class="text-base font-black tracking-tight flex items-center">
-                <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center mr-2 shadow-sm"><i class="fas fa-store text-white text-[10px]"></i></div>
-                ANP<span class="font-light text-slate-400 ml-1" id="header-title">DASH</span>
-            </h1>
-            <button onclick="window.appLogic.syncData()" id="btn-sync" class="bg-slate-100 text-slate-600 w-8 h-8 rounded-full border border-slate-200 active:bg-blue-50 active:text-blue-600 active:scale-90 transition-all flex justify-center items-center text-xs">
-                <i class="fas fa-sync-alt"></i>
-            </button>
+        <header class="bg-blue-600 text-white p-2 px-3 shadow-md z-40 flex justify-between items-center shrink-0">
+            <h1 class="text-base font-extrabold tracking-tight"><i class="fas fa-store mr-1"></i> ANP<span class="font-light text-blue-200" id="header-title">DASH</span></h1>
+            <button onclick="syncData()" id="btn-sync" class="bg-blue-500 w-7 h-7 rounded-full shadow active:scale-90 flex justify-center items-center text-xs"><i class="fas fa-sync-alt"></i></button>
         </header>
 
         <!-- Main Scrollable Area -->
-        <main class="flex-1 overflow-y-auto hide-scroll p-3 pb-20 relative bg-slate-50/50" id="main-content">
+        <main class="flex-1 overflow-y-auto hide-scroll p-2 pb-20 relative" id="main-content">
             
             <!-- 📉 TAB: DASHBOARD -->
-            <div id="tab-dashboard" class="tab-content flex-col space-y-3 active">
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-emerald-500 relative overflow-hidden">
-                        <i class="fas fa-chart-line absolute right-2 top-2 text-3xl text-emerald-100 opacity-50"></i>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1 tracking-wider">All-Time Sales</p>
-                        <p class="text-xl font-black text-slate-800" id="kpi-sales">₹0</p>
+            <div id="tab-dashboard" class="tab-content space-y-3 block">
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="glass-card p-3 rounded-xl shadow-sm border-b-4 border-b-emerald-500">
+                        <p class="text-[9px] text-slate-500 font-bold uppercase mb-0.5">All-Time Sales</p>
+                        <p class="text-lg font-black text-slate-800" id="kpi-sales">₹0</p>
                     </div>
-                    <div class="glass-panel p-4 rounded-2xl border-l-4 border-l-rose-500 relative overflow-hidden">
-                        <i class="fas fa-exclamation-circle absolute right-2 top-2 text-3xl text-rose-100 opacity-50"></i>
-                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1 tracking-wider">Total Due</p>
-                        <p class="text-xl font-black text-slate-800" id="kpi-due">₹0</p>
+                    <div class="glass-card p-3 rounded-xl shadow-sm border-b-4 border-b-rose-500">
+                        <p class="text-[9px] text-slate-500 font-bold uppercase mb-0.5">Total Due</p>
+                        <p class="text-lg font-black text-slate-800" id="kpi-due">₹0</p>
                     </div>
                 </div>
-                
-                <div class="flex justify-between items-end mt-4 mb-2 px-1">
-                    <h2 class="text-sm font-bold text-slate-800">Recent Transactions</h2>
-                    <span class="text-[9px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center"><span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1 animate-pulse"></span>Live</span>
+                <div class="flex justify-between items-end mt-3 mb-1">
+                    <h2 class="text-sm font-bold text-slate-800">Recent Global Bills</h2>
+                    <span class="text-[9px] font-bold text-emerald-500 bg-emerald-100 px-1.5 py-0.5 rounded animate-pulse">LIVE</span>
                 </div>
-                <!-- Dynamic Feed Area -->
-                <div id="dashboard-feed" class="space-y-2 pb-2">
-                    <p class="text-center text-xs text-slate-400 py-10">Press Sync to load data...</p>
-                </div>
+                <div id="dashboard-feed" class="space-y-2 pb-2"></div>
             </div>
 
-            <!-- 🧾 TAB: POS (Optimized for Mobile Data Entry) -->
-            <div id="tab-pos" class="tab-content flex-col h-full space-y-2.5">
+            <!-- 🧾 TAB: POS -->
+            <div id="tab-pos" class="tab-content hidden h-full flex-col space-y-2">
+                <div class="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-slate-200 shrink-0">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Customer</span>
+                    <span class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded" id="pos-bill-no">M-NEW</span>
+                </div>
                 
-                <!-- Customer Selection -->
-                <div class="glass-panel p-3 rounded-2xl flex flex-col shrink-0">
+                <div class="relative shrink-0">
+                    <input type="text" id="pos-cust" onkeyup="filterAC('pos-cust', 'ac-cust')" placeholder="Customer Name (Walk-in)" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500">
+                    <div id="ac-cust" class="ac-dropdown text-xs"></div>
+                </div>
+
+                <div class="bg-blue-50 p-2 rounded-lg border border-blue-100 shadow-sm relative shrink-0">
+                    <input type="text" id="pos-item" onkeyup="filterAC('pos-item', 'ac-item')" onchange="autoFillPrice()" placeholder="Search Item..." class="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold mb-2 focus:ring-2 focus:ring-blue-500">
+                    <div id="ac-item" class="ac-dropdown text-xs"></div>
+                    
+                    <div class="flex space-x-1 mb-2">
+                        <input type="number" id="pos-qty" value="1" placeholder="Qty" class="w-1/4 p-1.5 bg-white border border-slate-300 rounded-lg text-center text-xs font-bold">
+                        <select id="pos-unit" class="w-1/4 p-1.5 bg-white border border-slate-300 rounded-lg text-[10px] font-bold bg-white"><option>Pcs</option></select>
+                        <input type="number" id="pos-rate" placeholder="Rate (₹)" class="w-2/4 p-1.5 bg-white border border-slate-300 rounded-lg text-center text-xs font-bold">
+                    </div>
+                    <button onclick="addToCart()" class="w-full bg-slate-800 text-white font-bold py-2 rounded-lg active:scale-95 text-xs shadow-md"><i class="fas fa-plus mr-1"></i> ADD ITEM</button>
+                </div>
+
+                <div class="flex-1 bg-white rounded-lg border border-slate-200 p-1.5 overflow-y-auto hide-scroll relative min-h-[80px]">
+                    <div id="pos-cart-ui" class="space-y-1"><p class="text-center text-slate-400 text-[10px] mt-2">Cart Empty</p></div>
+                </div>
+
+                <div class="bg-slate-800 text-white p-2.5 rounded-lg shadow-lg shrink-0 mt-1">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Billing To</span>
-                        <span class="text-[9px] font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded border border-blue-200" id="pos-bill-no">M-NEW</span>
+                        <span class="text-[10px] font-bold text-slate-300">Grand Total</span>
+                        <span class="text-lg font-black text-emerald-400" id="pos-total">₹0.00</span>
                     </div>
-                    <div class="relative">
-                        <i class="fas fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="pos-cust" onkeyup="window.appLogic.filterAC('pos-cust', 'ac-cust')" placeholder="Walk-in Customer" class="w-full pl-8 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
-                        <div id="ac-cust" class="ac-dropdown text-sm"></div>
-                    </div>
-                </div>
-
-                <!-- Item Entry -->
-                <div class="glass-panel p-3 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 shrink-0">
-                    <div class="relative mb-2">
-                        <i class="fas fa-box absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 text-xs"></i>
-                        <input type="text" id="pos-item" onkeyup="window.appLogic.filterAC('pos-item', 'ac-item')" onchange="window.appLogic.autoFillPrice()" placeholder="Search Inventory..." class="w-full pl-8 p-2.5 bg-white border border-blue-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                        <div id="ac-item" class="ac-dropdown text-sm"></div>
-                    </div>
-                    
-                    <div class="flex space-x-2 mb-3">
-                        <div class="w-1/4">
-                            <label class="block text-[9px] font-bold text-slate-500 mb-1 ml-1">QTY</label>
-                            <input type="number" id="pos-qty" value="1" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-center text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500">
-                        </div>
-                        <div class="w-1/4">
-                            <label class="block text-[9px] font-bold text-slate-500 mb-1 ml-1">UNIT</label>
-                            <select id="pos-unit" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none"><option>Pcs</option></select>
-                        </div>
-                        <div class="w-2/4">
-                            <label class="block text-[9px] font-bold text-slate-500 mb-1 ml-1">RATE (₹)</label>
-                            <input type="number" id="pos-rate" placeholder="0.00" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-center text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500">
-                        </div>
-                    </div>
-                    
-                    <button onclick="window.appLogic.addToCart()" class="w-full bg-slate-800 text-white font-bold py-2.5 rounded-xl shadow-md active:scale-[0.98] text-xs transition-transform flex justify-center items-center">
-                        <i class="fas fa-plus-circle mr-1.5"></i> Add to Cart
-                    </button>
-                </div>
-
-                <!-- Cart Display -->
-                <div class="flex-1 glass-panel rounded-2xl border border-slate-200 p-2 overflow-y-auto hide-scroll relative min-h-[120px]">
-                    <div id="pos-cart-ui" class="space-y-1.5">
-                        <div class="h-full flex flex-col items-center justify-center pt-8 text-slate-300">
-                            <i class="fas fa-shopping-basket text-3xl mb-2"></i>
-                            <p class="text-[11px] font-bold">Cart is empty</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Checkout Footer -->
-                <div class="bg-slate-900 text-white p-3 rounded-2xl shadow-xl shrink-0 mt-auto">
-                    <div class="flex justify-between items-end mb-3 px-1">
-                        <div>
-                            <span class="text-[10px] font-bold text-slate-400 block mb-0.5 uppercase tracking-wider">Grand Total</span>
-                            <span class="text-2xl font-black text-emerald-400 leading-none" id="pos-total">₹0.00</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[9px] font-bold text-slate-400 bg-slate-800 px-2 py-1 rounded">Tax Incl.</span>
-                        </div>
-                    </div>
-                    <button onclick="window.appLogic.saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-sm py-3.5 rounded-xl shadow-[0_4px_14px_0_rgba(16,185,129,0.39)] active:scale-[0.98] transition-all flex justify-center items-center">
-                        <i class="fas fa-check mr-2"></i> COMPLETE SALE
-                    </button>
+                    <button onclick="saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 font-black text-xs py-2.5 rounded-md shadow-md active:scale-95 transition">COMPLETE SALE</button>
                 </div>
             </div>
 
-            <!-- 📜 TAB: SALES REGISTER -->
-            <div id="tab-sales" class="tab-content flex-col space-y-2">
-                <div class="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-md pb-2 pt-1 space-y-2">
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="search-sales" onkeyup="window.appLogic.renderSales()" placeholder="Search Bills or Customers..." class="w-full pl-8 p-2.5 bg-white border border-slate-200 rounded-xl text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
-                    </div>
-                    <div class="flex space-x-2">
-                        <div class="relative w-1/2">
-                            <select id="filter-sales-time" onchange="window.appLogic.renderSales()" class="w-full appearance-none p-2 pl-3 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:outline-none">
-                                <option value="all">🕒 All Time</option>
-                                <option value="today">📅 Today</option>
-                                <option value="month">🗓️ This Month</option>
-                            </select>
-                            <i class="fas fa-chevron-down absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 text-[8px] pointer-events-none"></i>
-                        </div>
-                        <div class="relative w-1/2">
-                            <select id="sort-sales" onchange="window.appLogic.renderSales()" class="w-full appearance-none p-2 pl-3 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:outline-none">
-                                <option value="newest">⬇️ Newest First</option>
-                                <option value="oldest">⬆️ Oldest First</option>
-                                <option value="highest">💰 Highest Amt</option>
-                            </select>
-                            <i class="fas fa-chevron-down absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 text-[8px] pointer-events-none"></i>
-                        </div>
-                    </div>
+            <!-- 📜 SALES REGISTER -->
+            <div id="tab-sales" class="tab-content hidden space-y-2">
+                <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
+                    <input type="text" id="search-sales" onkeyup="renderSales()" placeholder="Search Bills..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div id="sales-list" class="space-y-2 pb-2"></div>
+                <div id="sales-list" class="space-y-1.5 pb-2"></div>
             </div>
 
-            <!-- 💰 TAB: LEDGER & PAYMENTS -->
-            <div id="tab-ledger" class="tab-content flex-col space-y-2">
-                <div class="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-md pb-2 pt-1 space-y-2">
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="search-ledger" onkeyup="window.appLogic.renderLedger()" placeholder="Search Customers with Dues..." class="w-full pl-8 p-2.5 bg-white border border-slate-200 rounded-xl text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
-                    </div>
-                    <div class="relative">
-                        <select id="sort-ledger" onchange="window.appLogic.renderLedger()" class="w-full appearance-none p-2 pl-3 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:outline-none">
-                            <option value="highest">💰 Highest Due First</option>
-                            <option value="lowest">🪙 Lowest Due First</option>
-                            <option value="az">🔤 Name (A-Z)</option>
-                        </select>
-                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[8px] pointer-events-none"></i>
-                    </div>
+            <!-- 💰 LEDGER & PAYMENTS -->
+            <div id="tab-ledger" class="tab-content hidden space-y-2">
+                <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
+                    <input type="text" id="search-ledger" onkeyup="renderLedger()" placeholder="Search Dues by Name..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div id="ledger-list" class="space-y-2 pb-2"></div>
+                <div id="ledger-list" class="space-y-1.5 pb-2"></div>
             </div>
 
-            <!-- ⚙️ TAB: MORE MENU -->
-            <div id="tab-more" class="tab-content flex-col space-y-2 pt-2">
-                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Modules</h2>
-                
-                <button onclick="window.appLogic.switchTab('stock', this)" class="w-full glass-panel p-4 rounded-xl flex items-center justify-between active:bg-blue-50 transition-colors group">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3 group-active:bg-blue-200">
-                            <i class="fas fa-box-open text-blue-600 text-lg"></i>
-                        </div>
-                        <div class="text-left">
-                            <p class="font-bold text-slate-800 text-sm">Master Stock</p>
-                            <p class="text-[10px] text-slate-500">Edit inventory & pricing</p>
-                        </div>
-                    </div>
-                    <i class="fas fa-chevron-right text-slate-300"></i>
+            <!-- ⚙️ MORE MENU -->
+            <div id="tab-more" class="tab-content hidden space-y-2 pt-2">
+                <button onclick="switchTab('stock', this)" class="w-full bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                    <div class="flex items-center text-blue-600 font-bold text-sm"><i class="fas fa-box-open text-base mr-2"></i> Master Stock</div>
+                    <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
                 </button>
-
-                <button onclick="window.appLogic.switchTab('attendance', this)" class="w-full glass-panel p-4 rounded-xl flex items-center justify-between active:bg-emerald-50 transition-colors group mt-2">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mr-3 group-active:bg-emerald-200">
-                            <i class="fas fa-user-clock text-emerald-600 text-lg"></i>
-                        </div>
-                        <div class="text-left">
-                            <p class="font-bold text-slate-800 text-sm">Staff Attendance</p>
-                            <p class="text-[10px] text-slate-500">Daily check-in management</p>
-                        </div>
-                    </div>
-                    <i class="fas fa-chevron-right text-slate-300"></i>
+                <button onclick="switchTab('attendance', this)" class="w-full bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                    <div class="flex items-center text-emerald-600 font-bold text-sm"><i class="fas fa-user-clock text-base mr-2"></i> Attendance</div>
+                    <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
                 </button>
             </div>
 
             <!-- 📦 SUB-TAB: STOCK -->
-            <div id="tab-stock" class="tab-content flex-col space-y-2">
-                <div class="sticky top-0 z-10 bg-slate-50/90 backdrop-blur-md pb-2 pt-1 space-y-2">
-                    <button onclick="window.appLogic.switchTab('more', this)" class="text-xs font-bold text-blue-600 flex items-center"><i class="fas fa-arrow-left mr-1.5"></i> Back to Menu</button>
-                    <div class="relative">
-                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="search-stock" onkeyup="window.appLogic.renderStock()" placeholder="Search Inventory..." class="w-full pl-8 p-2.5 bg-white border border-slate-200 rounded-xl text-xs shadow-sm focus:outline-none font-medium">
-                    </div>
-                    <div class="relative">
-                        <select id="sort-stock" onchange="window.appLogic.renderStock()" class="w-full appearance-none p-2 pl-3 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:outline-none">
-                            <option value="az">🔤 Name (A-Z)</option>
-                            <option value="low">📉 Lowest Stock First</option>
-                            <option value="high">📈 Highest Stock First</option>
-                        </select>
-                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[8px] pointer-events-none"></i>
-                    </div>
+            <div id="tab-stock" class="tab-content hidden space-y-2">
+                <div class="sticky top-0 z-10 bg-slate-100 pb-1 pt-1 space-y-1.5">
+                    <button onclick="switchTab('more', this)" class="text-xs font-bold text-blue-600 mb-1"><i class="fas fa-arrow-left mr-1"></i> Back</button>
+                    <input type="text" id="search-stock" onkeyup="renderStock()" placeholder="Search Master..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div id="stock-list" class="space-y-2 pb-2"></div>
+                <div id="stock-list" class="space-y-1.5 pb-2"></div>
             </div>
 
             <!-- 👥 SUB-TAB: ATTENDANCE -->
-            <div id="tab-attendance" class="tab-content flex-col space-y-2 pt-2">
-                <button onclick="window.appLogic.switchTab('more', this)" class="text-xs font-bold text-blue-600 mb-2 flex items-center"><i class="fas fa-arrow-left mr-1.5"></i> Back to Menu</button>
-                <div class="glass-panel p-4 rounded-xl border border-slate-200 mb-2">
-                    <h2 class="font-black text-slate-800 text-sm flex items-center"><i class="far fa-calendar-check text-blue-500 mr-2"></i> Mark Today's Roster</h2>
-                    <p class="text-[10px] text-slate-500 mt-1">Select status for all active employees.</p>
-                </div>
-                <div id="attendance-list" class="space-y-2"></div>
-                <button onclick="window.appLogic.saveAttendance()" class="w-full bg-emerald-500 text-white font-black p-3.5 rounded-xl shadow-md active:scale-95 transition-transform mt-4 text-sm flex justify-center items-center">
-                    <i class="fas fa-save mr-2"></i> Save Daily Roster
-                </button>
+            <div id="tab-attendance" class="tab-content hidden space-y-2 pt-2">
+                <button onclick="switchTab('more', this)" class="text-xs font-bold text-blue-600 mb-1"><i class="fas fa-arrow-left mr-1"></i> Back</button>
+                <h2 class="font-bold text-slate-700 text-sm">Mark Today's Attendance</h2>
+                <div id="attendance-list" class="space-y-1.5"></div>
+                <button onclick="saveAttendance()" class="w-full bg-emerald-600 text-white font-bold p-2.5 rounded-lg shadow mt-3 text-sm">💾 Save Attendance</button>
             </div>
 
         </main>
 
-        <!-- ========================================== -->
-        <!-- 🧭 BOTTOM NAVIGATION (Pinned securely) -->
-        <!-- ========================================== -->
-        <nav class="shrink-0 bg-white border-t border-slate-200 flex justify-around p-2 pb-5 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-50">
-            <button onclick="window.appLogic.switchTab('dashboard', this)" class="nav-btn text-blue-600 flex flex-col items-center p-1 w-1/5 transition-colors">
-                <div class="w-8 h-8 flex items-center justify-center rounded-xl mb-0.5"><i class="fas fa-home text-[18px]"></i></div>
-                <span class="text-[9px] font-bold tracking-wide">Home</span>
-            </button>
-            <button onclick="window.appLogic.switchTab('pos', this)" class="nav-btn text-slate-400 flex flex-col items-center p-1 w-1/5 transition-colors">
-                <div class="w-8 h-8 flex items-center justify-center rounded-xl mb-0.5"><i class="fas fa-cash-register text-[18px]"></i></div>
-                <span class="text-[9px] font-bold tracking-wide">POS</span>
-            </button>
-            <button onclick="window.appLogic.switchTab('sales', this)" class="nav-btn text-slate-400 flex flex-col items-center p-1 w-1/5 transition-colors">
-                <div class="w-8 h-8 flex items-center justify-center rounded-xl mb-0.5"><i class="fas fa-receipt text-[18px]"></i></div>
-                <span class="text-[9px] font-bold tracking-wide">Sales</span>
-            </button>
-            <button onclick="window.appLogic.switchTab('ledger', this)" class="nav-btn text-slate-400 flex flex-col items-center p-1 w-1/5 transition-colors">
-                <div class="w-8 h-8 flex items-center justify-center rounded-xl mb-0.5"><i class="fas fa-wallet text-[18px]"></i></div>
-                <span class="text-[9px] font-bold tracking-wide">Ledger</span>
-            </button>
-            <button onclick="window.appLogic.switchTab('more', this)" class="nav-btn text-slate-400 flex flex-col items-center p-1 w-1/5 transition-colors">
-                <div class="w-8 h-8 flex items-center justify-center rounded-xl mb-0.5"><i class="fas fa-bars text-[18px]"></i></div>
-                <span class="text-[9px] font-bold tracking-wide">Menu</span>
-            </button>
+        <!-- 🧭 BOTTOM NAVIGATION -->
+        <nav class="shrink-0 bg-white border-t border-slate-200 flex justify-around p-1.5 pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+            <button onclick="switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-1 text-blue-600 w-1/5"><i class="fas fa-home text-base mb-0.5"></i><span class="text-[9px] font-bold">Home</span></button>
+            <button onclick="switchTab('pos', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-cash-register text-base mb-0.5"></i><span class="text-[9px] font-bold">POS</span></button>
+            <button onclick="switchTab('sales', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-receipt text-base mb-0.5"></i><span class="text-[9px] font-bold">Sales</span></button>
+            <button onclick="switchTab('ledger', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-wallet text-base mb-0.5"></i><span class="text-[9px] font-bold">Ledger</span></button>
+            <button onclick="switchTab('more', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-bars text-base mb-0.5"></i><span class="text-[9px] font-bold">Menu</span></button>
         </nav>
 
-        <!-- ========================================== -->
-        <!-- 🪟 OVERLAY MODALS (Scaled down for mobile) -->
-        <!-- ========================================== -->
-        
-        <!-- View Bill Modal -->
-        <div id="modal-bill" class="hidden absolute inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-200">
-            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col max-h-[85vh] transform scale-95 transition-transform duration-200" id="modal-bill-inner">
-                <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                    <h3 class="font-black text-slate-800 text-sm flex items-center"><i class="fas fa-file-invoice mr-2 text-blue-500"></i> <span id="m-bill-title">Bill</span></h3>
-                    <button onclick="window.appLogic.closeModal('modal-bill')" class="w-8 h-8 bg-slate-200 rounded-full text-slate-500 flex items-center justify-center active:bg-slate-300"><i class="fas fa-times"></i></button>
+        <!-- 🪟 OVERLAY MODALS -->
+        <div id="modal-bill" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-3">
+            <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
+                <div class="p-2 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                    <h3 class="font-bold text-slate-800 text-xs" id="m-bill-title">Bill Details</h3>
+                    <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="text-slate-400 text-lg px-2"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="p-4 overflow-y-auto text-[11px] font-mono text-slate-700 whitespace-pre-wrap flex-1 leading-relaxed bg-slate-50/50" id="m-bill-content"></div>
-                <div class="p-3 border-t border-slate-100 bg-white rounded-b-2xl">
-                    <button id="btn-wa" class="w-full bg-[#25D366] text-white font-bold p-3 rounded-xl shadow-md active:scale-95 flex justify-center items-center text-sm transition-transform">
-                        <i class="fab fa-whatsapp text-lg mr-2"></i> Share via WhatsApp
-                    </button>
+                <div class="p-3 overflow-y-auto text-[10px] font-mono text-slate-700 whitespace-pre-wrap flex-1 leading-tight" id="m-bill-content"></div>
+                <div class="p-2 border-t border-slate-100 bg-slate-50 rounded-b-xl">
+                    <button id="btn-wa" class="w-full bg-emerald-500 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 flex justify-center items-center text-xs"><i class="fab fa-whatsapp text-sm mr-2"></i> Send WhatsApp</button>
                 </div>
             </div>
         </div>
 
-        <!-- Receive Payment Modal -->
-        <div id="modal-pay" class="hidden absolute inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm flex justify-center items-end p-0 opacity-0 transition-opacity duration-200">
-            <div class="bg-white w-full rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.2)] p-6 pb-10 transform translate-y-full transition-transform duration-300 ease-out" id="modal-pay-inner">
-                <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4"></div>
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-slate-800 text-lg flex items-center"><i class="fas fa-hand-holding-usd text-rose-500 mr-2"></i> Receive Payment</h3>
-                    <button onclick="window.appLogic.closeModal('modal-pay')" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 flex items-center justify-center active:bg-slate-200"><i class="fas fa-times"></i></button>
+        <div id="modal-pay" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-end p-0">
+            <div class="bg-white w-full rounded-t-2xl shadow-2xl p-5 pb-8">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-black text-slate-800 text-base" id="pay-cust-name">Receive Cash</h3>
+                    <button onclick="document.getElementById('modal-pay').classList.add('hidden')" class="text-slate-400 text-lg"><i class="fas fa-times"></i></button>
                 </div>
-                
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-4">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1" id="pay-cust-name">Customer</p>
-                    <div class="flex justify-between items-end">
-                        <p class="text-sm font-bold text-slate-600">Total Outstanding</p>
-                        <p class="text-2xl font-black text-rose-500 leading-none" id="pay-due">₹0.00</p>
-                    </div>
-                </div>
-
-                <div class="relative mb-5">
-                    <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 font-black text-lg">₹</span>
-                    <input type="number" id="pay-amt" placeholder="0.00" class="w-full pl-10 p-4 bg-white border-2 border-slate-200 rounded-xl text-xl font-black text-slate-800 focus:outline-none focus:border-blue-500 transition-colors shadow-sm">
-                </div>
-                
-                <button onclick="window.appLogic.savePayment()" class="w-full bg-blue-600 text-white font-black p-4 rounded-xl shadow-lg active:scale-95 text-sm transition-transform flex items-center justify-center">
-                    <i class="fas fa-check-circle mr-2 text-lg"></i> Confirm Receipt
-                </button>
+                <p class="text-[10px] font-bold text-slate-500 mb-0.5">Pending Due</p>
+                <p class="text-xl font-black text-rose-500 mb-3" id="pay-due">₹0.00</p>
+                <input type="number" id="pay-amt" placeholder="Amount Received" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-lg text-center text-lg font-bold mb-3 focus:ring-2 focus:ring-blue-500">
+                <button onclick="savePayment()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Save Payment</button>
             </div>
         </div>
 
-        <!-- Edit Master Modal -->
-        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm flex justify-center items-center p-4 opacity-0 transition-opacity duration-200">
-            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5 transform scale-95 transition-transform duration-200" id="modal-edit-inner">
-                <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
-                    <h3 class="font-black text-slate-800 text-base flex items-center"><i class="fas fa-edit text-blue-500 mr-2"></i> Update Inventory</h3>
-                    <button onclick="window.appLogic.closeModal('modal-edit-item')" class="w-8 h-8 bg-slate-100 rounded-full text-slate-500 flex items-center justify-center active:bg-slate-200"><i class="fas fa-times"></i></button>
+        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl p-5">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-black text-slate-800 text-base">Edit Master</h3>
+                    <button onclick="document.getElementById('modal-edit-item').classList.add('hidden')" class="text-slate-400 text-lg"><i class="fas fa-times"></i></button>
                 </div>
-                
                 <input type="hidden" id="edit-id">
-                
-                <div class="mb-3">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 ml-1">Item Name</label>
-                    <input type="text" id="edit-name" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-600" readonly>
-                </div>
-                
-                <div class="flex space-x-3 mb-5">
+                <label class="text-[9px] font-bold text-slate-500 uppercase">Item Name</label>
+                <input type="text" id="edit-name" class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold mb-2" readonly>
+                <div class="flex space-x-2 mb-3">
                     <div class="w-1/2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 ml-1">Selling Rate (₹)</label>
-                        <input type="number" id="edit-rate" class="w-full p-3 bg-white border-2 border-slate-200 rounded-xl text-center font-black text-base text-slate-800 focus:outline-none focus:border-blue-500 transition-colors shadow-sm">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Rate (₹)</label>
+                        <input type="number" id="edit-rate" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="w-1/2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 ml-1">Current Stock</label>
-                        <input type="number" id="edit-stock" class="w-full p-3 bg-white border-2 border-slate-200 rounded-xl text-center font-black text-base text-slate-800 focus:outline-none focus:border-blue-500 transition-colors shadow-sm">
+                        <label class="text-[9px] font-bold text-slate-500 uppercase">Stock</label>
+                        <input type="number" id="edit-stock" class="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
-                
-                <button onclick="window.appLogic.saveMasterEdit()" class="w-full bg-slate-900 text-white font-black p-3.5 rounded-xl shadow-lg active:scale-95 text-sm transition-transform flex items-center justify-center">
-                    <i class="fas fa-save mr-2"></i> Save Changes
-                </button>
+                <button onclick="saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Update Item</button>
             </div>
         </div>
-
     </div>
 
-    <!-- ========================================== -->
-    <!-- ⚡ THE BRAIN (100% NATIVE JAVASCRIPT) -->
-    <!-- ========================================== -->
     <script>
-        // Database Credentials
-        const DB_CONFIG = {
-            url: "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline",
-            token: "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw"
-        };
-
-        // Core HTTP Fetcher (Unblockable by standard browsers)
-        async function executeSQL(sqlText, sqlArgs = []) {
-            const formatted = sqlArgs.map(arg => {
-                if (typeof arg === 'number') return { type: "float", value: arg };
-                if (arg === null) return { type: "null" };
-                return { type: "text", value: String(arg) };
+        // =====================================================================
+        // SECTION 1: BULLETPROOF UI CONTROLS (Loaded immediately, cannot fail)
+        // =====================================================================
+        
+        function switchTab(tabId, btnElement) {
+            // 1. Hide all tabs and explicitly remove block/flex classes
+            document.querySelectorAll('.tab-content').forEach(t => {
+                t.classList.add('hidden');
+                t.classList.remove('block', 'flex');
             });
-
-            try {
-                const req = await fetch(DB_CONFIG.url, {
-                    method: "POST",
-                    headers: { "Authorization": `Bearer ${DB_CONFIG.token}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        requests: [ { type: "execute", stmt: { sql: sqlText, args: formatted } }, { type: "close" } ]
-                    })
-                });
-                
-                if (!req.ok) throw new Error("HTTP Error");
-                const data = await req.json();
-                
-                // Fail gracefully if column missing
-                if (data.results[0].type === "error") {
-                    console.warn("SQL Skip:", data.results[0].error.message);
-                    return [];
-                }
-                
-                const res = data.results[0].response.result;
-                if (!res || !res.cols || !res.rows) return [];
-
-                // Map raw arrays to clean JSON objects
-                const columns = res.cols.map(c => c.name);
-                return res.rows.map(rowArray => {
-                    let obj = {};
-                    rowArray.forEach((val, idx) => { obj[columns[idx]] = (val && val.type === "null") ? null : (val ? val.value : null); });
-                    return obj;
-                });
-            } catch (error) {
-                console.error("Execute Failed:", error);
-                return []; 
+            
+            // 2. Unhide target tab and apply correct layout class
+            const target = document.getElementById('tab-' + tabId);
+            if (target) {
+                target.classList.remove('hidden');
+                if (tabId === 'pos') target.classList.add('flex'); // POS needs flex
+                else target.classList.add('block'); // Others need block
             }
+            
+            // 3. Update active button colors
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-blue-600', 'active'); 
+                b.classList.add('text-slate-400');
+            });
+            
+            if(btnElement && btnElement.tagName === 'BUTTON') {
+                btnElement.classList.remove('text-slate-400'); 
+                btnElement.classList.add('text-blue-600', 'active');
+            }
+            
+            // 4. Update Header Title
+            const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
+            document.getElementById('header-title').innerText = titles[tabId];
         }
 
-        // 📦 THE APP LOGIC NAMESPACE
-        // Grouping everything in window.appLogic prevents variable collisions
-        window.appLogic = {
-            
-            // Local State
-            data: { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 },
-
-            // 1. AUTHENTICATION
-            checkLogin: function() {
-                const pin = document.getElementById('login-pin').value;
-                if(pin === "1234") {
-                    localStorage.setItem('erp_auth', 'true');
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-screen').classList.remove('hidden');
-                    document.getElementById('app-screen').classList.add('flex');
-                    this.syncData();
-                } else {
-                    document.getElementById('debug-txt').innerText = "❌ Incorrect PIN";
-                    document.getElementById('debug-txt').classList.replace("text-emerald-500", "text-red-500");
-                }
-            },
-
-            init: function() {
-                document.getElementById('debug-txt').innerText = "✅ Engine Ready";
-                if(localStorage.getItem('erp_auth') === 'true') {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-screen').classList.remove('hidden');
-                    document.getElementById('app-screen').classList.add('flex');
-                    this.syncData();
-                }
-            },
-
-            // 2. MASTER SYNC
-            syncData: async function() {
-                const btn = document.getElementById('btn-sync');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                
-                try {
-                    // Fetch KPIs with strict number casting
-                    const salesRs = await executeSQL("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
-                    document.getElementById('kpi-sales').innerText = '₹' + Number((salesRs[0] && salesRs[0].t) || 0).toLocaleString('en-IN');
-                    
-                    const dueRs = await executeSQL("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
-                    document.getElementById('kpi-due').innerText = '₹' + Number((dueRs[0] && dueRs[0].t) || 0).toLocaleString('en-IN');
-
-                    // Fetch Master Data
-                    this.data.products = await executeSQL("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
-                    this.data.customers = await executeSQL("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
-                    this.data.bills = await executeSQL("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
-                    
-                    try { this.data.emps = await executeSQL("SELECT id, name FROM employees"); } catch(e){}
-
-                    // Update UI
-                    this.renderSales(); this.renderLedger(); this.renderStock(); this.renderAttendance();
-                    
-                } catch (err) { 
-                    alert("Sync Error. Please check connection."); 
-                }
-                
-                btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
-            },
-
-            // 3. NAVIGATION & UI
-            switchTab: function(tabId, btnElement) {
-                document.querySelectorAll('.tab-content').forEach(t => {
-                    t.classList.remove('active');
-                    setTimeout(() => t.style.display = 'none', 50); // Small delay for animation
-                });
-                
-                const target = document.getElementById('tab-' + tabId);
-                target.style.display = 'flex';
-                setTimeout(() => target.classList.add('active'), 10);
-                
-                document.querySelectorAll('.nav-btn').forEach(b => {
-                    b.classList.remove('text-blue-600'); 
-                    b.classList.add('text-slate-400');
-                    b.querySelector('div').classList.remove('bg-blue-100');
-                });
-                
-                if(btnElement) {
-                    btnElement.classList.remove('text-slate-400'); 
-                    btnElement.classList.add('text-blue-600');
-                    btnElement.querySelector('div').classList.add('bg-blue-100');
-                }
-                
-                const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
-                document.getElementById('header-title').innerText = titles[tabId];
-            },
-
-            openModal: function(modalId) {
-                const modal = document.getElementById(modalId);
-                const inner = document.getElementById(modalId + '-inner');
-                modal.classList.remove('hidden');
-                
-                // Trigger animations
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    if(inner.classList.contains('scale-95')) inner.classList.remove('scale-95');
-                    if(inner.classList.contains('translate-y-full')) inner.classList.remove('translate-y-full');
-                }, 10);
-            },
-
-            closeModal: function(modalId) {
-                const modal = document.getElementById(modalId);
-                const inner = document.getElementById(modalId + '-inner');
-                
-                // Reverse animations
-                modal.classList.add('opacity-0');
-                if(inner.id.includes('pay')) inner.classList.add('translate-y-full');
-                else inner.classList.add('scale-95');
-                
-                setTimeout(() => modal.classList.add('hidden'), 250);
-            },
-
-            // 4. AUTOCOMPLETE
-            filterAC: function(inputId, dropId) {
-                const val = document.getElementById(inputId).value.toLowerCase();
-                const drop = document.getElementById(dropId);
-                drop.innerHTML = '';
-                
-                if(!val) { drop.style.display = 'none'; return; }
-                
-                let list = inputId === 'pos-cust' ? this.data.customers.map(c=>c.name) : this.data.products.map(p=>p.name);
-                let matches = list.filter(i => i && i.toLowerCase().includes(val)).slice(0, 8); // Max 8 suggestions
-                
-                matches.forEach(m => {
-                    let div = document.createElement('div');
-                    div.className = 'ac-item'; 
-                    div.innerText = m;
-                    div.onclick = () => {
-                        document.getElementById(inputId).value = m;
-                        drop.style.display = 'none';
-                        if(inputId === 'pos-item') this.autoFillPrice();
-                    };
-                    drop.appendChild(div);
-                });
-                
-                drop.style.display = matches.length ? 'block' : 'none';
-            },
-
-            // 5. POS ENGINE
-            autoFillPrice: function() {
-                const name = document.getElementById('pos-item').value;
-                const p = this.data.products.find(x => x.name === name);
-                if(p) {
-                    document.getElementById('pos-rate').value = p.rate || 0;
-                    const uSel = document.getElementById('pos-unit');
-                    uSel.innerHTML = `<option value="${p.unit_main || 'Pcs'}">${p.unit_main || 'Pcs'}</option>`;
-                    if(p.unit_pack) uSel.innerHTML += `<option value="${p.unit_pack}">${p.unit_pack}</option>`;
-                }
-            },
-
-            addToCart: function() {
-                const name = document.getElementById('pos-item').value;
-                const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
-                const rate = parseFloat(document.getElementById('pos-rate').value) || 0;
-                const unit = document.getElementById('pos-unit').value || 'Pcs';
-                
-                if(!name || rate <= 0) return alert("Valid item and rate required.");
-
-                this.data.cart.push({name, qty, rate, unit, tot: qty*rate});
-                
-                // Reset inputs
-                document.getElementById('pos-item').value = '';
-                document.getElementById('pos-qty').value = '1';
-                document.getElementById('pos-rate').value = '';
-                document.getElementById('pos-unit').innerHTML = '';
-                
-                this.renderCart();
-            },
-
-            removeCartItem: function(index) { 
-                this.data.cart.splice(index, 1); 
-                this.renderCart(); 
-            },
-
-            renderCart: function() {
-                const ui = document.getElementById('pos-cart-ui'); 
-                ui.innerHTML = ''; 
-                this.data.cartTotal = 0;
-                
-                if(this.data.cart.length === 0) {
-                    ui.innerHTML = `
-                        <div class="h-full flex flex-col items-center justify-center pt-8 text-slate-300">
-                            <i class="fas fa-shopping-basket text-3xl mb-2"></i>
-                            <p class="text-[11px] font-bold">Cart is empty</p>
-                        </div>`;
-                } else {
-                    this.data.cart.forEach((item, i) => {
-                        this.data.cartTotal += item.tot;
-                        ui.innerHTML += `
-                            <div class="glass-panel p-2.5 rounded-xl border border-slate-100 flex justify-between items-center shadow-sm mb-1.5 animate-[fadeIn_0.2s_ease-out]">
-                                <div class="flex-1">
-                                    <p class="font-bold text-slate-800 text-xs line-clamp-1">${item.name}</p>
-                                    <p class="text-[9px] text-slate-500 font-medium">${item.qty} ${item.unit} x ₹${item.rate}</p>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <p class="font-black text-blue-600 text-sm">₹${item.tot.toFixed(2)}</p>
-                                    <button onclick="window.appLogic.removeCartItem(${i})" class="text-rose-400 hover:text-rose-600 w-6 h-6 flex items-center justify-center rounded-full bg-rose-50 active:scale-90 transition-transform"><i class="fas fa-times"></i></button>
-                                </div>
-                            </div>`;
-                    });
-                }
-                document.getElementById('pos-total').innerText = '₹' + this.data.cartTotal.toFixed(2);
-            },
-
-            saveMobileBill: async function() {
-                if(this.data.cart.length === 0) return;
-                const btn = document.getElementById('btn-save-bill');
-                let cust = document.getElementById('pos-cust').value.trim() || "Walk-in";
-                let total = this.data.cartTotal;
-                
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> SAVING...'; 
-                btn.disabled = true;
-
-                try {
-                    // Get correct M-APP Bill Number
-                    let cntRs = await executeSQL("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
-                    const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
-                    
-                    const d = new Date(); const pad = n => String(n).padStart(2, '0');
-                    const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-
-                    let old_bal = 0.0;
-                    
-                    // Check Customer Balance (Safe string injection)
-                    let custRs = await executeSQL("SELECT id, balance FROM customers WHERE name = ?", [cust]);
-                    
-                    if (custRs.length > 0) {
-                        old_bal = Number(custRs[0].balance || 0);
-                        await executeSQL("UPDATE customers SET balance = balance + ? WHERE name = ?", [total, cust]);
-                    } else if (cust !== 'Walk-in') {
-                        await executeSQL("INSERT INTO customers (name, mobile, address, balance, group_name) VALUES (?, '', '', ?, 'General')", [cust, total]);
-                    }
-
-                    // Deduct Stock
-                    for(let item of this.data.cart) {
-                        await executeSQL("UPDATE products SET stock = stock - ? WHERE name = ?", [item.qty, item.name]);
-                    }
-
-                    // Insert Bill
-                    const cartJson = JSON.stringify(this.data.cart);
-                    await executeSQL(
-                        "INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES (?, ?, ?, 0, ?, 0, ?, 'Due/Cash', ?, ?, ?, 'Mobile PWA')",
-                        [bno, cust, total, total, total, cartJson, dt, old_bal]
-                    );
-
-                    // Reset POS
-                    document.getElementById('pos-cust').value = ''; 
-                    this.data.cart = []; 
-                    this.renderCart();
-                    
-                    // Refresh Data
-                    await this.syncData(); 
-                    this.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
-                    
-                    // Native alert or custom toast could go here
-                    alert("✅ Bill Saved Successfully!");
-
-                } catch (err) { 
-                    alert("Save failed. Check Connection."); 
-                    console.error(err); 
-                }
-                
-                btn.innerHTML = '<i class="fas fa-check mr-2"></i> COMPLETE SALE'; 
-                btn.disabled = false;
-            },
-
-            // 6. SALES REGISTER
-            renderSales: function() {
-                const val = (document.getElementById('search-sales').value || "").toLowerCase();
-                const timeFilter = document.getElementById('filter-sales-time').value;
-                const sortFilter = document.getElementById('sort-sales').value;
-                
-                const list = document.getElementById('sales-list'); list.innerHTML = '';
-                const feed = document.getElementById('dashboard-feed'); feed.innerHTML = '';
-                
-                let filtered = this.data.bills.filter(b => {
-                    if(!b) return false;
-                    const matchSearch = (b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val);
-                    if(!matchSearch) return false;
-                    
-                    // Time Filtering
-                    if(timeFilter !== 'all') {
-                        const bDate = new Date(b.created_at);
-                        const now = new Date();
-                        if(timeFilter === 'today') {
-                            if(bDate.toDateString() !== now.toDateString()) return false;
-                        } else if(timeFilter === 'month') {
-                            if(bDate.getMonth() !== now.getMonth() || bDate.getFullYear() !== now.getFullYear()) return false;
-                        }
-                    }
-                    return true;
-                });
-                
-                // Sorting
-                if(sortFilter === 'newest') filtered.sort((a,b) => b.id - a.id);
-                else if(sortFilter === 'oldest') filtered.sort((a,b) => a.id - b.id);
-                else if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.grand_total) - Number(a.grand_total));
-                
-                if(filtered.length === 0) {
-                    list.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">No bills found.</p>`;
-                    if(val === "" && timeFilter === 'all') feed.innerHTML = list.innerHTML;
-                    return;
-                }
-
-                filtered.slice(0, 50).forEach((b, i) => {
-                    const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
-                    const isMob = bno.startsWith('M-');
-                    const badge = isMob ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-blue-100 text-blue-700 border border-blue-200';
-                    const icon = isMob ? '<i class="fas fa-mobile-alt mr-1"></i>' : '<i class="fas fa-desktop mr-1"></i>';
-                    
-                    const html = `
-                        <div onclick="window.appLogic.viewBill(${b.id})" class="glass-panel p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-2 shadow-sm cursor-pointer transition-colors">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center mr-3">
-                                    <i class="fas fa-file-invoice text-slate-400 text-xs"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800 line-clamp-1">${cust}</p>
-                                    <p class="text-[10px] text-slate-500 font-medium">${dt}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-base font-black text-slate-800">₹${amt.toLocaleString('en-IN')}</p>
-                                <span class="inline-block mt-1 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${badge}">${icon}${bno}</span>
-                            </div>
-                        </div>`;
-                    list.innerHTML += html;
-                    if(i < 4 && val === "" && timeFilter === 'all') feed.innerHTML += html;
-                });
-            },
-
-            viewBill: function(id) {
-                const b = this.data.bills.find(x => x.id === id);
-                if(!b) return;
-                
-                document.getElementById('m-bill-title').innerText = b.bill_no || "Invoice";
-                
-                let html = `🏢 ANPMART ERP\n\n`;
-                html += `🧑 Customer : ${b.customer_name}\n`;
-                html += `📅 Date     : ${String(b.created_at).substring(0,16)}\n`;
-                html += `--------------------------------\n`;
-                html += `ITEM            QTY   RATE   TOT\n`;
-                html += `--------------------------------\n`;
-                
-                try {
-                    let items = JSON.parse(b.bill_data || "[]");
-                    items.forEach(i => {
-                        let n = (i.name||"Item").substring(0,14).padEnd(15);
-                        let q = String(i.qty).padStart(3);
-                        let r = String(i.rate).padStart(6);
-                        let t = String(i.tot).padStart(6);
-                        html += `${n} ${q} ${r} ${t}\n`;
-                    });
-                } catch(e){}
-                
-                html += `--------------------------------\n`;
-                html += `GRAND TOTAL : ₹${Number(b.grand_total).toFixed(2)}\n`;
-                
-                document.getElementById('m-bill-content').innerText = html;
-                
-                // Setup WhatsApp Share
-                const cObj = this.data.customers.find(c => c.name === b.customer_name);
-                const mob = cObj ? (cObj.whatsapp || cObj.mobile) : '';
-                
-                const waBtn = document.getElementById('btn-wa');
-                waBtn.onclick = () => {
-                    if(!mob) return alert("No phone number saved for this customer. Please update their profile.");
-                    window.open(`https://wa.me/91${mob}?text=${encodeURIComponent(html)}`, '_blank');
-                };
-                
-                this.openModal('modal-bill');
-            },
-
-            // 7. LEDGER LOGIC
-            renderLedger: function() {
-                const val = (document.getElementById('search-ledger').value || "").toLowerCase();
-                const sortFilter = document.getElementById('sort-ledger').value;
-                const list = document.getElementById('ledger-list'); list.innerHTML = '';
-                
-                let filtered = this.data.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val));
-                
-                if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.balance) - Number(a.balance));
-                else if(sortFilter === 'lowest') filtered.sort((a,b) => Number(a.balance) - Number(b.balance));
-                else if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
-                
-                if(filtered.length === 0) {
-                    list.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">No outstanding dues found.</p>`;
-                    return;
-                }
-
-                filtered.forEach(c => {
-                    const safeName = (c.name||"").replace(/'/g, "\\'");
-                    list.innerHTML += `
-                        <div onclick="window.appLogic.openPayModal('${safeName}', ${c.balance})" class="glass-panel p-3 rounded-xl border border-rose-100 flex justify-between items-center active:bg-rose-50 mb-2 shadow-sm cursor-pointer transition-colors group">
-                            <div class="flex items-center">
-                                <div class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center mr-3 group-active:bg-rose-200">
-                                    <i class="fas fa-user-tag text-rose-500 text-xs"></i>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-800">${c.name}</p>
-                                    <p class="text-[10px] text-slate-500 font-medium"><i class="fas fa-phone mr-1 opacity-70"></i>${c.mobile||'N/A'}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[9px] font-bold text-rose-400 uppercase tracking-wider mb-0.5">Due Amount</p>
-                                <p class="text-base font-black text-rose-600">₹${Number(c.balance).toLocaleString('en-IN')}</p>
-                            </div>
-                        </div>`;
-                });
-            },
-
-            openPayModal: function(name, due) {
-                document.getElementById('pay-cust-name').innerText = name;
-                document.getElementById('pay-due').innerText = `₹${Number(due).toLocaleString('en-IN', {minimumFractionDigits:2})}`;
-                document.getElementById('pay-amt').value = due;
-                this.openModal('modal-pay');
-            },
-
-            savePayment: async function() {
-                const name = document.getElementById('pay-cust-name').innerText;
-                const amt = parseFloat(document.getElementById('pay-amt').value);
-                
-                if(!amt || amt <= 0) return alert("Please enter a valid amount.");
-                
-                try {
-                    const dt = new Date().toISOString().replace('T',' ').substring(0, 19);
-                    
-                    // Update Customer Balance
-                    await executeSQL("UPDATE customers SET balance = balance - ? WHERE name = ?", [amt, name]);
-                    
-                    // Log the Payment History
-                    await executeSQL(
-                        "INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES (?, ?, ?, 'Cash', 'Mobile Received')", 
-                        [name, amt, dt]
-                    );
-                    
-                    this.closeModal('modal-pay');
-                    await this.syncData(); 
-                    
-                    alert("✅ Payment logged successfully!");
-                } catch(e) { 
-                    alert("Error saving payment. Check connection."); 
-                }
-            },
-
-            // 8. MASTER STOCK LOGIC
-            renderStock: function() {
-                const val = (document.getElementById('search-stock').value || "").toLowerCase();
-                const sortFilter = document.getElementById('sort-stock').value;
-                const list = document.getElementById('stock-list'); list.innerHTML = '';
-                
-                let filtered = this.data.products.filter(p => (p.name||"").toLowerCase().includes(val));
-                
-                if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
-                else if(sortFilter === 'low') filtered.sort((a,b) => Number(a.stock||0) - Number(b.stock||0));
-                else if(sortFilter === 'high') filtered.sort((a,b) => Number(b.stock||0) - Number(a.stock||0));
-                
-                if(filtered.length === 0) {
-                    list.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">No inventory items found.</p>`;
-                    return;
-                }
-
-                filtered.slice(0, 50).forEach(p => {
-                    const stk = Number(p.stock || 0);
-                    const isLow = stk <= 5;
-                    const stockColor = stk <= 0 ? 'text-rose-500 bg-rose-50 border-rose-200' : (isLow ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-emerald-600 bg-emerald-50 border-emerald-200');
-                    const safeName = (p.name||"").replace(/'/g, "\\'");
-                    
-                    list.innerHTML += `
-                        <div onclick="window.appLogic.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-panel p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer transition-colors">
-                            <div class="flex-1 pr-3">
-                                <p class="text-sm font-bold text-slate-800 line-clamp-1">${p.name}</p>
-                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">Rate: <span class="font-bold text-slate-700">₹${p.rate||0}</span></p>
-                            </div>
-                            <div class="text-right shrink-0">
-                                <span class="inline-block text-[9px] font-black px-2 py-1 rounded border uppercase tracking-wider ${stockColor}">
-                                    Stock: ${stk}
-                                </span>
-                            </div>
-                        </div>`;
-                });
-            },
-
-            openEditItem: function(id, name, rate, stock) {
-                document.getElementById('edit-id').value = id;
-                document.getElementById('edit-name').value = name;
-                document.getElementById('edit-rate').value = rate;
-                document.getElementById('edit-stock').value = stock;
-                this.openModal('modal-edit-item');
-            },
-
-            saveMasterEdit: async function() {
-                const id = document.getElementById('edit-id').value;
-                const rate = parseFloat(document.getElementById('edit-rate').value);
-                const stock = parseFloat(document.getElementById('edit-stock').value);
-                
-                try {
-                    await executeSQL("UPDATE products SET rate=?, stock=? WHERE id=?", [rate, stock, id]);
-                    this.closeModal('modal-edit-item');
-                    await this.syncData();
-                    // Optional toast success message here
-                } catch(e) { 
-                    alert("Error updating item."); 
-                }
-            },
-
-            // 9. ATTENDANCE LOGIC
-            renderAttendance: function() {
-                const list = document.getElementById('attendance-list'); list.innerHTML = '';
-                
-                if(!this.data.emps || this.data.emps.length === 0) {
-                    list.innerHTML = `
-                        <div class="text-center py-6">
-                            <i class="fas fa-users-slash text-3xl text-slate-300 mb-2"></i>
-                            <p class="text-xs font-bold text-slate-500">No employees found in database.</p>
-                        </div>`;
-                    return;
-                }
-                
-                this.data.emps.forEach(e => {
-                    list.innerHTML += `
-                        <div class="glass-panel p-3 rounded-xl border border-slate-200 shadow-sm mb-2">
-                            <p class="font-bold text-slate-800 text-sm mb-2.5 flex items-center"><i class="fas fa-user text-slate-400 mr-2 text-xs"></i> ${e.name}</p>
-                            <div class="flex space-x-2">
-                                <label class="flex-1 relative">
-                                    <input type="radio" name="att_${e.id}" value="Present" class="peer sr-only" checked>
-                                    <div class="text-center py-2 rounded-lg text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 cursor-pointer peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:border-emerald-600 transition-all shadow-sm">Present</div>
-                                </label>
-                                <label class="flex-1 relative">
-                                    <input type="radio" name="att_${e.id}" value="Half Day" class="peer sr-only">
-                                    <div class="text-center py-2 rounded-lg text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 cursor-pointer peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-600 transition-all shadow-sm">Half</div>
-                                </label>
-                                <label class="flex-1 relative">
-                                    <input type="radio" name="att_${e.id}" value="Absent" class="peer sr-only">
-                                    <div class="text-center py-2 rounded-lg text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 cursor-pointer peer-checked:bg-rose-500 peer-checked:text-white peer-checked:border-rose-600 transition-all shadow-sm">Absent</div>
-                                </label>
-                            </div>
-                        </div>`;
-                });
-            },
-
-            saveAttendance: async function() {
-                const dt = new Date().toISOString().substring(0, 10);
-                const btn = event.currentTarget;
-                const originalText = btn.innerHTML;
-                
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
-                
-                try {
-                    // Loop through employees and save attendance
-                    for(let e of this.data.emps) {
-                        const status = document.querySelector(`input[name="att_${e.id}"]:checked`).value;
-                        await executeSQL(
-                            "INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (?, ?, ?, ?)", 
-                            [e.id, e.name, dt, status]
-                        );
-                    }
-                    alert("✅ Attendance Saved Successfully!");
-                    this.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
-                } catch(err) { 
-                    alert("Error saving attendance."); 
-                }
-                
-                btn.innerHTML = originalText;
-            }
-        };
-
-        // Close dropdowns on outside click setup globally
+        // Close dropdowns if tapped outside
         document.addEventListener('click', function(e) {
             if(!e.target.closest('.relative')) { 
                 document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); 
             }
         });
 
-        // Bootstrap App
-        window.onload = () => {
-            window.appLogic.init();
-        };
+        // =====================================================================
+        // SECTION 2: DATABASE & LOGIC 
+        // =====================================================================
+        const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
+        const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
 
+        window.erpData = { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 };
+
+        async function runQuery(sql) {
+            try {
+                const response = await fetch(TURSO_URL, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${TURSO_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
+                });
+
+                if (!response.ok) return [];
+                const data = await response.json();
+                
+                if (data.results[0].type === "error") return [];
+
+                const result = data.results[0].response.result;
+                if (!result || !result.cols || !result.rows) return [];
+
+                const cols = result.cols.map(c => c.name);
+                return result.rows.map(row => {
+                    let obj = {};
+                    row.forEach((v, i) => { obj[cols[i]] = (v && v.type === "null") ? null : (v ? v.value : null); });
+                    return obj;
+                });
+            } catch (error) { return []; }
+        }
+
+        function checkLogin() {
+            if(document.getElementById('login-pin').value === "1234") {
+                localStorage.setItem('erp_auth', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                document.getElementById('app-screen').classList.add('flex');
+                syncData();
+            } else alert("Incorrect PIN.");
+        }
+
+        if(localStorage.getItem('erp_auth') === 'true') {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('app-screen').classList.add('flex');
+            syncData();
+        }
+
+        async function syncData() {
+            const btn = document.getElementById('btn-sync');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
+                document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
+                
+                let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
+                document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
+
+                window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
+                window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
+                window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
+                try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
+
+                renderSales(); renderLedger(); renderStock(); renderAttendance();
+            } catch (err) { console.log(err); }
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        }
+
+        function filterAC(inputId, dropId) {
+            const val = document.getElementById(inputId).value.toLowerCase();
+            const drop = document.getElementById(dropId);
+            drop.innerHTML = '';
+            if(!val) { drop.style.display = 'none'; return; }
+            let list = inputId === 'pos-cust' ? window.erpData.customers.map(c=>c.name) : window.erpData.products.map(p=>p.name);
+            let matches = list.filter(i => i && i.toLowerCase().includes(val)).slice(0, 10);
+            matches.forEach(m => {
+                let div = document.createElement('div');
+                div.className = 'ac-item'; div.innerText = m;
+                div.onclick = function() {
+                    document.getElementById(inputId).value = m; drop.style.display = 'none';
+                    if(inputId === 'pos-item') autoFillPrice();
+                };
+                drop.appendChild(div);
+            });
+            drop.style.display = matches.length ? 'block' : 'none';
+        }
+
+        function autoFillPrice() {
+            const name = document.getElementById('pos-item').value;
+            const p = window.erpData.products.find(x => x.name === name);
+            if(p) {
+                document.getElementById('pos-rate').value = p.rate || 0;
+                const uSel = document.getElementById('pos-unit');
+                uSel.innerHTML = `<option value="${p.unit_main || 'Pcs'}">${p.unit_main || 'Pcs'}</option>`;
+                if(p.unit_pack) uSel.innerHTML += `<option value="${p.unit_pack}">${p.unit_pack}</option>`;
+            }
+        }
+
+        function addToCart() {
+            const name = document.getElementById('pos-item').value;
+            const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
+            const rate = parseFloat(document.getElementById('pos-rate').value) || 0;
+            const unit = document.getElementById('pos-unit').value || 'Pcs';
+            if(!name || rate <= 0) return alert("Valid item and rate required.");
+            window.erpData.cart.push({name, qty, rate, unit, tot: qty*rate});
+            document.getElementById('pos-item').value = ''; document.getElementById('pos-qty').value = '1';
+            document.getElementById('pos-rate').value = ''; document.getElementById('pos-unit').innerHTML = '';
+            renderCart();
+        }
+
+        function removeCartItem(index) { window.erpData.cart.splice(index, 1); renderCart(); }
+
+        function renderCart() {
+            const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = ''; window.erpData.cartTotal = 0;
+            if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-2">Cart Empty</p>';
+            else {
+                window.erpData.cart.forEach((item, i) => {
+                    window.erpData.cartTotal += item.tot;
+                    ui.innerHTML += `
+                        <div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm mb-1">
+                            <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[9px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
+                            <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
+                        </div>`;
+                });
+            }
+            document.getElementById('pos-total').innerText = '₹' + window.erpData.cartTotal.toFixed(2);
+        }
+
+        async function saveMobileBill() {
+            if(window.erpData.cart.length === 0) return;
+            const btn = document.getElementById('btn-save-bill');
+            let cust = document.getElementById('pos-cust').value.trim() || "Walk-in";
+            let total = window.erpData.cartTotal;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...'; btn.disabled = true;
+
+            try {
+                let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
+                const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
+                
+                const d = new Date(); const pad = n => String(n).padStart(2, '0');
+                const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+                let old_bal = 0.0;
+                let csafe = cust.replace(/'/g, "''");
+                let custRs = await runQuery(`SELECT id, balance FROM customers WHERE name = '${csafe}'`);
+                
+                if (custRs.length > 0) {
+                    old_bal = Number(custRs[0].balance || 0);
+                    await runQuery(`UPDATE customers SET balance = balance + ${total} WHERE name = '${csafe}'`);
+                } else if (cust !== 'Walk-in') {
+                    await runQuery(`INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('${csafe}', '', '', ${total}, 'General')`);
+                }
+
+                for(let item of window.erpData.cart) {
+                    await runQuery(`UPDATE products SET stock = stock - ${item.qty} WHERE name = '${item.name.replace(/'/g, "''")}'`);
+                }
+
+                const cartJson = JSON.stringify(window.erpData.cart).replace(/'/g, "''");
+                await runQuery(`INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('${bno}', '${csafe}', ${total}, 0, ${total}, 0, ${total}, 'Due/Cash', '${cartJson}', '${dt}', ${old_bal}, 'Mobile PWA')`);
+
+                document.getElementById('pos-cust').value = ''; window.erpData.cart = []; renderCart();
+                await syncData(); switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+                alert("Bill Saved Successfully!");
+            } catch (err) { alert("Save failed. Check Connection."); console.error(err); }
+            btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
+        }
+
+        function renderSales() {
+            const val = (document.getElementById('search-sales').value || "").toLowerCase();
+            const list = document.getElementById('sales-list'); list.innerHTML = '';
+            const feed = document.getElementById('dashboard-feed'); feed.innerHTML = '';
+            
+            let filtered = window.erpData.bills.filter(b => {
+                if(!b) return false;
+                return ((b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val));
+            });
+            
+            filtered.slice(0, 50).forEach((b, i) => {
+                const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
+                const badge = bno.startsWith('M-') ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+                const html = `
+                    <div onclick="viewBill(${b.id})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-1.5 shadow-sm">
+                        <div><p class="text-xs font-bold text-slate-800">${cust}</p><p class="text-[9px] text-slate-500">${dt}</p></div>
+                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[8px] font-bold px-1 rounded ${badge}">${bno}</span></div>
+                    </div>`;
+                list.innerHTML += html;
+                if(i < 5 && val === "") feed.innerHTML += html;
+            });
+        }
+
+        function viewBill(id) {
+            const b = window.erpData.bills.find(x => x.id === id);
+            if(!b) return;
+            document.getElementById('m-bill-title').innerText = b.bill_no || "Bill";
+            let html = `Customer : ${b.customer_name}\nDate     : ${b.created_at}\n--------------------------\n`;
+            try { JSON.parse(b.bill_data || "[]").forEach(i => html += `${(i.name||"Item").substring(0,15).padEnd(15)} ${i.qty} x ${i.rate} = ${i.tot}\n`); } catch(e){}
+            html += `--------------------------\nGRAND TOTAL : ₹${b.grand_total}\n`;
+            document.getElementById('m-bill-content').innerText = html;
+            
+            const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
+            const mob = cObj ? (cObj.whatsapp || cObj.mobile) : '';
+            document.getElementById('btn-wa').onclick = () => {
+                if(!mob) return alert("No phone number saved for this customer.");
+                window.open(`https://wa.me/91${mob}?text=${encodeURIComponent(html)}`, '_blank');
+            };
+            document.getElementById('modal-bill').classList.remove('hidden');
+        }
+
+        function renderLedger() {
+            const val = (document.getElementById('search-ledger').value || "").toLowerCase();
+            const list = document.getElementById('ledger-list'); list.innerHTML = '';
+            
+            let filtered = window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val));
+            
+            filtered.forEach(c => {
+                list.innerHTML += `
+                    <div onclick="openPayModal('${(c.name||"").replace(/'/g, "\\'")}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-1.5 shadow-sm">
+                        <div><p class="text-xs font-bold text-slate-800">${c.name}</p><p class="text-[9px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
+                        <div class="text-right"><p class="text-[9px] text-slate-400">Due</p><p class="text-sm font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
+                    </div>`;
+            });
+        }
+
+        function openPayModal(name, due) {
+            document.getElementById('pay-cust-name').innerText = name;
+            document.getElementById('pay-due').innerText = `₹${due.toFixed(2)}`;
+            document.getElementById('pay-amt').value = due.toFixed(2);
+            document.getElementById('modal-pay').classList.remove('hidden');
+        }
+
+        async function savePayment() {
+            const name = document.getElementById('pay-cust-name').innerText;
+            const amt = parseFloat(document.getElementById('pay-amt').value);
+            if(!amt || amt <= 0) return alert("Invalid amount.");
+            try {
+                const dt = new Date().toISOString().replace('T',' ').substring(0, 19);
+                await runQuery(`UPDATE customers SET balance = balance - ${amt} WHERE name = '${name.replace(/'/g, "''")}'`);
+                await runQuery(`INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES ('${name.replace(/'/g, "''")}', ${amt}, '${dt}', 'Cash', 'Mobile Received')`);
+                document.getElementById('modal-pay').classList.add('hidden');
+                await syncData(); alert("Payment Logged!");
+            } catch(e) { alert("Error saving payment."); }
+        }
+
+        function renderStock() {
+            const val = (document.getElementById('search-stock').value || "").toLowerCase();
+            const list = document.getElementById('stock-list'); list.innerHTML = '';
+            let filtered = window.erpData.products.filter(p => (p.name||"").toLowerCase().includes(val));
+            
+            filtered.slice(0,50).forEach(p => {
+                const stk = Number(p.stock || 0);
+                list.innerHTML += `
+                    <div onclick="openEditItem(${p.id}, '${(p.name||"").replace(/'/g, "\\'")}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
+                        <p class="text-xs font-bold text-slate-800">${p.name}</p>
+                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${stk<=0?'text-red-500':'text-emerald-500'}">Stock: ${stk}</p></div>
+                    </div>`;
+            });
+        }
+
+        function openEditItem(id, name, rate, stock) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-name').value = name;
+            document.getElementById('edit-rate').value = rate;
+            document.getElementById('edit-stock').value = stock;
+            document.getElementById('modal-edit-item').classList.remove('hidden');
+        }
+
+        async function saveMasterEdit() {
+            const id = document.getElementById('edit-id').value;
+            const rate = parseFloat(document.getElementById('edit-rate').value);
+            const stock = parseFloat(document.getElementById('edit-stock').value);
+            try {
+                await runQuery(`UPDATE products SET rate=${rate}, stock=${stock} WHERE id=${id}`);
+                document.getElementById('modal-edit-item').classList.add('hidden');
+                await syncData();
+            } catch(e) { alert("Error saving."); }
+        }
+
+        function renderAttendance() {
+            const list = document.getElementById('attendance-list'); list.innerHTML = '';
+            if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
+            window.erpData.emps.forEach(e => {
+                list.innerHTML += `
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm mb-1.5">
+                        <p class="font-bold text-slate-800 text-xs mb-2">${e.name}</p>
+                        <div class="flex space-x-1.5">
+                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
+                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
+                            <label class="flex-1 text-center bg-red-50 text-red-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function saveAttendance() {
+            const dt = new Date().toISOString().substring(0, 10);
+            try {
+                for(let e of window.erpData.emps) {
+                    const status = document.querySelector(`input[name="att_${e.id}"]:checked`).value;
+                    await runQuery(`INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (${e.id}, '${e.name.replace(/'/g, "''")}', '${dt}', '${status}')`);
+                }
+                alert("Attendance Saved!"); switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+            } catch(err) { alert("Error saving attendance."); }
+        }
     </script>
 </body>
 </html>
