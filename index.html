@@ -191,8 +191,8 @@
 
         <!-- 🪟 OVERLAY MODALS -->
         
-        <!-- 1. EXACT REPLICA 80MM BILL VIEW MODAL -->
-        <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/90 flex-col items-center p-4 hide-scroll overflow-y-auto">
+        <!-- 1. EXACT REPLICA 80MM BILL VIEW MODAL (Fixed Flex Class) -->
+        <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/90 flex flex-col items-center p-4 hide-scroll overflow-y-auto">
             
             <div class="no-print w-full max-w-[340px] flex justify-between items-center mb-3 mt-4 mx-auto">
                 <h3 class="text-white font-bold">View & Share Invoice</h3>
@@ -233,7 +233,7 @@
                         </tr>
                     </thead>
                     <tbody id="r-items">
-                        <!-- Items Injected Here -->
+                        <!-- Items Injected Here safely via JS -->
                     </tbody>
                 </table>
 
@@ -256,12 +256,12 @@
                         </tr>
                     </thead>
                     <tbody id="r-taxes">
-                        <!-- Taxes Injected Here -->
+                        <!-- Taxes Injected Here safely via JS -->
                     </tbody>
                 </table>
 
                 <!-- HIGHLIGHTED NET PAYABLE BLOCK -->
-                <div class="bg-yellow-100 border border-black p-1.5 flex justify-between items-center font-black text-[13px] mb-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+                <div class="bg-[#fffbe6] border border-black p-1.5 flex justify-between items-center font-black text-[13px] mb-2">
                     <span>NET PAYABLE:</span> <span id="r-net"></span>
                 </div>
                 
@@ -278,7 +278,7 @@
                 </div>
 
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
-                <div class="text-center font-bold mt-1 text-[10px]">THANK YOU! VISIT AGAIN</div>
+                <div class="text-center font-bold mt-1 text-[10px] pb-2">THANK YOU! VISIT AGAIN</div>
             </div>
 
             <!-- Share Action Buttons -->
@@ -296,7 +296,7 @@
         </div>
 
         <!-- 2. Receive Payment Modal -->
-        <div id="modal-pay" class="hidden absolute inset-0 z-[120] bg-slate-900/60 flex justify-center items-end p-0">
+        <div id="modal-pay" class="hidden absolute inset-0 z-[120] bg-slate-900/60 flex flex-col justify-end p-0">
             <div class="bg-white w-full rounded-t-2xl shadow-2xl p-5 pb-8">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-black text-slate-800 text-base" id="pay-cust-name">Receive Cash</h3>
@@ -310,7 +310,7 @@
         </div>
 
         <!-- 3. Account Ledger Modal -->
-        <div id="modal-cust-ledger" class="hidden absolute inset-0 z-[115] bg-slate-900/60 flex justify-center items-center p-3">
+        <div id="modal-cust-ledger" class="hidden absolute inset-0 z-[115] bg-slate-900/60 flex flex-col justify-center items-center p-3">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
                 <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
                     <div>
@@ -329,7 +329,7 @@
         </div>
 
         <!-- 4. Edit Master Modal -->
-        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-4">
+        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex flex-col justify-center items-center p-4">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-black text-slate-800 text-base">Edit Master</h3>
@@ -435,7 +435,7 @@
                 window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
                 window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
                 
-                // Fetching sub_total, paid, and balance_due specifically for the new thermal receipt
+                // Fetch all data for accurate receipts
                 window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, sub_total, grand_total, paid, balance_due, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
                 
                 try { window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); } catch(e){}
@@ -602,7 +602,7 @@
                 const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
                 const badge = bno.startsWith('M-') ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700';
                 const html = `
-                    <div onclick="window.viewBill(${b.id})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                    <div onclick="window.viewBill('${b.id}')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-slate-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
                         <div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${cust}</p><p class="text-[9px] font-bold text-slate-500 mt-0.5">${dt}</p></div>
                         <div class="text-right"><p class="text-base font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[8px] font-black px-1.5 py-0.5 rounded ${badge} mt-1 inline-block">${bno}</span></div>
                     </div>`;
@@ -613,10 +613,11 @@
 
         // 🖨️ EXACT 80MM THERMAL VIEW & SHARE
         window.viewBill = function(id) {
-            const b = window.erpData.bills.find(x => x.id === id);
-            if(!b) return;
+            // Force loose equality because ID might be a string from UI and int from DB
+            const b = window.erpData.bills.find(x => x.id == id);
+            if(!b) { alert("Bill not found."); return; }
             
-            const dateStr = String(b.created_at).substring(0,10);
+            const dateStr = String(b.created_at || "N/A").substring(0,10);
             const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
             const mob = cObj ? (cObj.whatsapp || cObj.mobile || 'N/A') : 'N/A';
             
@@ -624,46 +625,53 @@
             let waText = `*ANNAPURNA TRADERS*\nChowkinath, Guruwarpeth, Kittur\nPhone: 7795966127\n--------------------------------\n*TAX INVOICE*\nInv: ${b.bill_no}\nDate: ${dateStr}\nCust: ${b.customer_name}\nMob: ${mob}\n--------------------------------\nSl Product Name       Qty   Price   Amount\n--------------------------------\n`;
 
             // HTML Element Setup
-            document.getElementById('r-inv').innerText = b.bill_no;
+            document.getElementById('r-inv').innerText = b.bill_no || "N/A";
             document.getElementById('r-date').innerText = dateStr;
-            document.getElementById('r-cust').innerText = b.customer_name;
+            document.getElementById('r-cust').innerText = b.customer_name || "N/A";
             document.getElementById('r-mob').innerText = mob;
             
             let htmlItems = '';
-            let gt = Number(b.grand_total);
+            let gt = Number(b.grand_total || 0);
             let sub = Number(b.sub_total || gt);
 
+            // BULLETPROOF JSON PARSER
+            let items = [];
             try { 
-                // Fix for double stringified JSON from Turso
-                let items = typeof b.bill_data === 'string' ? JSON.parse(b.bill_data || "[]") : (b.bill_data || []);
-                items.forEach((i, idx) => {
-                    let rate = Number(i.rate).toFixed(2);
-                    let tot = Number(i.tot).toFixed(2);
-                    
-                    // WA formatting
-                    let sl = String(idx + 1).padEnd(2);
-                    let n = (i.name||"Item").substring(0,16).padEnd(16);
-                    let q = (String(i.qty) + (i.unit||"")).padStart(5);
-                    let r = String(Number(i.rate).toFixed(1)).padStart(7);
-                    let t = String(Number(i.tot).toFixed(1)).padStart(8);
-                    waText += `${sl} ${n} ${q} ${r} ${t}\n`;
-
-                    // HTML formatting (Correctly mapping to TRs)
-                    htmlItems += `
-                        <tr class="border-b border-black">
-                            <td class="border-r border-black p-1 align-top text-center">${idx+1}</td>
-                            <td class="border-r border-black p-1 leading-tight">
-                                <span class="font-bold">${i.name}</span><br>
-                                <span class="text-[7px] text-slate-600 uppercase tracking-tighter">HSN: N/A | GST: 5%</span>
-                            </td>
-                            <td class="border-r border-black p-1 text-center align-top">${i.qty}</td>
-                            <td class="border-r border-black p-1 text-right align-top">${rate}</td>
-                            <td class="p-1 text-right align-top font-bold">${tot}</td>
-                        </tr>`;
-                }); 
+                let rawData = b.bill_data || "[]";
+                let parsed = JSON.parse(rawData);
+                // Fix double stringified array from Turso
+                if(typeof parsed === 'string') parsed = JSON.parse(parsed);
+                if(Array.isArray(parsed)) items = parsed;
             } catch(e) {
                 console.error("Parse Error on Bill Data:", e);
             }
+            
+            items.forEach((i, idx) => {
+                let rate = Number(i.rate || 0).toFixed(2);
+                let tot = Number(i.tot || 0).toFixed(2);
+                let qty = i.qty || 1;
+                
+                // WA formatting
+                let sl = String(idx + 1).padEnd(2);
+                let n = (i.name||"Item").substring(0,16).padEnd(16);
+                let q = (String(qty) + (i.unit||"")).padStart(5);
+                let r = String(Number(rate).toFixed(1)).padStart(7);
+                let t = String(Number(tot).toFixed(1)).padStart(8);
+                waText += `${sl} ${n} ${q} ${r} ${t}\n`;
+
+                // HTML formatting mapping explicitly to TRs
+                htmlItems += `
+                    <tr class="border-b border-black">
+                        <td class="border-r border-black p-1 align-top text-center">${idx+1}</td>
+                        <td class="border-r border-black p-1 leading-tight">
+                            <span class="font-bold">${i.name || "Item"}</span><br>
+                            <span class="text-[7px] text-slate-600 uppercase tracking-tighter">HSN: N/A | GST: 5%</span>
+                        </td>
+                        <td class="border-r border-black p-1 text-center align-top">${qty}</td>
+                        <td class="border-r border-black p-1 text-right align-top">${rate}</td>
+                        <td class="p-1 text-right align-top font-bold">${tot}</td>
+                    </tr>`;
+            }); 
             
             // Apply Sub & Grand
             document.getElementById('r-items').innerHTML = htmlItems;
@@ -690,7 +698,6 @@
             `;
 
             // QR Code Data setup
-            document.getElementById('r-qr-amt').innerText = `₹${gt.toFixed(2)}`;
             const upiLink = `upi://pay?pa=6363304520@okbizaxis&pn=ANNAPURNA%20TRADERS&am=${gt.toFixed(2)}&cu=INR`;
             document.getElementById('r-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
 
@@ -699,6 +706,7 @@
             window.currentBillMobile = mob;
             window.currentBillText = waText;
 
+            // Make popup visible
             document.getElementById('modal-bill').classList.remove('hidden');
         };
 
@@ -735,6 +743,7 @@
             const list = document.getElementById('ledger-list'); list.innerHTML = '';
             
             let filtered = window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val));
+            
             if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.balance) - Number(a.balance));
             else if(sortFilter === 'lowest') filtered.sort((a,b) => Number(a.balance) - Number(b.balance));
             else if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
@@ -772,7 +781,7 @@
                     let dt = String(item.date).substring(0, 10);
                     if (item.type === 'Bill') {
                         listHtml += `
-                        <div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill(${item.id});" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">
+                        <div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill('${item.id}');" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">
                             <div><p class="text-[11px] font-bold text-rose-900 underline decoration-rose-300">Bill: ${item.ref}</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div>
                             <p class="text-[13px] font-black text-rose-600">+₹${Number(item.amt).toLocaleString('en-IN')}</p>
                         </div>`;
