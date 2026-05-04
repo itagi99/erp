@@ -176,20 +176,23 @@
         </nav>
 
         <!-- 🪟 OVERLAY MODALS -->
-        <div id="modal-bill" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-3">
+        
+        <!-- 1. Bill View Modal -->
+        <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/60 flex justify-center items-center p-3">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
                 <div class="p-2 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
                     <h3 class="font-bold text-slate-800 text-xs" id="m-bill-title">Bill Details</h3>
                     <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="text-slate-400 text-lg px-2"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="p-3 overflow-y-auto text-[10px] font-mono text-slate-700 whitespace-pre-wrap flex-1 leading-tight" id="m-bill-content"></div>
-                <div class="p-2 border-t border-slate-100 bg-slate-50 rounded-b-xl">
+                <div class="p-3 overflow-y-auto text-[10px] font-mono text-slate-700 whitespace-pre-wrap flex-1 leading-tight bg-slate-50" id="m-bill-content"></div>
+                <div class="p-2 border-t border-slate-100 bg-white rounded-b-xl">
                     <button id="btn-wa" class="w-full bg-[#25D366] text-white font-bold p-2.5 rounded-lg shadow active:scale-95 flex justify-center items-center text-xs"><i class="fab fa-whatsapp text-sm mr-2"></i> Send WhatsApp</button>
                 </div>
             </div>
         </div>
 
-        <div id="modal-pay" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-end p-0">
+        <!-- 2. Receive Payment Modal -->
+        <div id="modal-pay" class="hidden absolute inset-0 z-[120] bg-slate-900/60 flex justify-center items-end p-0">
             <div class="bg-white w-full rounded-t-2xl shadow-2xl p-5 pb-8">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-black text-slate-800 text-base" id="pay-cust-name">Receive Cash</h3>
@@ -202,6 +205,26 @@
             </div>
         </div>
 
+        <!-- 3. NEW: Account Ledger Modal -->
+        <div id="modal-cust-ledger" class="hidden absolute inset-0 z-[115] bg-slate-900/60 flex justify-center items-center p-3">
+            <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
+                <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm" id="cl-name">Customer</h3>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase">Outstanding: <span class="text-rose-500 text-xs" id="cl-due">₹0</span></p>
+                    </div>
+                    <button onclick="document.getElementById('modal-cust-ledger').classList.add('hidden')" class="text-slate-400 text-xl px-2"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="p-2 overflow-y-auto flex-1 hide-scroll" id="cl-list">
+                    <!-- History rendered here -->
+                </div>
+                <div class="p-2 border-t border-slate-100 bg-white rounded-b-xl">
+                    <button id="btn-cl-pay" class="w-full bg-blue-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 flex justify-center items-center text-xs"><i class="fas fa-hand-holding-usd text-sm mr-2"></i> Receive Payment</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Edit Master Modal -->
         <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-4">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl p-5">
                 <div class="flex justify-between items-center mb-3">
@@ -224,17 +247,15 @@
                 <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Update Item</button>
             </div>
         </div>
+
     </div>
 
     <!-- ⚡ 100% NATIVE JAVASCRIPT ENGINE -->
     <script>
         // --- CACHE KILLER ---
-        // This hunts down and deletes the broken PWA memory from your phone
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                }
+                for(let registration of registrations) { registration.unregister(); }
             });
         }
 
@@ -273,11 +294,11 @@
                 });
             } catch (error) { 
                 console.error("Turso Query Failed:", error);
-                throw error; // Pass error up so the UI sees it
+                throw error;
             }
         }
 
-        window.erpData = { products: [], customers: [], bills: [], emps: [], cart: [], cartTotal: 0.0 };
+        window.erpData = { products: [], customers: [], bills: [], emps: [], payments: [], cart: [], cartTotal: 0.0 };
 
         window.checkLogin = function() {
             const pin = document.getElementById('login-pin').value;
@@ -287,16 +308,13 @@
                 document.getElementById('app-screen').classList.remove('hidden');
                 document.getElementById('app-screen').classList.add('flex');
                 window.syncData();
-            } else {
-                alert("Incorrect PIN.");
-            }
+            } else { alert("Incorrect PIN."); }
         };
 
         if(localStorage.getItem('erp_auth') === 'true') {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('flex');
-            // Small delay to let DOM load
             setTimeout(() => { window.syncData(); }, 300);
         }
 
@@ -313,6 +331,9 @@
                 window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
                 window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
                 window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
+                
+                // NEW: Pull payments for the Account Ledger
+                try { window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); } catch(e){}
                 try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
@@ -486,23 +507,25 @@
             });
         };
 
+        // 🧾 VIEW BILL & SHARE WHATSAPP
         window.viewBill = function(id) {
             const b = window.erpData.bills.find(x => x.id === id);
             if(!b) return;
-            document.getElementById('m-bill-title').innerText = b.bill_no || "Bill";
+            document.getElementById('m-bill-title').innerText = b.bill_no || "Invoice";
             
             let html = `🏢 *ANPMART ERP*\n\n`;
-            html += `🧑 Customer: ${b.customer_name}\n`;
-            html += `📅 Date: ${String(b.created_at).substring(0,16)}\n`;
+            html += `🧑 Customer : ${b.customer_name}\n`;
+            html += `📅 Date     : ${String(b.created_at).substring(0,16)}\n`;
+            html += `🧾 Bill No  : ${b.bill_no}\n`;
             html += `--------------------------------\n`;
-            html += `ITEM            QTY   RATE   TOT\n`;
+            html += `ITEM             QTY  RATE   TOT\n`;
             html += `--------------------------------\n`;
             
             try { 
                 JSON.parse(b.bill_data || "[]").forEach(i => {
-                    let n = (i.name||"Item").substring(0,14).padEnd(15);
+                    let n = (i.name||"Item").substring(0,14).padEnd(16);
                     let q = String(i.qty).padStart(3);
-                    let r = String(i.rate).padStart(6);
+                    let r = String(i.rate).padStart(5);
                     let t = String(i.tot).padStart(6);
                     html += `${n} ${q} ${r} ${t}\n`;
                 }); 
@@ -518,12 +541,13 @@
             
             document.getElementById('btn-wa').onclick = () => {
                 if(!mob) return alert("No phone number saved for this customer.");
+                // Ensure proper WA link format with 91 prefix for India
                 window.open(`https://wa.me/91${mob}?text=${encodeURIComponent(html)}`, '_blank');
             };
             document.getElementById('modal-bill').classList.remove('hidden');
         };
 
-        // --- LEDGER ---
+        // --- ACCOUNT LEDGER & PAYMENTS ---
         window.renderLedger = function() {
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
@@ -536,18 +560,71 @@
             else if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
             
             filtered.forEach(c => {
+                const safeName = (c.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openPayModal('${(c.name||"").replace(/'/g, "\\'")}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-rose-50 mb-1.5 shadow-sm">
+                    <div onclick="window.openCustomerLedger('${safeName}', ${c.balance})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm cursor-pointer">
                         <div><p class="text-xs font-bold text-slate-800">${c.name}</p><p class="text-[9px] text-slate-400"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
                         <div class="text-right"><p class="text-[9px] text-slate-400">Due</p><p class="text-sm font-black text-rose-500">₹${Number(c.balance).toFixed(2)}</p></div>
                     </div>`;
             });
         };
 
+        // NEW: SPECIFIC ACCOUNT LEDGER
+        window.openCustomerLedger = function(name, due) {
+            document.getElementById('cl-name').innerText = name;
+            document.getElementById('cl-due').innerText = `₹${Number(due).toFixed(2)}`;
+            
+            let history = [];
+            // Add Bills
+            window.erpData.bills.filter(b => b.customer_name === name).forEach(b => {
+                history.push({ type: 'Bill', ref: b.bill_no, amt: b.grand_total, date: b.created_at, id: b.id });
+            });
+            // Add Payments
+            if (window.erpData.payments) {
+                window.erpData.payments.filter(p => p.customer_name === name).forEach(p => {
+                    history.push({ type: 'Payment', ref: 'Receipt', amt: p.amount_paid, date: p.created_at });
+                });
+            }
+            
+            // Sort by Date (Newest first)
+            history.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            let listHtml = '';
+            if (history.length === 0) {
+                listHtml = '<p class="text-center text-xs text-slate-400 py-6">No recent transactions.</p>';
+            } else {
+                history.forEach(item => {
+                    let dt = String(item.date).substring(0, 10);
+                    if (item.type === 'Bill') {
+                        listHtml += `
+                        <div onclick="window.viewBill(${item.id})" class="flex justify-between items-center p-2 mb-1 rounded bg-rose-50/50 border border-rose-100 active:bg-rose-100">
+                            <div><p class="text-[10px] font-bold text-slate-800">Bill: ${item.ref}</p><p class="text-[8px] text-slate-500">${dt}</p></div>
+                            <p class="text-[11px] font-black text-rose-500">+₹${Number(item.amt).toFixed(2)}</p>
+                        </div>`;
+                    } else {
+                        listHtml += `
+                        <div class="flex justify-between items-center p-2 mb-1 rounded bg-emerald-50/50 border border-emerald-100">
+                            <div><p class="text-[10px] font-bold text-slate-800">Payment Received</p><p class="text-[8px] text-slate-500">${dt}</p></div>
+                            <p class="text-[11px] font-black text-emerald-500">-₹${Number(item.amt).toFixed(2)}</p>
+                        </div>`;
+                    }
+                });
+            }
+            
+            document.getElementById('cl-list').innerHTML = listHtml;
+            
+            document.getElementById('btn-cl-pay').onclick = () => {
+                document.getElementById('modal-cust-ledger').classList.add('hidden');
+                window.openPayModal(name, due);
+            };
+            
+            document.getElementById('modal-cust-ledger').classList.remove('hidden');
+        };
+
         window.openPayModal = function(name, due) {
             document.getElementById('pay-cust-name').innerText = name;
-            document.getElementById('pay-due').innerText = `₹${due.toFixed(2)}`;
-            document.getElementById('pay-amt').value = due.toFixed(2);
+            document.getElementById('pay-due').innerText = `₹${Number(due).toFixed(2)}`;
+            document.getElementById('pay-amt').value = Number(due).toFixed(2);
             document.getElementById('modal-pay').classList.remove('hidden');
         };
 
@@ -578,8 +655,9 @@
             filtered.slice(0,50).forEach(p => {
                 const stk = Number(p.stock || 0);
                 let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
+                const safeName = (p.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openEditItem(${p.id}, '${(p.name||"").replace(/'/g, "\\'")}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
+                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
                         <p class="text-xs font-bold text-slate-800">${p.name}</p>
                         <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color}">Stock: ${stk}</p></div>
                     </div>`;
