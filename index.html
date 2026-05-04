@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- CACHE BUSTING META TAGS -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    
+    <!-- 📱 NATIVE APP META TAGS -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ANPMART">
+    
     <title>Annapurna Mart ERP</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
     
     <!-- CSS & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -353,12 +359,18 @@
 
     <!-- ⚡ 100% NATIVE JAVASCRIPT ENGINE -->
     <script>
+        // --- 📱 PWA APP INSTALLER ---
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('App Background Engine Online');
+                }).catch(err => {
+                    console.error('App Installer Failed:', err);
+                });
             });
         }
 
+        // --- GLOBAL ERROR LOGGER ---
         window.onerror = function(msg, url, line) {
             const errLog = document.getElementById('error-log');
             if(errLog) {
@@ -427,7 +439,7 @@
                 let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
                 document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
 
-                // ⚡ NEW: Pulling conv_factor for unit conversions
+                // ⚡ Pulling conv_factor for unit conversions
                 window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack, conv_factor FROM products ORDER BY name");
                 window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
                 window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, sub_total, grand_total, paid, balance_due, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
@@ -442,6 +454,7 @@
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
+        // --- UI & TABS ---
         window.switchTab = function(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(t => {
                 t.classList.add('hidden'); t.classList.remove('block', 'flex');
@@ -668,6 +681,7 @@
 
         // 🖨️ EXACT 80MM THERMAL VIEW & SHARE
         window.viewBill = function(id) {
+            // Force loose equality because ID might be a string from UI and int from DB
             const b = window.erpData.bills.find(x => x.id == id);
             if(!b) { alert("Bill not found."); return; }
             
@@ -675,8 +689,10 @@
             const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
             const mob = cObj ? (cObj.whatsapp || cObj.mobile || 'N/A') : 'N/A';
             
+            // Generate WhatsApp Text Format
             let waText = `*ANNAPURNA TRADERS*\nChowkinath, Guruwarpeth, Kittur\nPhone: 7795966127\n--------------------------------\n*TAX INVOICE*\nInv: ${b.bill_no}\nDate: ${dateStr}\nCust: ${b.customer_name}\nMob: ${mob}\n--------------------------------\nSl Product Name       Qty   Price   Amount\n--------------------------------\n`;
 
+            // HTML Element Setup
             document.getElementById('r-inv').innerText = b.bill_no || "N/A";
             document.getElementById('r-date').innerText = dateStr;
             document.getElementById('r-cust').innerText = b.customer_name || "N/A";
@@ -686,19 +702,24 @@
             let gt = Number(b.grand_total || 0);
             let sub = Number(b.sub_total || gt);
 
+            // BULLETPROOF JSON PARSER
             let items = [];
             try { 
                 let rawData = b.bill_data || "[]";
                 let parsed = JSON.parse(rawData);
+                // Fix double stringified array from Turso
                 if(typeof parsed === 'string') parsed = JSON.parse(parsed);
                 if(Array.isArray(parsed)) items = parsed;
-            } catch(e) { console.error("Parse Error on Bill Data:", e); }
+            } catch(e) {
+                console.error("Parse Error on Bill Data:", e);
+            }
             
             items.forEach((i, idx) => {
                 let rate = Number(i.rate || 0).toFixed(2);
                 let tot = Number(i.tot || 0).toFixed(2);
                 let qty = i.qty || 1;
                 
+                // WA formatting
                 let sl = String(idx + 1).padEnd(2);
                 let n = (i.name||"Item").substring(0,16).padEnd(16);
                 let q = (String(qty) + (i.unit||"")).padStart(5);
@@ -706,6 +727,7 @@
                 let t = String(Number(tot).toFixed(1)).padStart(8);
                 waText += `${sl} ${n} ${q} ${r} ${t}\n`;
 
+                // HTML formatting mapping explicitly to TRs
                 htmlItems += `
                     <tr class="border-b border-black">
                         <td class="border-r border-black p-1 align-top text-center">${idx+1}</td>
@@ -719,10 +741,12 @@
                     </tr>`;
             }); 
             
+            // Apply Sub & Grand
             document.getElementById('r-items').innerHTML = htmlItems;
             document.getElementById('r-sub').innerText = `₹${sub.toFixed(2)}`;
             document.getElementById('r-net').innerText = `₹${gt.toFixed(2)}`;
 
+            // Build accurate tax breakdown based on 5%
             let taxable = (gt / 1.05).toFixed(2);
             let gstAmt = (gt - taxable).toFixed(2);
 
@@ -741,6 +765,7 @@
                 </tr>
             `;
 
+            // QR Code Data setup
             const upiLink = `upi://pay?pa=6363304520@okbizaxis&pn=ANNAPURNA%20TRADERS&am=${gt.toFixed(2)}&cu=INR`;
             document.getElementById('r-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
 
@@ -749,6 +774,7 @@
             window.currentBillMobile = mob;
             window.currentBillText = waText;
 
+            // Make popup visible
             document.getElementById('modal-bill').classList.remove('hidden');
         };
 
