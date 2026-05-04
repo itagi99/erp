@@ -124,17 +124,22 @@
             <div id="tab-sales" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
                     <input type="text" id="search-sales" onkeyup="window.renderSales()" placeholder="Search Bills..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
-                    <div class="flex space-x-1.5">
-                        <select id="filter-sales-time" onchange="window.renderSales()" class="w-1/2 p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
-                            <option value="all">All Time</option>
-                            <option value="today">Today</option>
-                            <option value="7days">Last 7 Days</option>
-                            <option value="month">This Month</option>
-                        </select>
-                        <select id="sort-sales" onchange="window.renderSales()" class="w-1/2 p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                            <option value="highest">Highest Amount</option>
+                    <div class="flex flex-col space-y-1.5">
+                        <div class="flex space-x-1.5">
+                            <select id="filter-sales-time" onchange="window.renderSales()" class="w-1/2 p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="7days">Last 7 Days</option>
+                                <option value="month">This Month</option>
+                            </select>
+                            <select id="sort-sales" onchange="window.renderSales()" class="w-1/2 p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="highest">Highest Amount</option>
+                            </select>
+                        </div>
+                        <select id="filter-sales-group" onchange="window.renderSales()" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="all">All Customer Groups</option>
                         </select>
                     </div>
                 </div>
@@ -145,11 +150,18 @@
             <div id="tab-ledger" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
                     <input type="text" id="search-ledger" onkeyup="window.renderLedger()" placeholder="Search Dues by Name..." class="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
-                    <select id="sort-ledger" onchange="window.renderLedger()" class="w-full p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
-                        <option value="highest">Highest Due First</option>
-                        <option value="lowest">Lowest Due First</option>
-                        <option value="az">Name (A-Z)</option>
-                    </select>
+                    <div class="flex flex-col space-y-1.5">
+                        <div class="flex space-x-1.5">
+                            <select id="sort-ledger" onchange="window.renderLedger()" class="w-1/2 p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
+                                <option value="highest">Highest Due First</option>
+                                <option value="lowest">Lowest Due First</option>
+                                <option value="az">Name (A-Z)</option>
+                            </select>
+                            <select id="filter-ledger-group" onchange="window.renderLedger()" class="w-1/2 p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Groups</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div id="ledger-list" class="space-y-1.5 pb-2"></div>
             </div>
@@ -220,7 +232,7 @@
                     <p class="text-[10px]">Phone: 7795966127</p>
                 </div>
                 
-                <div class="text-center font-bold text-[11px] my-2 uppercase">TAX INVOICE</div>
+                <div class="text-center font-bold text-[11px] my-2 uppercase tracking-tighter">TAX INVOICE</div>
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
                 
                 <div class="text-[10px] leading-tight">
@@ -243,7 +255,6 @@
                         </tr>
                     </thead>
                     <tbody id="r-items">
-                        <!-- Items Injected Here safely via JS -->
                     </tbody>
                 </table>
 
@@ -266,18 +277,15 @@
                         </tr>
                     </thead>
                     <tbody id="r-taxes">
-                        <!-- Taxes Injected Here safely via JS -->
                     </tbody>
                 </table>
 
-                <!-- HIGHLIGHTED NET PAYABLE BLOCK -->
                 <div class="bg-[#fffbe6] border border-black p-1.5 flex justify-between items-center font-black text-[13px] mb-2">
                     <span>NET PAYABLE:</span> <span id="r-net"></span>
                 </div>
                 
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
 
-                <!-- UPI QR CODE BLOCK -->
                 <div class="border border-blue-400 rounded-lg p-2 text-center text-blue-900 bg-[#eef6ff]">
                     <p class="font-bold text-[10px] mb-1 tracking-wider"><i class="fas fa-credit-card mr-1"></i> SCAN TO PAY</p>
                     <div class="bg-white p-1 border border-black inline-block mx-auto">
@@ -291,7 +299,6 @@
                 <div class="text-center font-bold mt-1 text-[10px] pb-2">THANK YOU! VISIT AGAIN</div>
             </div>
 
-            <!-- Share Action Buttons -->
             <div class="no-print w-full max-w-[340px] mx-auto grid grid-cols-3 gap-2 pb-6">
                 <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
                     <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print 80mm
@@ -320,18 +327,16 @@
         </div>
 
         <!-- 3. Account Ledger Modal -->
-        <div id="modal-cust-ledger" class="hidden absolute inset-0 z-[115] bg-slate-900/60 flex flex-col justify-center items-center p-3">
+        <div id="modal-cust-ledger" class="hidden absolute inset-0 z-[115] bg-slate-900/60 flex justify-center items-center p-3">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
                 <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
                     <div>
                         <h3 class="font-bold text-slate-800 text-sm" id="cl-name">Customer</h3>
-                        <p class="text-[9px] font-bold text-slate-500 uppercase">Outstanding: <span class="text-rose-500 text-xs" id="cl-due">₹0</span></p>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-tighter">Outstanding: <span class="text-rose-500 text-xs" id="cl-due">₹0</span></p>
                     </div>
                     <button onclick="document.getElementById('modal-cust-ledger').classList.add('hidden')" class="text-slate-400 text-xl px-2"><i class="fas fa-times"></i></button>
                 </div>
-                <div class="p-2 overflow-y-auto flex-1 hide-scroll" id="cl-list">
-                    <!-- History rendered here -->
-                </div>
+                <div class="p-2 overflow-y-auto flex-1 hide-scroll" id="cl-list"></div>
                 <div class="p-2 border-t border-slate-100 bg-white rounded-b-xl">
                     <button id="btn-cl-pay" class="w-full bg-blue-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 flex justify-center items-center text-xs"><i class="fas fa-hand-holding-usd text-sm mr-2"></i> Receive Payment</button>
                 </div>
@@ -339,7 +344,7 @@
         </div>
 
         <!-- 4. Edit Master Modal -->
-        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex flex-col justify-center items-center p-4">
+        <div id="modal-edit-item" class="hidden absolute inset-0 z-[110] bg-slate-900/60 flex justify-center items-center p-4">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl p-5">
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="font-black text-slate-800 text-base">Edit Master</h3>
@@ -402,18 +407,15 @@
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // Update UI notify the user they can install the PWA
             setTimeout(() => {
                 const installModal = document.getElementById('install-prompt-modal');
                 if(installModal) {
                     installModal.classList.remove('hidden');
                     installModal.classList.add('flex');
                 }
-            }, 3000); // Prompts user 3 seconds after opening the app
+            }, 3000);
         });
 
         window.hideInstallPrompt = function() {
@@ -427,22 +429,7 @@
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
                 deferredPrompt = null;
-            }
-        };
-        
-        window.addEventListener('appinstalled', () => {
-            window.hideInstallPrompt();
-            console.log('PWA was installed');
-        });
-
-        // --- GLOBAL ERROR LOGGER ---
-        window.onerror = function(msg, url, line) {
-            const errLog = document.getElementById('error-log');
-            if(errLog) {
-                errLog.classList.remove('hidden');
-                errLog.innerHTML += `► Error: ${msg}<br>`;
             }
         };
 
@@ -456,24 +443,18 @@
                     headers: { 'Authorization': `Bearer ${TURSO_TOKEN}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
                 });
-
-                if (!response.ok) throw new Error("HTTP Error " + response.status);
+                if (!response.ok) throw new Error("HTTP Error");
                 const data = await response.json();
-                if (data.results[0].type === "error") throw new Error(data.results[0].error.message);
-
+                if (data.results[0].type === "error") return [];
                 const result = data.results[0].response.result;
                 if (!result || !result.cols || !result.rows) return [];
-
                 const cols = result.cols.map(c => c.name);
                 return result.rows.map(row => {
                     let obj = {};
                     row.forEach((v, i) => { obj[cols[i]] = (v && v.type === "null") ? null : (v ? v.value : null); });
                     return obj;
                 });
-            } catch (error) { 
-                console.error("Turso Query Failed:", error);
-                throw error;
-            }
+            } catch (error) { return []; }
         }
 
         window.erpData = { products: [], customers: [], bills: [], emps: [], payments: [], cart: [], cartTotal: 0.0 };
@@ -502,42 +483,41 @@
             try {
                 let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
                 document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
-                
                 let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
                 document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
 
-                // ⚡ Pulling conv_factor for unit conversions
                 window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack, conv_factor FROM products ORDER BY name");
-                window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
+                window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp, group_name FROM customers ORDER BY name");
                 window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, sub_total, grand_total, paid, balance_due, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
-                
                 try { window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); } catch(e){}
                 try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
+                window.populateGroupFilters();
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
-            } catch (err) { 
-                alert("Sync Failed: " + err.message); 
-            }
+            } catch (err) { alert("Sync Failed."); }
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
-        // --- UI & TABS ---
-        window.switchTab = function(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(t => {
-                t.classList.add('hidden'); t.classList.remove('block', 'flex');
-            });
-            const target = document.getElementById('tab-' + tabId);
-            if(target) {
-                target.classList.remove('hidden');
-                target.classList.add(tabId === 'pos' ? 'flex' : 'block');
-            }
+        window.populateGroupFilters = function() {
+            const groups = [...new Set(window.erpData.customers.map(c => c.group_name).filter(g => g))];
+            const salesGrp = document.getElementById('filter-sales-group');
+            const ledgerGrp = document.getElementById('filter-ledger-group');
             
-            document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400');
+            salesGrp.innerHTML = '<option value="all">All Customer Groups</option>';
+            ledgerGrp.innerHTML = '<option value="all">All Groups</option>';
+            
+            groups.sort().forEach(g => {
+                salesGrp.innerHTML += `<option value="${g}">${g}</option>`;
+                ledgerGrp.innerHTML += `<option value="${g}">${g}</option>`;
             });
-            if(btnElement) {
-                btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active');
-            }
+        };
+
+        window.switchTab = function(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(t => { t.classList.add('hidden'); t.classList.remove('block', 'flex'); });
+            const target = document.getElementById('tab-' + tabId);
+            if(target) { target.classList.remove('hidden'); target.classList.add(tabId === 'pos' ? 'flex' : 'block'); }
+            document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400'); });
+            if(btnElement) { btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active'); }
             const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
             document.getElementById('header-title').innerText = titles[tabId];
         };
@@ -566,7 +546,6 @@
             if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
         });
 
-        // --- ⚡ SMART PRICING ENGINE ---
         window.autoFillPrice = function() {
             const name = document.getElementById('pos-item').value;
             const cust = document.getElementById('pos-cust').value.trim();
@@ -592,8 +571,6 @@
         window.updatePosRate = function(product, unit, customerName) {
             let finalRate = null;
             let conv = parseFloat(product.conv_factor) || 1;
-
-            // 1. Memory Check: Last Billed Price
             if (customerName) {
                 for (let i = 0; i < window.erpData.bills.length; i++) {
                     let b = window.erpData.bills[i];
@@ -602,24 +579,15 @@
                             let items = typeof b.bill_data === 'string' ? JSON.parse(b.bill_data) : b.bill_data;
                             if (typeof items === 'string') items = JSON.parse(items);
                             let foundItem = items.find(itm => itm.name === product.name && itm.unit === unit);
-                            if (foundItem) {
-                                finalRate = parseFloat(foundItem.rate);
-                                break;
-                            }
+                            if (foundItem) { finalRate = parseFloat(foundItem.rate); break; }
                         } catch(e) {}
                     }
                 }
             }
-
-            // 2. Fallback: Master Rate with Auto-Conversion
             if (finalRate === null) {
-                if (unit === product.unit_pack && product.unit_pack) {
-                    finalRate = parseFloat(product.rate) * conv;
-                } else {
-                    finalRate = parseFloat(product.rate);
-                }
+                if (unit === product.unit_pack && product.unit_pack) { finalRate = parseFloat(product.rate) * conv; } 
+                else { finalRate = parseFloat(product.rate); }
             }
-
             document.getElementById('pos-rate').value = finalRate ? finalRate.toFixed(2) : 0;
         };
 
@@ -628,26 +596,17 @@
             const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
             const rate = parseFloat(document.getElementById('pos-rate').value) || 0;
             const unit = document.getElementById('pos-unit').value || 'Pcs';
-            
             const p = window.erpData.products.find(x => x.name === name);
             if(!p || rate <= 0) return alert("Valid item and rate required.");
-
-            // Base math for updating Master
             let conv = parseFloat(p.conv_factor) || 1;
             let isPack = (unit === p.unit_pack);
             let baseQty = isPack ? (qty * conv) : qty;
             let baseRate = isPack ? (rate / conv) : rate;
-
-            window.erpData.cart.push({
-                name, qty, rate, unit, tot: qty*rate, baseQty, baseRate
-            });
-            
+            window.erpData.cart.push({ name, qty, rate, unit, tot: qty*rate, baseQty, baseRate });
             document.getElementById('pos-item').value = ''; document.getElementById('pos-qty').value = '1';
             document.getElementById('pos-rate').value = ''; document.getElementById('pos-unit').innerHTML = '';
             window.renderCart();
         };
-
-        window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); window.renderCart(); };
 
         window.renderCart = function() {
             const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = ''; window.erpData.cartTotal = 0;
@@ -658,7 +617,7 @@
                     ui.innerHTML += `
                         <div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm mb-1">
                             <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[9px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
-                            <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="window.removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
+                            <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="window.erpData.cart.splice(${i}, 1); window.renderCart();" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
                         </div>`;
                 });
             }
@@ -671,41 +630,31 @@
             let cust = document.getElementById('pos-cust').value.trim() || "Walk-in";
             let total = window.erpData.cartTotal;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...'; btn.disabled = true;
-
             try {
                 let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
                 const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
-                
                 const d = new Date(); const pad = n => String(n).padStart(2, '0');
                 const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-
                 let old_bal = 0.0;
                 let csafe = cust.replace(/'/g, "''");
                 let custRs = await runQuery(`SELECT id, balance FROM customers WHERE name = '${csafe}'`);
-                
                 if (custRs.length > 0) {
                     old_bal = Number(custRs[0].balance || 0);
                     await runQuery(`UPDATE customers SET balance = balance + ${total} WHERE name = '${csafe}'`);
                 } else if (cust !== 'Walk-in') {
                     await runQuery(`INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('${csafe}', '', '', ${total}, 'General')`);
                 }
-
-                // ⚡ AUTO-UPDATING MASTER RATE AND STOCK
                 for(let item of window.erpData.cart) {
                     let safeItem = item.name.replace(/'/g, "''");
                     await runQuery(`UPDATE products SET stock = stock - ${item.baseQty}, rate = ${item.baseRate} WHERE name = '${safeItem}'`);
                 }
-
-                // Strip baseQty/baseRate from JSON to keep it clean before saving
                 let cleanCart = window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit, tot: i.tot }));
                 const cartJson = JSON.stringify(cleanCart).replace(/'/g, "''");
-                
                 await runQuery(`INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('${bno}', '${csafe}', ${total}, 0, ${total}, 0, ${total}, 'Due/Cash', '${cartJson}', '${dt}', ${old_bal}, 'Mobile PWA')`);
-
                 document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
                 await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
-                alert("Bill Saved & Rates Updated Successfully!");
-            } catch (err) { alert("Save failed. Check Connection."); console.error(err); }
+                alert("Bill Saved Successfully!");
+            } catch (err) { alert("Save failed."); }
             btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
@@ -713,6 +662,7 @@
             const val = (document.getElementById('search-sales').value || "").toLowerCase();
             const timeFilter = document.getElementById('filter-sales-time').value;
             const sortFilter = document.getElementById('sort-sales').value;
+            const groupFilter = document.getElementById('filter-sales-group').value;
             const list = document.getElementById('sales-list'); list.innerHTML = '';
             const feed = document.getElementById('dashboard-feed'); feed.innerHTML = '';
             
@@ -720,6 +670,11 @@
                 if(!b) return false;
                 if(!((b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val))) return false;
                 
+                if (groupFilter !== 'all') {
+                    const cust = window.erpData.customers.find(c => c.name === b.customer_name);
+                    if (!cust || cust.group_name !== groupFilter) return false;
+                }
+
                 if(timeFilter !== 'all') {
                     const bDate = new Date(b.created_at); const now = new Date();
                     if(timeFilter === 'today') { if(bDate.toDateString() !== now.toDateString()) return false; }
@@ -746,20 +701,13 @@
             });
         };
 
-        // 🖨️ EXACT 80MM THERMAL VIEW & SHARE
         window.viewBill = function(id) {
-            // Force loose equality because ID might be a string from UI and int from DB
             const b = window.erpData.bills.find(x => x.id == id);
-            if(!b) { alert("Bill not found."); return; }
-            
+            if(!b) return alert("Bill not found.");
             const dateStr = String(b.created_at || "N/A").substring(0,10);
             const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
             const mob = cObj ? (cObj.whatsapp || cObj.mobile || 'N/A') : 'N/A';
             
-            // Generate WhatsApp Text Format
-            let waText = `*ANNAPURNA TRADERS*\nChowkinath, Guruwarpeth, Kittur\nPhone: 7795966127\n--------------------------------\n*TAX INVOICE*\nInv: ${b.bill_no}\nDate: ${dateStr}\nCust: ${b.customer_name}\nMob: ${mob}\n--------------------------------\nSl Product Name       Qty   Price   Amount\n--------------------------------\n`;
-
-            // HTML Element Setup
             document.getElementById('r-inv').innerText = b.bill_no || "N/A";
             document.getElementById('r-date').innerText = dateStr;
             document.getElementById('r-cust').innerText = b.customer_name || "N/A";
@@ -767,86 +715,42 @@
             
             let htmlItems = '';
             let gt = Number(b.grand_total || 0);
-            let sub = Number(b.sub_total || gt);
-
-            // BULLETPROOF JSON PARSER
             let items = [];
             try { 
                 let rawData = b.bill_data || "[]";
                 let parsed = JSON.parse(rawData);
-                // Fix double stringified array from Turso
                 if(typeof parsed === 'string') parsed = JSON.parse(parsed);
                 if(Array.isArray(parsed)) items = parsed;
-            } catch(e) {
-                console.error("Parse Error on Bill Data:", e);
-            }
+            } catch(e) {}
             
             items.forEach((i, idx) => {
-                let rate = Number(i.rate || 0).toFixed(2);
-                let tot = Number(i.tot || 0).toFixed(2);
-                let qty = i.qty || 1;
-                
-                // WA formatting
-                let sl = String(idx + 1).padEnd(2);
-                let n = (i.name||"Item").substring(0,16).padEnd(16);
-                let q = (String(qty) + (i.unit||"")).padStart(5);
-                let r = String(Number(rate).toFixed(1)).padStart(7);
-                let t = String(Number(tot).toFixed(1)).padStart(8);
-                waText += `${sl} ${n} ${q} ${r} ${t}\n`;
-
-                // HTML formatting mapping explicitly to TRs
                 htmlItems += `
                     <tr class="border-b border-black">
                         <td class="border-r border-black p-1 align-top text-center">${idx+1}</td>
-                        <td class="border-r border-black p-1 leading-tight">
-                            <span class="font-bold">${i.name || "Item"}</span><br>
-                            <span class="text-[7px] text-slate-600 uppercase tracking-tighter">HSN: N/A | GST: 5%</span>
-                        </td>
-                        <td class="border-r border-black p-1 text-center align-top">${qty}</td>
-                        <td class="border-r border-black p-1 text-right align-top">${rate}</td>
-                        <td class="p-1 text-right align-top font-bold">${tot}</td>
+                        <td class="border-r border-black p-1 leading-tight"><span class="font-bold">${i.name || "Item"}</span><br><span class="text-[7px] text-slate-600 uppercase tracking-tighter">GST: 5%</span></td>
+                        <td class="border-r border-black p-1 text-center align-top">${i.qty}</td>
+                        <td class="border-r border-black p-1 text-right align-top">${Number(i.rate||0).toFixed(2)}</td>
+                        <td class="p-1 text-right align-top font-bold">${Number(i.tot||0).toFixed(2)}</td>
                     </tr>`;
             }); 
             
-            // Apply Sub & Grand
             document.getElementById('r-items').innerHTML = htmlItems;
-            document.getElementById('r-sub').innerText = `₹${sub.toFixed(2)}`;
+            document.getElementById('r-sub').innerText = `₹${gt.toFixed(2)}`;
             document.getElementById('r-net').innerText = `₹${gt.toFixed(2)}`;
-
-            // Build accurate tax breakdown based on 5%
             let taxable = (gt / 1.05).toFixed(2);
             let gstAmt = (gt - taxable).toFixed(2);
-
-            document.getElementById('r-taxes').innerHTML = `
-                <tr>
-                    <td class="border-r border-black p-1 text-left font-bold">5%</td>
-                    <td class="border-r border-black p-1">${taxable}</td>
-                    <td class="border-r border-black p-1">${gstAmt}</td>
-                    <td class="p-1 font-bold">${gt.toFixed(2)}</td>
-                </tr>
-                <tr class="border-t border-black font-bold">
-                    <td class="border-r border-black p-1 text-left">Total</td>
-                    <td class="border-r border-black p-1">${taxable}</td>
-                    <td class="border-r border-black p-1">${gstAmt}</td>
-                    <td class="p-1">${gt.toFixed(2)}</td>
-                </tr>
-            `;
-
-            // QR Code Data setup
+            document.getElementById('r-taxes').innerHTML = `<tr><td class="border-r border-black p-1 text-left font-bold">5%</td><td class="border-r border-black p-1">${taxable}</td><td class="border-r border-black p-1">${gstAmt}</td><td class="p-1 font-bold">${gt.toFixed(2)}</td></tr><tr class="border-t border-black font-bold"><td class="border-r border-black p-1 text-left">Total</td><td class="border-r border-black p-1">${taxable}</td><td class="border-r border-black p-1">${gstAmt}</td><td class="p-1">${gt.toFixed(2)}</td></tr>`;
             const upiLink = `upi://pay?pa=6363304520@okbizaxis&pn=ANNAPURNA%20TRADERS&am=${gt.toFixed(2)}&cu=INR`;
             document.getElementById('r-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
-
-            waText += `--------------------------------\n*NET PAYABLE: ₹${gt.toFixed(2)}*\n--------------------------------\nTHANK YOU! VISIT AGAIN`;
-
+            document.getElementById('r-qr-amt').innerText = `₹${gt.toFixed(2)}`;
+            
             window.currentBillMobile = mob;
-            window.currentBillText = waText;
-
-            // Make popup visible
+            window.currentBillText = `*ANNAPURNA TRADERS*\nInv: ${b.bill_no}\nDate: ${dateStr}\nCust: ${b.customer_name}\nNET PAYABLE: ₹${gt.toFixed(2)}`;
             document.getElementById('modal-bill').classList.remove('hidden');
         };
 
         window.shareWA = function() {
-            if(window.currentBillMobile === 'N/A' || !window.currentBillMobile) return alert("No phone number saved for this customer.");
+            if(window.currentBillMobile === 'N/A') return alert("No phone number.");
             window.open(`https://wa.me/91${window.currentBillMobile}?text=${encodeURIComponent(window.currentBillText)}`, '_blank');
         };
 
@@ -868,16 +772,21 @@
                     }
                     btn.innerHTML = originalText;
                 });
-            } catch (e) { alert("Failed to generate image."); btn.innerHTML = originalText; }
+            } catch (e) { alert("Failed."); btn.innerHTML = originalText; }
         };
 
-        // --- ACCOUNT LEDGER ---
         window.renderLedger = function() {
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
+            const groupFilter = document.getElementById('filter-ledger-group').value;
             const list = document.getElementById('ledger-list'); list.innerHTML = '';
             
-            let filtered = window.erpData.customers.filter(c => Number(c.balance || 0) > 0 && (c.name||"").toLowerCase().includes(val));
+            let filtered = window.erpData.customers.filter(c => {
+                if (Number(c.balance || 0) <= 0) return false;
+                if (!(c.name||"").toLowerCase().includes(val)) return false;
+                if (groupFilter !== 'all' && c.group_name !== groupFilter) return false;
+                return true;
+            });
             
             if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.balance) - Number(a.balance));
             else if(sortFilter === 'lowest') filtered.sort((a,b) => Number(a.balance) - Number(b.balance));
@@ -887,7 +796,7 @@
                 const safeName = (c.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
                     <div onclick="window.openCustomerLedger('${safeName}', ${c.balance})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                        <div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${c.name}</p><p class="text-[9px] font-bold text-slate-500 mt-0.5"><i class="fas fa-phone mr-1"></i>${c.mobile||'N/A'}</p></div>
+                        <div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${c.name}</p><p class="text-[9px] font-bold text-slate-500 mt-0.5"><i class="fas fa-users mr-1"></i>${c.group_name||'General'}</p></div>
                         <div class="text-right"><p class="text-[9px] font-bold text-slate-400 uppercase">Due</p><p class="text-base font-black text-rose-500">₹${Number(c.balance).toLocaleString('en-IN')}</p></div>
                     </div>`;
             });
@@ -896,7 +805,6 @@
         window.openCustomerLedger = function(name, due) {
             document.getElementById('cl-name').innerText = name;
             document.getElementById('cl-due').innerText = `₹${Number(due).toLocaleString('en-IN')}`;
-            
             let history = [];
             window.erpData.bills.filter(b => b.customer_name === name).forEach(b => {
                 history.push({ type: 'Bill', ref: b.bill_no, amt: b.grand_total, date: b.created_at, id: b.id });
@@ -906,35 +814,18 @@
                     history.push({ type: 'Payment', ref: 'Receipt', amt: p.amount_paid, date: p.created_at });
                 });
             }
-            
             history.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
-            let listHtml = '';
-            if (history.length === 0) { listHtml = '<p class="text-center text-xs text-slate-400 py-6">No recent transactions.</p>'; } 
-            else {
-                history.forEach(item => {
-                    let dt = String(item.date).substring(0, 10);
-                    if (item.type === 'Bill') {
-                        listHtml += `
-                        <div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill('${item.id}');" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">
-                            <div><p class="text-[11px] font-bold text-rose-900 underline decoration-rose-300">Bill: ${item.ref}</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div>
-                            <p class="text-[13px] font-black text-rose-600">+₹${Number(item.amt).toLocaleString('en-IN')}</p>
-                        </div>`;
-                    } else {
-                        listHtml += `
-                        <div class="flex justify-between items-center p-3 mb-2 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm">
-                            <div><p class="text-[11px] font-bold text-emerald-900">Payment Received</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div>
-                            <p class="text-[13px] font-black text-emerald-600">-₹${Number(item.amt).toLocaleString('en-IN')}</p>
-                        </div>`;
-                    }
-                });
-            }
-            
+            let listHtml = history.length === 0 ? '<p class="text-center text-xs text-slate-400 py-6">No transactions.</p>' : '';
+            history.forEach(item => {
+                let dt = String(item.date).substring(0, 10);
+                if (item.type === 'Bill') {
+                    listHtml += `<div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill('${item.id}');" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm"><div><p class="text-[11px] font-bold text-rose-900 underline decoration-rose-300">Bill: ${item.ref}</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div><p class="text-[13px] font-black text-rose-600">+₹${Number(item.amt).toLocaleString('en-IN')}</p></div>`;
+                } else {
+                    listHtml += `<div class="flex justify-between items-center p-3 mb-2 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm"><div><p class="text-[11px] font-bold text-emerald-900">Payment Received</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div><p class="text-[13px] font-black text-emerald-600">-₹${Number(item.amt).toLocaleString('en-IN')}</p></div>`;
+                }
+            });
             document.getElementById('cl-list').innerHTML = listHtml;
-            document.getElementById('btn-cl-pay').onclick = () => {
-                document.getElementById('modal-cust-ledger').classList.add('hidden');
-                window.openPayModal(name, due);
-            };
+            document.getElementById('btn-cl-pay').onclick = () => { document.getElementById('modal-cust-ledger').classList.add('hidden'); window.openPayModal(name, due); };
             document.getElementById('modal-cust-ledger').classList.remove('hidden');
         };
 
@@ -955,29 +846,20 @@
                 await runQuery(`INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES ('${name.replace(/'/g, "''")}', ${amt}, '${dt}', 'Cash', 'Mobile Received')`);
                 document.getElementById('modal-pay').classList.add('hidden');
                 await window.syncData(); alert("Payment Logged!");
-            } catch(e) { alert("Error saving payment."); }
+            } catch(e) { alert("Error."); }
         };
 
-        // --- STOCK ---
         window.renderStock = function() {
             const val = (document.getElementById('search-stock').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-stock').value;
             const list = document.getElementById('stock-list'); list.innerHTML = '';
-            
             let filtered = window.erpData.products.filter(p => (p.name||"").toLowerCase().includes(val));
             if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
             else if(sortFilter === 'low') filtered.sort((a,b) => Number(a.stock||0) - Number(b.stock||0));
             else if(sortFilter === 'high') filtered.sort((a,b) => Number(b.stock||0) - Number(a.stock||0));
-            
             filtered.slice(0,50).forEach(p => {
                 const stk = Number(p.stock || 0);
-                let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
-                const safeName = (p.name||"").replace(/'/g, "\\'");
-                list.innerHTML += `
-                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                        <p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${p.name}</p>
-                        <div class="text-right"><p class="text-base font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color} mt-0.5">Stock: ${stk}</p></div>
-                    </div>`;
+                list.innerHTML += `<div onclick="window.openEditItem(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm"><p class="text-xs font-bold text-slate-800">${p.name}</p><div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${stk<=0?'text-red-500':'text-emerald-500'}">Stock: ${stk}</p></div></div>`;
             });
         };
 
@@ -997,23 +879,14 @@
                 await runQuery(`UPDATE products SET rate=${rate}, stock=${stock} WHERE id=${id}`);
                 document.getElementById('modal-edit-item').classList.add('hidden');
                 await window.syncData();
-            } catch(e) { alert("Error saving."); }
+            } catch(e) { alert("Error."); }
         };
 
-        // --- ATTENDANCE ---
         window.renderAttendance = function() {
             const list = document.getElementById('attendance-list'); list.innerHTML = '';
-            if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
+            if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500 text-center py-4'>No employees found.</p>";
             window.erpData.emps.forEach(e => {
-                list.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">
-                        <p class="font-bold text-slate-800 text-sm mb-2">${e.name}</p>
-                        <div class="flex space-x-1.5">
-                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
-                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
-                            <label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
-                        </div>
-                    </div>`;
+                list.innerHTML += `<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2"><p class="font-bold text-slate-800 text-sm mb-2">${e.name}</p><div class="flex space-x-1.5"><label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label><label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label><label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label></div></div>`;
             });
         };
 
@@ -1025,7 +898,7 @@
                     await runQuery(`INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (${e.id}, '${e.name.replace(/'/g, "''")}', '${dt}', '${status}')`);
                 }
                 alert("Attendance Saved!"); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
-            } catch(err) { alert("Error saving attendance."); }
+            } catch(err) { alert("Error."); }
         };
     </script>
 </body>
