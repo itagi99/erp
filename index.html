@@ -7,17 +7,33 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>ANPMART Mobile ERP</title>
+    <title>Annapurna Mart ERP</title>
+    
+    <!-- CSS & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Library for sharing receipt as Image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        
         .ac-dropdown { position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; display: none; }
         .ac-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b; font-size: 14px; }
         .ac-item:active { background-color: #e0f2fe; }
+
+        /* 🖨️ 80mm THERMAL PRINTER CSS */
+        @media print {
+            body * { visibility: hidden !important; }
+            #modal-bill { display: block !important; position: absolute; left: 0; top: 0; width: 100%; background: white !important; }
+            #thermal-bill, #thermal-bill * { visibility: visible !important; }
+            #thermal-bill { position: fixed; left: 0; top: 0; width: 80mm; margin: 0; padding: 5mm; box-shadow: none !important; border: none !important; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans antialiased text-slate-800 h-[100dvh] flex flex-col overflow-hidden">
@@ -26,12 +42,10 @@
     <div id="login-screen" class="absolute inset-0 z-[200] bg-slate-900 flex flex-col justify-center items-center p-4">
         <div class="glass-card w-full max-w-sm p-6 rounded-2xl shadow-2xl text-center">
             <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg"><i class="fas fa-lock text-2xl text-white"></i></div>
-            <h2 class="text-xl font-black text-slate-800 mb-1">ANPMART ERP</h2>
+            <h2 class="text-xl font-black text-slate-800 mb-1">ANNAPURNA ERP</h2>
             <p class="text-xs text-slate-500 font-bold mb-5">Restricted Access</p>
             <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg text-center text-xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
             <button onclick="window.checkLogin()" class="w-full bg-blue-600 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition mb-2">Unlock System</button>
-            
-            <!-- ON-SCREEN ERROR LOGGER -->
             <div id="error-log" class="mt-4 p-2 bg-red-50 rounded text-[10px] text-red-600 font-mono text-left hidden h-24 overflow-y-auto w-full border border-red-200"></div>
         </div>
     </div>
@@ -167,7 +181,7 @@
         </main>
 
         <!-- 🧭 BOTTOM NAVIGATION -->
-        <nav class="shrink-0 bg-white border-t border-slate-200 flex justify-around p-1.5 pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+        <nav class="no-print shrink-0 bg-white border-t border-slate-200 flex justify-around p-1.5 pb-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
             <button onclick="window.switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-1 text-blue-600 w-1/5"><i class="fas fa-home text-base mb-0.5"></i><span class="text-[9px] font-bold">Home</span></button>
             <button onclick="window.switchTab('pos', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-cash-register text-base mb-0.5"></i><span class="text-[9px] font-bold">POS</span></button>
             <button onclick="window.switchTab('sales', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-receipt text-base mb-0.5"></i><span class="text-[9px] font-bold">Sales</span></button>
@@ -177,17 +191,59 @@
 
         <!-- 🪟 OVERLAY MODALS -->
         
-        <!-- 1. Bill View Modal -->
-        <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/60 flex justify-center items-center p-3">
-            <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
-                <div class="p-2 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
-                    <h3 class="font-bold text-slate-800 text-xs" id="m-bill-title">Bill Details</h3>
-                    <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="text-slate-400 text-lg px-2"><i class="fas fa-times"></i></button>
+        <!-- 1. NEW 80MM BILL VIEW MODAL -->
+        <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/80 flex flex-col justify-between p-4 hide-scroll overflow-y-auto">
+            
+            <div class="no-print w-full max-w-[320px] mx-auto flex justify-between items-center mb-2">
+                <h3 class="text-white font-bold">Receipt Actions</h3>
+                <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="w-8 h-8 bg-white/20 rounded-full text-white flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- The Actual 80mm Thermal Receipt Structure -->
+            <div id="thermal-bill" class="bg-white text-black font-mono p-4 w-full max-w-[320px] mx-auto shadow-2xl relative">
+                <div class="text-center border-b-2 border-dashed border-slate-400 pb-2 mb-2">
+                    <h2 class="text-xl font-black uppercase tracking-tighter">ANNAPURNA MART</h2>
+                    <p class="text-[10px] uppercase font-bold text-slate-600">Kittur, Belagavi</p>
                 </div>
-                <div class="p-3 overflow-y-auto text-[10px] font-mono text-slate-700 whitespace-pre-wrap flex-1 leading-tight bg-slate-50" id="m-bill-content"></div>
-                <div class="p-2 border-t border-slate-100 bg-white rounded-b-xl">
-                    <button id="btn-wa" class="w-full bg-[#25D366] text-white font-bold p-2.5 rounded-lg shadow active:scale-95 flex justify-center items-center text-xs"><i class="fab fa-whatsapp text-sm mr-2"></i> Send WhatsApp</button>
+                
+                <div class="text-[10px] mb-2 leading-tight">
+                    <div class="flex justify-between"><span>Date:</span> <span id="receipt-date"></span></div>
+                    <div class="flex justify-between"><span>Bill No:</span> <span id="receipt-bill-no"></span></div>
+                    <div class="flex justify-between"><span>Customer:</span> <span id="receipt-cust" class="font-bold"></span></div>
                 </div>
+
+                <div class="border-y border-dashed border-slate-400 py-1 mb-1 flex text-[9px] font-bold uppercase">
+                    <div class="w-1/2">Item</div>
+                    <div class="w-[15%] text-right">Qty</div>
+                    <div class="w-[15%] text-right">Rate</div>
+                    <div class="w-[20%] text-right">Total</div>
+                </div>
+
+                <div id="receipt-items" class="text-[10px] leading-tight mb-2 min-h-[50px]">
+                    <!-- Dynamic Items Go Here -->
+                </div>
+
+                <div class="border-t-2 border-dashed border-slate-400 pt-2 flex justify-between items-center font-black text-sm mb-4">
+                    <span>GRAND TOTAL:</span>
+                    <span>₹<span id="receipt-total">0.00</span></span>
+                </div>
+                
+                <div class="text-center text-[9px] font-bold text-slate-500 uppercase pb-2">
+                    Thank you for your business!
+                </div>
+            </div>
+
+            <!-- Share Action Buttons -->
+            <div class="no-print w-full max-w-[320px] mx-auto mt-4 grid grid-cols-3 gap-2 pb-4">
+                <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow flex flex-col items-center justify-center text-[10px] active:scale-95">
+                    <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print / PDF
+                </button>
+                <button onclick="window.shareImage()" id="btn-share-img" class="bg-blue-600 text-white font-bold p-3 rounded-lg shadow flex flex-col items-center justify-center text-[10px] active:scale-95">
+                    <i class="fas fa-image text-xl mb-1"></i> Share Image
+                </button>
+                <button onclick="window.shareWA()" class="bg-[#25D366] text-white font-bold p-3 rounded-lg shadow flex flex-col items-center justify-center text-[10px] active:scale-95">
+                    <i class="fab fa-whatsapp text-xl mb-1"></i> Share Text
+                </button>
             </div>
         </div>
 
@@ -205,7 +261,7 @@
             </div>
         </div>
 
-        <!-- 3. NEW: Account Ledger Modal -->
+        <!-- 3. Account Ledger Modal -->
         <div id="modal-cust-ledger" class="hidden absolute inset-0 z-[115] bg-slate-900/60 flex justify-center items-center p-3">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
                 <div class="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
@@ -258,15 +314,6 @@
                 for(let registration of registrations) { registration.unregister(); }
             });
         }
-
-        // --- GLOBAL ERROR LOGGER ---
-        window.onerror = function(msg, url, line) {
-            const errLog = document.getElementById('error-log');
-            if(errLog) {
-                errLog.classList.remove('hidden');
-                errLog.innerHTML += `► Error: ${msg}<br>`;
-            }
-        };
 
         const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
         const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
@@ -332,19 +379,16 @@
                 window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
                 window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, grand_total, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
                 
-                // NEW: Pull payments for the Account Ledger
                 try { window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); } catch(e){}
                 try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
             } catch (err) { 
                 alert("Sync Failed: " + err.message); 
-                console.error(err);
             }
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
-        // --- UI & TABS ---
         window.switchTab = function(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(t => {
                 t.classList.add('hidden'); t.classList.remove('block', 'flex');
@@ -388,7 +432,6 @@
             if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
         });
 
-        // --- POS FUNCTIONS ---
         window.autoFillPrice = function() {
             const name = document.getElementById('pos-item').value;
             const p = window.erpData.products.find(x => x.name === name);
@@ -469,7 +512,6 @@
             btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
-        // --- SALES REGISTER ---
         window.renderSales = function() {
             const val = (document.getElementById('search-sales').value || "").toLowerCase();
             const timeFilter = document.getElementById('filter-sales-time').value;
@@ -507,47 +549,106 @@
             });
         };
 
-        // 🧾 VIEW BILL & SHARE WHATSAPP
+        // 🧾 VIEW BILL & SHARE LOGIC (80MM THERMAL INTEGRATION)
         window.viewBill = function(id) {
             const b = window.erpData.bills.find(x => x.id === id);
             if(!b) return;
-            document.getElementById('m-bill-title').innerText = b.bill_no || "Invoice";
             
-            let html = `🏢 *ANPMART ERP*\n\n`;
-            html += `🧑 Customer : ${b.customer_name}\n`;
-            html += `📅 Date     : ${String(b.created_at).substring(0,16)}\n`;
-            html += `🧾 Bill No  : ${b.bill_no}\n`;
-            html += `--------------------------------\n`;
-            html += `ITEM             QTY  RATE   TOT\n`;
-            html += `--------------------------------\n`;
+            // 1. Prepare Text for WhatsApp
+            let waText = `🏢 *ANNAPURNA MART*\n\n`;
+            waText += `🧑 Customer: ${b.customer_name}\n`;
+            waText += `📅 Date: ${String(b.created_at).substring(0,16)}\n`;
+            waText += `🧾 Bill No: ${b.bill_no}\n`;
+            waText += `--------------------------------\n`;
+            waText += `ITEM             QTY  RATE   TOT\n`;
+            waText += `--------------------------------\n`;
+
+            // 2. Prepare HTML for 80mm Receipt inside Modal
+            let htmlItems = '';
             
             try { 
                 JSON.parse(b.bill_data || "[]").forEach(i => {
+                    // Fill Text String
                     let n = (i.name||"Item").substring(0,14).padEnd(16);
                     let q = String(i.qty).padStart(3);
                     let r = String(i.rate).padStart(5);
                     let t = String(i.tot).padStart(6);
-                    html += `${n} ${q} ${r} ${t}\n`;
+                    waText += `${n} ${q} ${r} ${t}\n`;
+
+                    // Fill HTML String
+                    htmlItems += `
+                        <div class="flex justify-between items-start mb-1">
+                            <div class="w-1/2 pr-1 break-words">${i.name}</div>
+                            <div class="w-[15%] text-right">${i.qty}</div>
+                            <div class="w-[15%] text-right">${i.rate}</div>
+                            <div class="w-[20%] text-right font-bold">${Number(i.tot).toFixed(2)}</div>
+                        </div>`;
                 }); 
             } catch(e){}
             
-            html += `--------------------------------\n`;
-            html += `*GRAND TOTAL: ₹${Number(b.grand_total).toFixed(2)}*\n`;
+            waText += `--------------------------------\n`;
+            waText += `*GRAND TOTAL: ₹${Number(b.grand_total).toFixed(2)}*\n`;
             
-            document.getElementById('m-bill-content').innerText = html;
-            
+            // Inject into DOM
+            document.getElementById('receipt-date').innerText = String(b.created_at).substring(0,16);
+            document.getElementById('receipt-bill-no').innerText = b.bill_no;
+            document.getElementById('receipt-cust').innerText = b.customer_name;
+            document.getElementById('receipt-items').innerHTML = htmlItems;
+            document.getElementById('receipt-total').innerText = Number(b.grand_total).toFixed(2);
+
+            // Fetch Mobile
             const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
             const mob = cObj ? (cObj.whatsapp || cObj.mobile) : '';
             
-            document.getElementById('btn-wa').onclick = () => {
-                if(!mob) return alert("No phone number saved for this customer.");
-                // Ensure proper WA link format with 91 prefix for India
-                window.open(`https://wa.me/91${mob}?text=${encodeURIComponent(html)}`, '_blank');
-            };
+            // Setup WA Button globally
+            window.currentBillMobile = mob;
+            window.currentBillText = waText;
+
             document.getElementById('modal-bill').classList.remove('hidden');
         };
 
-        // --- ACCOUNT LEDGER & PAYMENTS ---
+        window.shareWA = function() {
+            if(!window.currentBillMobile) return alert("No phone number saved for this customer.");
+            window.open(`https://wa.me/91${window.currentBillMobile}?text=${encodeURIComponent(window.currentBillText)}`, '_blank');
+        };
+
+        window.sharePDF = function() {
+            window.print(); // Triggers the @media print CSS to print/save the 80mm bill natively
+        };
+
+        window.shareImage = async function() {
+            const btn = document.getElementById('btn-share-img');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl mb-1"></i> Loading...';
+            
+            try {
+                const element = document.getElementById('thermal-bill');
+                const canvas = await html2canvas(element, { scale: 2 }); // High res rendering
+                
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], "receipt.png", { type: "image/png" });
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Receipt',
+                            text: 'Thank you for shopping with Annapurna Mart!'
+                        });
+                    } else {
+                        // Fallback: Force Download
+                        const link = document.createElement('a');
+                        link.download = 'receipt.png';
+                        link.href = canvas.toDataURL();
+                        link.click();
+                    }
+                    btn.innerHTML = originalText;
+                });
+            } catch (e) {
+                alert("Failed to generate image.");
+                btn.innerHTML = originalText;
+            }
+        };
+
         window.renderLedger = function() {
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
@@ -569,7 +670,6 @@
             });
         };
 
-        // NEW: SPECIFIC ACCOUNT LEDGER
         window.openCustomerLedger = function(name, due) {
             document.getElementById('cl-name').innerText = name;
             document.getElementById('cl-due').innerText = `₹${Number(due).toFixed(2)}`;
@@ -586,7 +686,7 @@
                 });
             }
             
-            // Sort by Date (Newest first)
+            // Sort Newest first
             history.sort((a, b) => new Date(b.date) - new Date(a.date));
             
             let listHtml = '';
@@ -597,7 +697,7 @@
                     let dt = String(item.date).substring(0, 10);
                     if (item.type === 'Bill') {
                         listHtml += `
-                        <div onclick="window.viewBill(${item.id})" class="flex justify-between items-center p-2 mb-1 rounded bg-rose-50/50 border border-rose-100 active:bg-rose-100">
+                        <div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill(${item.id});" class="flex justify-between items-center p-2 mb-1 rounded bg-rose-50/50 border border-rose-100 active:bg-rose-100 cursor-pointer">
                             <div><p class="text-[10px] font-bold text-slate-800">Bill: ${item.ref}</p><p class="text-[8px] text-slate-500">${dt}</p></div>
                             <p class="text-[11px] font-black text-rose-500">+₹${Number(item.amt).toFixed(2)}</p>
                         </div>`;
@@ -612,12 +712,10 @@
             }
             
             document.getElementById('cl-list').innerHTML = listHtml;
-            
             document.getElementById('btn-cl-pay').onclick = () => {
                 document.getElementById('modal-cust-ledger').classList.add('hidden');
                 window.openPayModal(name, due);
             };
-            
             document.getElementById('modal-cust-ledger').classList.remove('hidden');
         };
 
@@ -641,7 +739,6 @@
             } catch(e) { alert("Error saving payment."); }
         };
 
-        // --- STOCK ---
         window.renderStock = function() {
             const val = (document.getElementById('search-stock').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-stock').value;
@@ -683,7 +780,6 @@
             } catch(e) { alert("Error saving."); }
         };
 
-        // --- ATTENDANCE ---
         window.renderAttendance = function() {
             const list = document.getElementById('attendance-list'); list.innerHTML = '';
             if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
