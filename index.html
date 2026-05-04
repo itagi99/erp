@@ -194,13 +194,13 @@
         <!-- 1. EXACT REPLICA 80MM BILL VIEW MODAL -->
         <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/90 flex-col items-center p-4 hide-scroll overflow-y-auto">
             
-            <div class="no-print w-full max-w-[340px] flex justify-between items-center mb-3 mt-4">
+            <div class="no-print w-full max-w-[340px] flex justify-between items-center mb-3 mt-4 mx-auto">
                 <h3 class="text-white font-bold">View & Share Invoice</h3>
                 <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="w-8 h-8 bg-white/20 rounded-full text-white flex items-center justify-center hover:bg-white/30"><i class="fas fa-times"></i></button>
             </div>
 
             <!-- EXACT 80MM THERMAL RECEIPT MATCHING SCREENSHOT -->
-            <div id="thermal-bill" class="bg-white text-black w-full max-w-[340px] shadow-2xl relative p-4 mb-4" style="font-family: monospace; letter-spacing: -0.5px;">
+            <div id="thermal-bill" class="bg-white text-black w-full max-w-[340px] mx-auto shadow-2xl relative p-4 mb-4" style="font-family: monospace; letter-spacing: -0.5px;">
                 
                 <div class="text-center font-bold mb-1 leading-tight">
                     <h2 class="text-lg tracking-widest uppercase">ANNAPURNA TRADERS</h2>
@@ -210,7 +210,7 @@
                     <p class="text-[10px]">Phone: 7795966127</p>
                 </div>
                 
-                <div class="text-center font-bold text-[11px] my-2 underline">TAX INVOICE</div>
+                <div class="text-center font-bold text-[11px] my-2 uppercase">TAX INVOICE</div>
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
                 
                 <div class="text-[10px] leading-tight">
@@ -261,7 +261,7 @@
                 </table>
 
                 <!-- HIGHLIGHTED NET PAYABLE BLOCK -->
-                <div class="bg-yellow-100 border border-black p-1.5 flex justify-between font-black text-[13px] mb-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
+                <div class="bg-yellow-100 border border-black p-1.5 flex justify-between items-center font-black text-[13px] mb-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.1)]">
                     <span>NET PAYABLE:</span> <span id="r-net"></span>
                 </div>
                 
@@ -282,7 +282,7 @@
             </div>
 
             <!-- Share Action Buttons -->
-            <div class="no-print w-full max-w-[340px] grid grid-cols-3 gap-2 pb-6">
+            <div class="no-print w-full max-w-[340px] mx-auto grid grid-cols-3 gap-2 pb-6">
                 <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
                     <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print 80mm
                 </button>
@@ -363,6 +363,15 @@
             });
         }
 
+        // --- GLOBAL ERROR LOGGER ---
+        window.onerror = function(msg, url, line) {
+            const errLog = document.getElementById('error-log');
+            if(errLog) {
+                errLog.classList.remove('hidden');
+                errLog.innerHTML += `► Error: ${msg}<br>`;
+            }
+        };
+
         const TURSO_URL = "https://anpmart-live-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
         const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MTA5MTEsImlkIjoiMDE5ZGE2M2MtMzkwMS03NThiLTg5OWEtYTI3NmIxOTFhMzg0IiwicmlkIjoiOTkxZjViZDItNjQ5Zi00MzZjLThmNWItMDYwMTc5NzQzOTZkIn0.pLcblP09C3B8Ny46Xk1Q3XSVgsJdJCbdtZztLrYaW16Ed3kKBfD89XBdIkWDYZj6oLDpO-nRjRjGE_4jk8I7Cw";
 
@@ -374,9 +383,9 @@
                     body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
                 });
 
-                if (!response.ok) throw new Error("HTTP Error");
+                if (!response.ok) throw new Error("HTTP Error " + response.status);
                 const data = await response.json();
-                if (data.results[0].type === "error") return [];
+                if (data.results[0].type === "error") throw new Error(data.results[0].error.message);
 
                 const result = data.results[0].response.result;
                 if (!result || !result.cols || !result.rows) return [];
@@ -387,7 +396,10 @@
                     row.forEach((v, i) => { obj[cols[i]] = (v && v.type === "null") ? null : (v ? v.value : null); });
                     return obj;
                 });
-            } catch (error) { return []; }
+            } catch (error) { 
+                console.error("Turso Query Failed:", error);
+                throw error;
+            }
         }
 
         window.erpData = { products: [], customers: [], bills: [], emps: [], payments: [], cart: [], cartTotal: 0.0 };
@@ -422,23 +434,38 @@
 
                 window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack FROM products ORDER BY name");
                 window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp FROM customers ORDER BY name");
+                
+                // Fetching sub_total, paid, and balance_due specifically for the new thermal receipt
                 window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, sub_total, grand_total, paid, balance_due, created_at, bill_data FROM bills ORDER BY id DESC LIMIT 150");
                 
                 try { window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); } catch(e){}
                 try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
-            } catch (err) { alert("Sync Failed."); }
+            } catch (err) { 
+                alert("Sync Failed: " + err.message); 
+                console.error(err);
+            }
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
+        // --- UI & TABS ---
         window.switchTab = function(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(t => { t.classList.add('hidden'); t.classList.remove('block', 'flex'); });
+            document.querySelectorAll('.tab-content').forEach(t => {
+                t.classList.add('hidden'); t.classList.remove('block', 'flex');
+            });
             const target = document.getElementById('tab-' + tabId);
-            if(target) { target.classList.remove('hidden'); target.classList.add(tabId === 'pos' ? 'flex' : 'block'); }
+            if(target) {
+                target.classList.remove('hidden');
+                target.classList.add(tabId === 'pos' ? 'flex' : 'block');
+            }
             
-            document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400'); });
-            if(btnElement) { btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active'); }
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400');
+            });
+            if(btnElement) {
+                btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active');
+            }
             const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
             document.getElementById('header-title').innerText = titles[tabId];
         };
@@ -466,6 +493,7 @@
             if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
         });
 
+        // --- POS FUNCTIONS ---
         window.autoFillPrice = function() {
             const name = document.getElementById('pos-item').value;
             const p = window.erpData.products.find(x => x.name === name);
@@ -517,6 +545,7 @@
             try {
                 let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
                 const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
+                
                 const d = new Date(); const pad = n => String(n).padStart(2, '0');
                 const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
@@ -531,7 +560,9 @@
                     await runQuery(`INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('${csafe}', '', '', ${total}, 'General')`);
                 }
 
-                for(let item of window.erpData.cart) { await runQuery(`UPDATE products SET stock = stock - ${item.qty} WHERE name = '${item.name.replace(/'/g, "''")}'`); }
+                for(let item of window.erpData.cart) {
+                    await runQuery(`UPDATE products SET stock = stock - ${item.qty} WHERE name = '${item.name.replace(/'/g, "''")}'`);
+                }
 
                 const cartJson = JSON.stringify(window.erpData.cart).replace(/'/g, "''");
                 await runQuery(`INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('${bno}', '${csafe}', ${total}, 0, ${total}, 0, ${total}, 'Due/Cash', '${cartJson}', '${dt}', ${old_bal}, 'Mobile PWA')`);
@@ -539,7 +570,7 @@
                 document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
                 await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
                 alert("Bill Saved Successfully!");
-            } catch (err) { alert("Save failed. Check Connection."); }
+            } catch (err) { alert("Save failed. Check Connection."); console.error(err); }
             btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
@@ -553,6 +584,7 @@
             let filtered = window.erpData.bills.filter(b => {
                 if(!b) return false;
                 if(!((b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val))) return false;
+                
                 if(timeFilter !== 'all') {
                     const bDate = new Date(b.created_at); const now = new Date();
                     if(timeFilter === 'today') { if(bDate.toDateString() !== now.toDateString()) return false; }
@@ -602,7 +634,8 @@
             let sub = Number(b.sub_total || gt);
 
             try { 
-                let items = JSON.parse(b.bill_data || "[]");
+                // Fix for double stringified JSON from Turso
+                let items = typeof b.bill_data === 'string' ? JSON.parse(b.bill_data || "[]") : (b.bill_data || []);
                 items.forEach((i, idx) => {
                     let rate = Number(i.rate).toFixed(2);
                     let tot = Number(i.tot).toFixed(2);
@@ -615,7 +648,7 @@
                     let t = String(Number(i.tot).toFixed(1)).padStart(8);
                     waText += `${sl} ${n} ${q} ${r} ${t}\n`;
 
-                    // HTML formatting
+                    // HTML formatting (Correctly mapping to TRs)
                     htmlItems += `
                         <tr class="border-b border-black">
                             <td class="border-r border-black p-1 align-top text-center">${idx+1}</td>
@@ -628,7 +661,9 @@
                             <td class="p-1 text-right align-top font-bold">${tot}</td>
                         </tr>`;
                 }); 
-            } catch(e){}
+            } catch(e) {
+                console.error("Parse Error on Bill Data:", e);
+            }
             
             // Apply Sub & Grand
             document.getElementById('r-items').innerHTML = htmlItems;
@@ -668,7 +703,7 @@
         };
 
         window.shareWA = function() {
-            if(window.currentBillMobile === 'N/A') return alert("No phone number saved for this customer.");
+            if(window.currentBillMobile === 'N/A' || !window.currentBillMobile) return alert("No phone number saved for this customer.");
             window.open(`https://wa.me/91${window.currentBillMobile}?text=${encodeURIComponent(window.currentBillText)}`, '_blank');
         };
 
@@ -684,7 +719,7 @@
                 canvas.toBlob(async (blob) => {
                     const file = new File([blob], "invoice.png", { type: "image/png" });
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({ files: [file], title: 'Invoice', text: 'Invoice from Annapurna Mart' });
+                        await navigator.share({ files: [file], title: 'Invoice', text: 'Invoice from Annapurna Traders' });
                     } else {
                         const link = document.createElement('a'); link.download = 'invoice.png'; link.href = canvas.toDataURL(); link.click();
                     }
@@ -795,9 +830,9 @@
                 let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
                 const safeName = (p.name||"").replace(/'/g, "\\'");
                 list.innerHTML += `
-                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                        <p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${p.name}</p>
-                        <div class="text-right"><p class="text-base font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color} mt-0.5">Stock: ${stk}</p></div>
+                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-2.5 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-1.5 shadow-sm">
+                        <p class="text-xs font-bold text-slate-800">${p.name}</p>
+                        <div class="text-right"><p class="text-sm font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color}">Stock: ${stk}</p></div>
                     </div>`;
             });
         };
@@ -827,12 +862,12 @@
             if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
             window.erpData.emps.forEach(e => {
                 list.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">
-                        <p class="font-bold text-slate-800 text-sm mb-2">${e.name}</p>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm mb-1.5">
+                        <p class="font-bold text-slate-800 text-xs mb-2">${e.name}</p>
                         <div class="flex space-x-1.5">
-                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
-                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
-                            <label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
+                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
+                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
+                            <label class="flex-1 text-center bg-red-50 text-red-700 p-1.5 rounded text-[10px] font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
                         </div>
                     </div>`;
             });
