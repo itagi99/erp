@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- CACHE BUSTING META TAGS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <!-- 📱 NATIVE APP META TAGS -->
     <meta name="theme-color" content="#2563eb">
@@ -239,7 +243,7 @@
                         </tr>
                     </thead>
                     <tbody id="r-items">
-                        <!-- Items Injected Here -->
+                        <!-- Items Injected Here safely via JS -->
                     </tbody>
                 </table>
 
@@ -262,16 +266,18 @@
                         </tr>
                     </thead>
                     <tbody id="r-taxes">
-                        <!-- Taxes Injected Here -->
+                        <!-- Taxes Injected Here safely via JS -->
                     </tbody>
                 </table>
 
+                <!-- HIGHLIGHTED NET PAYABLE BLOCK -->
                 <div class="bg-[#fffbe6] border border-black p-1.5 flex justify-between items-center font-black text-[13px] mb-2">
                     <span>NET PAYABLE:</span> <span id="r-net"></span>
                 </div>
                 
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
 
+                <!-- UPI QR CODE BLOCK -->
                 <div class="border border-blue-400 rounded-lg p-2 text-center text-blue-900 bg-[#eef6ff]">
                     <p class="font-bold text-[10px] mb-1 tracking-wider"><i class="fas fa-credit-card mr-1"></i> SCAN TO PAY</p>
                     <div class="bg-white p-1 border border-black inline-block mx-auto">
@@ -285,6 +291,7 @@
                 <div class="text-center font-bold mt-1 text-[10px] pb-2">THANK YOU! VISIT AGAIN</div>
             </div>
 
+            <!-- Share Action Buttons -->
             <div class="no-print w-full max-w-[340px] mx-auto grid grid-cols-3 gap-2 pb-6">
                 <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
                     <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print 80mm
@@ -354,12 +361,36 @@
                 <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Update Item</button>
             </div>
         </div>
+        
+        <!-- 5. 📲 INSTALL APP PROMPT MODAL -->
+        <div id="install-prompt-modal" class="hidden fixed inset-0 z-[250] bg-slate-900/80 flex-col justify-end p-4 transition-opacity">
+            <div class="bg-white w-full max-w-sm mx-auto rounded-2xl shadow-2xl p-5 mb-4 transform transition-transform">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg mr-4 shrink-0">
+                        <i class="fas fa-store text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-800 text-lg leading-tight">Install ANPMART</h3>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Fast, Offline, Native App</p>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-600 mb-5 font-medium">Install our app on your home screen for quick access and full offline capabilities.</p>
+                <div class="flex space-x-3">
+                    <button onclick="window.hideInstallPrompt()" class="w-1/3 bg-slate-100 text-slate-600 font-bold p-3 rounded-xl active:bg-slate-200 transition-colors text-sm">Later</button>
+                    <button onclick="window.installApp()" class="w-2/3 bg-blue-600 text-white font-black p-3 rounded-xl shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] active:scale-95 transition-all text-sm flex justify-center items-center">
+                        <i class="fas fa-download mr-2"></i> Install App
+                    </button>
+                </div>
+            </div>
+        </div>
 
     </div>
 
     <!-- ⚡ 100% NATIVE JAVASCRIPT ENGINE -->
     <script>
-        // --- 📱 PWA APP INSTALLER ---
+        // --- 📱 PWA APP INSTALLER & PROMPT LOGIC ---
+        let deferredPrompt;
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(reg => {
@@ -369,6 +400,42 @@
                 });
             });
         }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI notify the user they can install the PWA
+            setTimeout(() => {
+                const installModal = document.getElementById('install-prompt-modal');
+                if(installModal) {
+                    installModal.classList.remove('hidden');
+                    installModal.classList.add('flex');
+                }
+            }, 3000); // Prompts user 3 seconds after opening the app
+        });
+
+        window.hideInstallPrompt = function() {
+            const installModal = document.getElementById('install-prompt-modal');
+            installModal.classList.add('hidden');
+            installModal.classList.remove('flex');
+        };
+
+        window.installApp = async function() {
+            window.hideInstallPrompt();
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+            }
+        };
+        
+        window.addEventListener('appinstalled', () => {
+            window.hideInstallPrompt();
+            console.log('PWA was installed');
+        });
 
         // --- GLOBAL ERROR LOGGER ---
         window.onerror = function(msg, url, line) {
