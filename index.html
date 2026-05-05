@@ -54,8 +54,14 @@
             <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg"><i class="fas fa-lock text-2xl text-white"></i></div>
             <h2 class="text-xl font-black text-slate-800 mb-1">ANNAPURNA ERP</h2>
             <p class="text-xs text-slate-500 font-bold mb-5">Restricted Access</p>
+            
             <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg text-center text-xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            <button onclick="window.checkLogin()" class="w-full bg-blue-600 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition mb-2">Unlock System</button>
+            
+            <button onclick="window.checkLogin()" class="w-full bg-blue-600 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition mb-3">Unlock System</button>
+            
+            <!-- ⚡ NEW: Cloud Config Button on Login -->
+            <button onclick="window.openCloudSettings()" class="w-full bg-slate-800 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-slate-700 active:scale-95 transition">☁️ Configure Cloud DB</button>
+            
             <div id="error-log" class="mt-4 p-2 bg-red-50 rounded text-[10px] text-red-600 font-mono text-left hidden h-24 overflow-y-auto w-full border border-red-200"></div>
         </div>
     </div>
@@ -168,13 +174,19 @@
 
             <!-- ⚙️ MORE MENU -->
             <div id="tab-more" class="tab-content hidden space-y-2 pt-2">
-                <button onclick="window.switchTab('stock', this)" class="w-full bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                <button onclick="window.switchTab('stock', this)" class="w-full bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50 mb-2">
                     <div class="flex items-center text-blue-600 font-bold text-sm"><i class="fas fa-box-open text-base mr-2"></i> Master Stock</div>
                     <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
                 </button>
-                <button onclick="window.switchTab('attendance', this)" class="w-full bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50">
+                <button onclick="window.switchTab('attendance', this)" class="w-full bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50 mb-2">
                     <div class="flex items-center text-emerald-600 font-bold text-sm"><i class="fas fa-user-clock text-base mr-2"></i> Attendance</div>
                     <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
+                </button>
+                
+                <!-- ⚡ NEW: Cloud Config Button inside Menu Tab -->
+                <button onclick="window.openCloudSettings()" class="w-full bg-slate-800 text-white p-3 rounded-lg shadow-sm flex items-center justify-between active:scale-95">
+                    <div class="flex items-center font-bold text-sm"><i class="fas fa-cloud text-base mr-2"></i> Cloud Setup</div>
+                    <i class="fas fa-cog text-slate-300 text-xs"></i>
                 </button>
             </div>
 
@@ -215,15 +227,12 @@
         
         <!-- 1. EXACT REPLICA 80MM BILL VIEW MODAL -->
         <div id="modal-bill" class="hidden absolute inset-0 z-[130] bg-slate-900/90 flex flex-col items-center p-4 hide-scroll overflow-y-auto">
-            
             <div class="no-print w-full max-w-[340px] flex justify-between items-center mb-3 mt-4 mx-auto">
                 <h3 class="text-white font-bold">View & Share Invoice</h3>
                 <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="w-8 h-8 bg-white/20 rounded-full text-white flex items-center justify-center hover:bg-white/30"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- EXACT 80MM THERMAL RECEIPT MATCHING SCREENSHOT -->
             <div id="thermal-bill" class="bg-white text-black w-full max-w-[340px] mx-auto shadow-2xl relative p-4 mb-4" style="font-family: monospace; letter-spacing: -0.5px;">
-                
                 <div class="text-center font-bold mb-1 leading-tight">
                     <h2 class="text-lg tracking-widest uppercase">ANNAPURNA TRADERS</h2>
                     <p class="text-[10px] mb-1">(anpmart)</p>
@@ -282,14 +291,12 @@
                     </tbody>
                 </table>
 
-                <!-- HIGHLIGHTED NET PAYABLE BLOCK -->
                 <div class="bg-[#fffbe6] border border-black p-1.5 flex justify-between items-center font-black text-[13px] mb-2">
                     <span>NET PAYABLE:</span> <span id="r-net"></span>
                 </div>
                 
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
 
-                <!-- UPI QR CODE BLOCK -->
                 <div class="border border-blue-400 rounded-lg p-2 text-center text-blue-900 bg-[#eef6ff]">
                     <p class="font-bold text-[10px] mb-1 tracking-wider"><i class="fas fa-credit-card mr-1"></i> SCAN TO PAY</p>
                     <div class="bg-white p-1 border border-black inline-block mx-auto">
@@ -303,7 +310,6 @@
                 <div class="text-center font-bold mt-1 text-[10px] pb-2">THANK YOU! VISIT AGAIN</div>
             </div>
 
-            <!-- Share Action Buttons -->
             <div class="no-print w-full max-w-[340px] mx-auto grid grid-cols-3 gap-2 pb-6">
                 <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
                     <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print 80mm
@@ -396,6 +402,26 @@
             </div>
         </div>
 
+        <!-- ⚡ 6. CLOUD SETTINGS MODAL -->
+        <div id="modal-cloud-settings" class="hidden fixed inset-0 z-[300] bg-slate-900/90 flex-col justify-center items-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-slate-800 text-lg"><i class="fas fa-cloud text-blue-500 mr-2"></i> Cloud Setup</h3>
+                    <button onclick="document.getElementById('modal-cloud-settings').classList.add('hidden'); document.getElementById('modal-cloud-settings').classList.remove('flex');" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <p class="text-xs text-slate-500 mb-4 font-medium">Connect to your Turso Database to sync records.</p>
+                
+                <label class="text-[10px] font-bold text-slate-500 uppercase">Database URL</label>
+                <input type="text" id="inp-turso-url" placeholder="https://your-db.turso.io" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold mb-3 focus:ring-2 focus:ring-blue-500">
+                
+                <label class="text-[10px] font-bold text-slate-500 uppercase">Auth Token</label>
+                <textarea id="inp-turso-token" rows="4" placeholder="eyJhbGciOi..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-[10px] font-mono mb-5 focus:ring-2 focus:ring-blue-500 leading-tight"></textarea>
+                
+                <button onclick="window.saveCloudSettings()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg shadow-md active:scale-95 text-sm transition">💾 Save & Connect</button>
+            </div>
+        </div>
+
     </div>
 
     <!-- ⚡ 100% NATIVE JAVASCRIPT ENGINE -->
@@ -414,18 +440,15 @@
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            // Update UI notify the user they can install the PWA
             setTimeout(() => {
                 const installModal = document.getElementById('install-prompt-modal');
                 if(installModal) {
                     installModal.classList.remove('hidden');
                     installModal.classList.add('flex');
                 }
-            }, 3000); // Prompts user 3 seconds after opening the app
+            }, 3000); 
         });
 
         window.hideInstallPrompt = function() {
@@ -453,15 +476,58 @@
             }
         };
 
-        // CORRECT TURSO PIPELINE API URL
-        const TURSO_URL = "https://anpmart-itagi99.aws-ap-south-1.turso.io/v2/pipeline";
-        const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3Nzc5OTI4NzksImlkIjoiMDE5ZGYzMzAtMzgwMS03YzBmLWFlZTAtY2UyOGE2MzIzMWMwIiwicmlkIjoiOTRkYjg0MGItZTIxZi00ZDA3LWFjOGQtNThkZWJhMWQ5MzllIn0.B3oGpLnSL9JEVVaMau01X-wmcwtd3TceTrjULuP0i15xhrSPqkv-EJ6-UcnP-EdIR6SGI0xu2FOdzROtl6c7Bg";
+        // ========================================================
+        // ⚡ MULTI-TENANT CLOUD CONNECTION ENGINE 
+        // ========================================================
+        window.openCloudSettings = function() {
+            document.getElementById('inp-turso-url').value = localStorage.getItem('turso_url') || "";
+            document.getElementById('inp-turso-token').value = localStorage.getItem('turso_token') || "";
+            
+            const modal = document.getElementById('modal-cloud-settings');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.saveCloudSettings = function() {
+            const url = document.getElementById('inp-turso-url').value.trim();
+            const token = document.getElementById('inp-turso-token').value.trim();
+            
+            if(!url || !token) {
+                alert("Both Database URL and Auth Token are required!");
+                return;
+            }
+            
+            localStorage.setItem('turso_url', url);
+            localStorage.setItem('turso_token', token);
+            
+            const modal = document.getElementById('modal-cloud-settings');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            if (localStorage.getItem('erp_auth') === 'true') {
+                window.syncData();
+            } else {
+                alert("Cloud credentials saved successfully! Please enter your PIN to unlock the system.");
+            }
+        };
 
         async function runQuery(sql) {
             try {
-                const response = await fetch(TURSO_URL, {
+                let baseUrl = localStorage.getItem('turso_url') || '';
+                const token = localStorage.getItem('turso_token') || '';
+                
+                if (!baseUrl || !token) {
+                    throw new Error("Missing Cloud Credentials. Please open Cloud Settings.");
+                }
+
+                // ⚡ Auto-format URL to use Pipeline API for PWA requests
+                if (!baseUrl.includes('/v2/pipeline')) {
+                    baseUrl = baseUrl.replace(/\/$/, '') + '/v2/pipeline';
+                }
+
+                const response = await fetch(baseUrl, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${TURSO_TOKEN}`, 'Content-Type': 'application/json' },
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
                 });
 
@@ -483,11 +549,19 @@
                 throw error;
             }
         }
+        // ========================================================
 
         window.erpData = { products: [], customers: [], bills: [], emps: [], payments: [], cart: [], cartTotal: 0.0 };
 
         window.checkLogin = function() {
             const pin = document.getElementById('login-pin').value;
+            
+            if(!localStorage.getItem('turso_url') || !localStorage.getItem('turso_token')) {
+                alert("⚠️ Please configure Cloud Database first!");
+                window.openCloudSettings();
+                return;
+            }
+            
             if(pin === "1234") {
                 localStorage.setItem('erp_auth', 'true');
                 document.getElementById('login-screen').classList.add('hidden');
@@ -501,7 +575,15 @@
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             document.getElementById('app-screen').classList.add('flex');
-            setTimeout(() => { window.syncData(); }, 300);
+            
+            if(localStorage.getItem('turso_url') && localStorage.getItem('turso_token')) {
+                setTimeout(() => { window.syncData(); }, 300);
+            } else {
+                setTimeout(() => { 
+                    alert("Cloud configuration missing. Opening setup."); 
+                    window.openCloudSettings(); 
+                }, 500);
+            }
         }
 
         window.syncData = async function() {
@@ -529,6 +611,9 @@
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
             } catch (err) { 
                 alert("Sync Failed: " + err.message); 
+                if (err.message.includes("Missing Cloud Credentials")) {
+                    window.openCloudSettings();
+                }
             }
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
