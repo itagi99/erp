@@ -49,9 +49,13 @@
         .nav-fixed { flex-shrink: 0; }
 
         .modal-overlay { position: fixed; inset: 0; z-index: 200; }
-        .modal-content { max-height: 90vh; overflow-y: auto; }
-
         .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+        .edit-mode-badge { animation: pulse-edit 2s infinite; }
+        @keyframes pulse-edit {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
     </style>
 <base target="_blank">
 </head>
@@ -78,7 +82,10 @@
     <div id="app-screen" class="hidden app-container">
         <header class="bg-blue-600 text-white p-2 px-3 shadow-md z-40 flex justify-between items-center shrink-0">
             <h1 class="text-base font-extrabold tracking-tight"><i class="fas fa-store mr-1"></i> ANP<span class="font-light text-blue-200" id="header-title">DASH</span></h1>
-            <button onclick="window.syncData()" id="btn-sync" class="bg-blue-500 w-8 h-8 rounded-full shadow active:scale-90 flex justify-center items-center text-xs"><i class="fas fa-sync-alt"></i></button>
+            <div class="flex items-center space-x-2">
+                <span id="edit-mode-indicator" class="hidden edit-mode-badge bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">✏️ EDITING</span>
+                <button onclick="window.syncData()" id="btn-sync" class="bg-blue-500 w-8 h-8 rounded-full shadow active:scale-90 flex justify-center items-center text-xs"><i class="fas fa-sync-alt"></i></button>
+            </div>
         </header>
 
         <main class="main-scroll p-2 pb-20 relative" id="main-content">
@@ -104,6 +111,17 @@
 
             <!-- POS -->
             <div id="tab-pos" class="tab-content hidden h-full flex-col space-y-2">
+                <!-- Edit Mode Banner -->
+                <div id="pos-edit-banner" class="hidden bg-amber-100 border border-amber-300 p-2 rounded-lg shrink-0">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] font-bold text-amber-800 uppercase">Editing Existing Bill</p>
+                            <p class="text-xs font-black text-amber-900" id="pos-edit-billno">#000</p>
+                        </div>
+                        <button onclick="window.cancelEditMode()" class="bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded active:scale-95"><i class="fas fa-times mr-1"></i>Cancel</button>
+                    </div>
+                </div>
+
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-slate-200 shrink-0">
                     <span class="text-[10px] font-bold text-slate-500 uppercase">Customer</span>
                     <span class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded" id="pos-bill-no">M-NEW</span>
@@ -131,6 +149,7 @@
                         <span class="text-lg font-black text-emerald-400" id="pos-total">₹0.00</span>
                     </div>
                     <button onclick="window.saveMobileBill()" id="btn-save-bill" class="w-full bg-emerald-500 font-black text-xs py-3 rounded-md shadow-md active:scale-95 transition">COMPLETE SALE</button>
+                    <button onclick="window.saveBillEditFromPOS()" id="btn-update-bill" class="hidden w-full bg-amber-500 font-black text-xs py-3 rounded-md shadow-md active:scale-95 transition mt-2">💾 UPDATE BILL</button>
                 </div>
             </div>
 
@@ -160,7 +179,7 @@
                 <div id="sales-list" class="space-y-1.5 pb-2"></div>
             </div>
 
-            <!-- LEDGER & PAYMENTS -->
+            <!-- LEDGER -->
             <div id="tab-ledger" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
                     <input type="text" id="search-ledger" onkeyup="window.renderLedger()" placeholder="Search Dues by Name..." class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-xs shadow-sm focus:ring-2 focus:ring-blue-500">
@@ -190,7 +209,6 @@
                     <div class="flex items-center text-emerald-600 font-bold text-sm"><i class="fas fa-user-clock text-base mr-2"></i> Attendance</div>
                     <i class="fas fa-chevron-right text-slate-400 text-xs"></i>
                 </button>
-
                 <button onclick="window.openCloudSettings()" class="w-full bg-slate-800 text-white p-3 rounded-lg shadow-sm flex items-center justify-between active:scale-95">
                     <div class="flex items-center font-bold text-sm"><i class="fas fa-cloud text-base mr-2"></i> Cloud Setup</div>
                     <i class="fas fa-cog text-slate-300 text-xs"></i>
@@ -223,11 +241,11 @@
 
         <!-- BOTTOM NAVIGATION -->
         <nav class="no-print nav-fixed bg-white border-t border-slate-200 flex justify-around p-1.5 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
-            <button onclick="window.switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center p-1 text-blue-600 w-1/5"><i class="fas fa-home text-base mb-0.5"></i><span class="text-[9px] font-bold">Home</span></button>
-            <button onclick="window.switchTab('pos', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-cash-register text-base mb-0.5"></i><span class="text-[9px] font-bold">POS</span></button>
-            <button onclick="window.switchTab('sales', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-receipt text-base mb-0.5"></i><span class="text-[9px] font-bold">Sales</span></button>
-            <button onclick="window.switchTab('ledger', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-wallet text-base mb-0.5"></i><span class="text-[9px] font-bold">Ledger</span></button>
-            <button onclick="window.switchTab('more', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-bars text-base mb-0.5"></i><span class="text-[9px] font-bold">Menu</span></button>
+            <button onclick="window.handleNavClick('dashboard', this)" class="nav-btn active flex flex-col items-center p-1 text-blue-600 w-1/5"><i class="fas fa-home text-base mb-0.5"></i><span class="text-[9px] font-bold">Home</span></button>
+            <button onclick="window.handleNavClick('pos', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-cash-register text-base mb-0.5"></i><span class="text-[9px] font-bold">POS</span></button>
+            <button onclick="window.handleNavClick('sales', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-receipt text-base mb-0.5"></i><span class="text-[9px] font-bold">Sales</span></button>
+            <button onclick="window.handleNavClick('ledger', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-wallet text-base mb-0.5"></i><span class="text-[9px] font-bold">Ledger</span></button>
+            <button onclick="window.handleNavClick('more', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-bars text-base mb-0.5"></i><span class="text-[9px] font-bold">Menu</span></button>
         </nav>
 
         <!-- MODALS -->
@@ -423,76 +441,37 @@
             </div>
         </div>
 
-        <!-- 7. EDIT BILL MODAL (NEW) -->
-        <div id="modal-edit-bill" class="hidden modal-overlay bg-slate-900/90 flex flex-col justify-end p-0">
-            <div class="bg-white w-full rounded-t-2xl shadow-2xl flex flex-col max-h-[95vh]">
-                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl shrink-0">
-                    <div>
-                        <h3 class="font-black text-slate-800 text-base">✏️ Edit Bill</h3>
-                        <p class="text-[9px] font-bold text-slate-500" id="edit-bill-info">Bill #000</p>
+        <!-- 7. UNSAVED CHANGES CONFIRM MODAL -->
+        <div id="modal-unsaved" class="hidden fixed inset-0 z-[400] bg-slate-900/70 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5">
+                <div class="text-center mb-4">
+                    <div class="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-exclamation-triangle text-2xl text-amber-600"></i>
                     </div>
-                    <button onclick="document.getElementById('modal-edit-bill').classList.add('hidden')" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+                    <h3 class="font-black text-slate-800 text-lg">Unsaved Changes</h3>
+                    <p class="text-xs text-slate-500 mt-1">You have unsaved changes in the POS. Do you want to save before leaving?</p>
                 </div>
-
-                <div class="p-3 overflow-y-auto flex-1 hide-scroll">
-                    <!-- Customer Info -->
-                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 mb-3">
-                        <label class="text-[9px] font-bold text-slate-500 uppercase">Customer</label>
-                        <input type="text" id="edit-bill-cust" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold mb-2 focus:ring-2 focus:ring-blue-500">
-
-                        <div class="flex space-x-2">
-                            <div class="w-1/2">
-                                <label class="text-[9px] font-bold text-slate-500 uppercase">Sub Total</label>
-                                <input type="number" id="edit-bill-sub" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center text-xs font-bold" readonly>
-                            </div>
-                            <div class="w-1/2">
-                                <label class="text-[9px] font-bold text-slate-500 uppercase">Grand Total</label>
-                                <input type="number" id="edit-bill-grand" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center text-xs font-bold" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Items List -->
-                    <div class="mb-2 flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-slate-700">Bill Items</h4>
-                        <button onclick="window.addEditBillItem()" class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-1 rounded font-bold"><i class="fas fa-plus mr-1"></i>Add Item</button>
-                    </div>
-
-                    <div id="edit-bill-items" class="space-y-2 mb-3"></div>
-
-                    <!-- Payment Info -->
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-3">
-                        <div class="flex space-x-2 mb-2">
-                            <div class="w-1/2">
-                                <label class="text-[9px] font-bold text-slate-500 uppercase">Paid</label>
-                                <input type="number" id="edit-bill-paid" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center text-xs font-bold focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            <div class="w-1/2">
-                                <label class="text-[9px] font-bold text-slate-500 uppercase">Balance Due</label>
-                                <input type="number" id="edit-bill-balance" class="w-full p-2 bg-slate-100 border border-slate-200 rounded-lg text-center text-xs font-bold" readonly>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <div class="w-1/2">
-                                <label class="text-[9px] font-bold text-slate-500 uppercase">Payment Mode</label>
-                                <select id="edit-bill-mode" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500">
-                                    <option value="Due/Cash">Due/Cash</option>
-                                    <option value="Cash">Cash</option>
-                                    <option value="UPI">UPI</option>
-                                    <option value="Credit">Credit</option>
-                                </select>
-                            </div>
-                            <div class="w-1/2">
-                                <label class="text-[9px] font-bold text-slate-500 uppercase">Old Balance</label>
-                                <input type="number" id="edit-bill-oldbal" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-center text-xs font-bold focus:ring-2 focus:ring-blue-500">
-                            </div>
-                        </div>
-                    </div>
+                <div class="space-y-2">
+                    <button onclick="window.saveUnsavedAndNavigate()" class="w-full bg-emerald-500 text-white font-bold p-3 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Save & Leave</button>
+                    <button onclick="window.discardUnsavedAndNavigate()" class="w-full bg-rose-50 text-rose-600 font-bold p-3 rounded-lg border border-rose-200 active:scale-95 text-sm"><i class="fas fa-trash mr-2"></i> Discard & Leave</button>
+                    <button onclick="window.keepEditing()" class="w-full bg-slate-100 text-slate-600 font-bold p-3 rounded-lg active:scale-95 text-sm">Keep Editing</button>
                 </div>
+            </div>
+        </div>
 
-                <div class="p-3 border-t border-slate-100 bg-white shrink-0 space-y-2">
-                    <button onclick="window.saveBillEdit()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Save Changes</button>
-                    <button onclick="window.deleteBill()" class="w-full bg-rose-50 text-rose-600 font-bold p-2.5 rounded-lg border border-rose-200 active:scale-95 text-xs"><i class="fas fa-trash mr-2"></i> Delete Bill</button>
+        <!-- 8. DELETE BILL CONFIRM MODAL -->
+        <div id="modal-delete-bill" class="hidden fixed inset-0 z-[400] bg-slate-900/70 flex items-center justify-center p-4">
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5">
+                <div class="text-center mb-4">
+                    <div class="w-14 h-14 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fas fa-trash-alt text-2xl text-rose-600"></i>
+                    </div>
+                    <h3 class="font-black text-slate-800 text-lg">Delete Bill?</h3>
+                    <p class="text-xs text-slate-500 mt-1">This will permanently delete the bill and restore stock. This cannot be undone.</p>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="window.confirmDeleteBill()" class="w-full bg-rose-600 text-white font-bold p-3 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-trash mr-2"></i> Yes, Delete Bill</button>
+                    <button onclick="document.getElementById('modal-delete-bill').classList.add('hidden')" class="w-full bg-slate-100 text-slate-600 font-bold p-3 rounded-lg active:scale-95 text-sm">Cancel</button>
                 </div>
             </div>
         </div>
@@ -547,7 +526,7 @@
             const errLog = document.getElementById('error-log');
             if(errLog) {
                 errLog.classList.remove('hidden');
-                errLog.innerHTML += `► Error: ${msg}<br>`;
+                errLog.innerHTML += 'Error: ' + msg + '<br>';
             }
         };
 
@@ -601,7 +580,7 @@
 
                 const response = await fetch(baseUrl, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
                 });
 
@@ -625,9 +604,13 @@
         }
         // ========================================================
 
+        // ========================================================
+        // GLOBAL STATE
+        // ========================================================
         window.erpData = { products: [], customers: [], bills: [], emps: [], payments: [], cart: [], cartTotal: 0.0 };
-        window.currentEditingBill = null;
-        window.currentEditingBillItems = [];
+        window.editMode = { active: false, billId: null, originalBill: null, originalCart: [] };
+        window.pendingNav = null;
+        window.billToDelete = null;
 
         window.checkLogin = function() {
             const pin = document.getElementById('login-pin').value;
@@ -678,8 +661,8 @@
                 try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
 
                 const groups = [...new Set(window.erpData.customers.map(c => c.group_name).filter(g => g))];
-                document.getElementById('filter-sales-group').innerHTML = '<option value="all">All Customer Groups</option>' + groups.map(g => `<option value="${g}">${g}</option>`).join('');
-                document.getElementById('filter-ledger-group').innerHTML = '<option value="all">All Groups</option>' + groups.map(g => `<option value="${g}">${g}</option>`).join('');
+                document.getElementById('filter-sales-group').innerHTML = '<option value="all">All Customer Groups</option>' + groups.map(g => '<option value="' + g + '">' + g + '</option>').join('');
+                document.getElementById('filter-ledger-group').innerHTML = '<option value="all">All Groups</option>' + groups.map(g => '<option value="' + g + '">' + g + '</option>').join('');
 
                 window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
             } catch (err) { 
@@ -691,7 +674,52 @@
             btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
 
-        // --- UI & TABS ---
+        // ========================================================
+        // NAVIGATION WITH UNSAVED CHANGES PROTECTION
+        // ========================================================
+        window.handleNavClick = function(tabId, btnElement) {
+            // Check if leaving POS with unsaved changes
+            if (window.editMode.active && tabId !== 'pos') {
+                if (window.hasUnsavedChanges()) {
+                    window.pendingNav = { tabId: tabId, btnElement: btnElement };
+                    document.getElementById('modal-unsaved').classList.remove('hidden');
+                    return;
+                }
+            }
+            window.switchTab(tabId, btnElement);
+        };
+
+        window.hasUnsavedChanges = function() {
+            if (!window.editMode.active) return false;
+            // Compare current cart with original
+            const currentCart = JSON.stringify(window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit })));
+            const originalCart = JSON.stringify(window.editMode.originalCart);
+            return currentCart !== originalCart;
+        };
+
+        window.saveUnsavedAndNavigate = async function() {
+            document.getElementById('modal-unsaved').classList.add('hidden');
+            await window.saveBillEditFromPOS();
+            if (window.pendingNav) {
+                window.switchTab(window.pendingNav.tabId, window.pendingNav.btnElement);
+                window.pendingNav = null;
+            }
+        };
+
+        window.discardUnsavedAndNavigate = function() {
+            document.getElementById('modal-unsaved').classList.add('hidden');
+            window.cancelEditMode();
+            if (window.pendingNav) {
+                window.switchTab(window.pendingNav.tabId, window.pendingNav.btnElement);
+                window.pendingNav = null;
+            }
+        };
+
+        window.keepEditing = function() {
+            document.getElementById('modal-unsaved').classList.add('hidden');
+            window.pendingNav = null;
+        };
+
         window.switchTab = function(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(t => {
                 t.classList.add('hidden'); t.classList.remove('block', 'flex');
@@ -712,6 +740,9 @@
             document.getElementById('header-title').innerText = titles[tabId];
         };
 
+        // ========================================================
+        // AUTOCOMPLETE
+        // ========================================================
         window.filterAC = function(inputId, dropId) {
             const val = document.getElementById(inputId).value.toLowerCase();
             const drop = document.getElementById(dropId);
@@ -736,15 +767,17 @@
             if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
         });
 
-        // --- SMART PRICING ENGINE ---
+        // ========================================================
+        // SMART PRICING ENGINE
+        // ========================================================
         window.autoFillPrice = function() {
             const name = document.getElementById('pos-item').value;
             const cust = document.getElementById('pos-cust').value.trim();
             const p = window.erpData.products.find(x => x.name === name);
             if(p) {
                 const uSel = document.getElementById('pos-unit');
-                uSel.innerHTML = `<option value="${p.unit_main || 'Pcs'}">${p.unit_main || 'Pcs'}</option>`;
-                if(p.unit_pack) uSel.innerHTML += `<option value="${p.unit_pack}">${p.unit_pack}</option>`;
+                uSel.innerHTML = '<option value="' + (p.unit_main || 'Pcs') + '">' + (p.unit_main || 'Pcs') + '</option>';
+                if(p.unit_pack) uSel.innerHTML += '<option value="' + p.unit_pack + '">' + p.unit_pack + '</option>';
                 window.updatePosRate(p, uSel.value, cust);
             }
         };
@@ -791,6 +824,9 @@
             document.getElementById('pos-rate').value = finalRate ? finalRate.toFixed(2) : 0;
         };
 
+        // ========================================================
+        // CART / POS OPERATIONS
+        // ========================================================
         window.addToCart = function() {
             const name = document.getElementById('pos-item').value;
             const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
@@ -806,7 +842,7 @@
             let baseRate = isPack ? (rate / conv) : rate;
 
             window.erpData.cart.push({
-                name, qty, rate, unit, tot: qty*rate, baseQty, baseRate
+                name: name, qty: qty, rate: rate, unit: unit, tot: qty*rate, baseQty: baseQty, baseRate: baseRate
             });
 
             document.getElementById('pos-item').value = ''; document.getElementById('pos-qty').value = '1';
@@ -814,7 +850,10 @@
             window.renderCart();
         };
 
-        window.removeCartItem = function(index) { window.erpData.cart.splice(index, 1); window.renderCart(); };
+        window.removeCartItem = function(index) { 
+            window.erpData.cart.splice(index, 1); 
+            window.renderCart(); 
+        };
 
         window.renderCart = function() {
             const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = ''; window.erpData.cartTotal = 0;
@@ -822,16 +861,17 @@
             else {
                 window.erpData.cart.forEach((item, i) => {
                     window.erpData.cartTotal += item.tot;
-                    ui.innerHTML += `
-                        <div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm mb-1">
-                            <div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">${item.name}</p><p class="text-[9px] text-slate-500">${item.qty} ${item.unit} x ₹${item.rate}</p></div>
-                            <div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹${item.tot.toFixed(2)}</p><button onclick="window.removeCartItem(${i})" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div>
-                        </div>`;
+                    ui.innerHTML += '<div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm mb-1">' +
+                        '<div class="flex-1"><p class="font-bold text-slate-800 line-clamp-1">' + item.name + '</p><p class="text-[9px] text-slate-500">' + item.qty + ' ' + item.unit + ' x ₹' + item.rate + '</p></div>' +
+                        '<div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹' + item.tot.toFixed(2) + '</p><button onclick="window.removeCartItem(' + i + ')" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div></div>';
                 });
             }
             document.getElementById('pos-total').innerText = '₹' + window.erpData.cartTotal.toFixed(2);
         };
 
+        // ========================================================
+        // SAVE NEW BILL (from POS)
+        // ========================================================
         window.saveMobileBill = async function() {
             if(window.erpData.cart.length === 0) return;
             const btn = document.getElementById('btn-save-bill');
@@ -841,31 +881,31 @@
 
             try {
                 let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
-                const bno = `M-APP-${String((Number(cntRs[0]?.c)||0) + 1).padStart(4, '0')}`;
+                const bno = 'M-APP-' + String((Number(cntRs[0]&&cntRs[0].c)||0) + 1).padStart(4, '0');
 
                 const d = new Date(); const pad = n => String(n).padStart(2, '0');
-                const dt = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+                const dt = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
 
                 let old_bal = 0.0;
                 let csafe = cust.replace(/'/g, "''");
-                let custRs = await runQuery(`SELECT id, balance FROM customers WHERE name = '${csafe}'`);
+                let custRs = await runQuery("SELECT id, balance FROM customers WHERE name = '" + csafe + "'");
 
                 if (custRs.length > 0) {
                     old_bal = Number(custRs[0].balance || 0);
-                    await runQuery(`UPDATE customers SET balance = balance + ${total} WHERE name = '${csafe}'`);
+                    await runQuery("UPDATE customers SET balance = balance + " + total + " WHERE name = '" + csafe + "'");
                 } else if (cust !== 'Walk-in') {
-                    await runQuery(`INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('${csafe}', '', '', ${total}, 'General')`);
+                    await runQuery("INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('" + csafe + "', '', '', " + total + ", 'General')");
                 }
 
                 for(let item of window.erpData.cart) {
                     let safeItem = item.name.replace(/'/g, "''");
-                    await runQuery(`UPDATE products SET stock = stock - ${item.baseQty}, rate = ${item.baseRate} WHERE name = '${safeItem}'`);
+                    await runQuery("UPDATE products SET stock = stock - " + item.baseQty + ", rate = " + item.baseRate + " WHERE name = '" + safeItem + "'");
                 }
 
                 let cleanCart = window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit, tot: i.tot }));
                 const cartJson = JSON.stringify(cleanCart).replace(/'/g, "''");
 
-                await runQuery(`INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('${bno}', '${csafe}', ${total}, 0, ${total}, 0, ${total}, 'Due/Cash', '${cartJson}', '${dt}', ${old_bal}, 'Mobile PWA')`);
+                await runQuery("INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('" + bno + "', '" + csafe + "', " + total + ", 0, " + total + ", 0, " + total + ", 'Due/Cash', '" + cartJson + "', '" + dt + "', " + old_bal + ", 'Mobile PWA')");
 
                 document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
                 await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
@@ -874,6 +914,241 @@
             btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
         };
 
+        // ========================================================
+        // ✏️ BILL EDIT SYSTEM - LOAD EXISTING BILL INTO POS
+        // ========================================================
+        window.loadBillToPOS = function(id) {
+            const b = window.erpData.bills.find(x => x.id == id);
+            if(!b) { alert("Bill not found."); return; }
+
+            // Parse items from bill_data
+            let items = [];
+            try { 
+                let rawData = b.bill_data || "[]";
+                let parsed = JSON.parse(rawData);
+                if(typeof parsed === 'string') parsed = JSON.parse(parsed);
+                if(Array.isArray(parsed)) items = parsed;
+            } catch(e) { console.error("Parse Error:", e); }
+
+            // Convert to cart format with baseQty/baseRate for stock management
+            window.erpData.cart = items.map(itm => {
+                const p = window.erpData.products.find(x => x.name === itm.name);
+                let conv = p ? (parseFloat(p.conv_factor) || 1) : 1;
+                let isPack = (itm.unit === (p ? p.unit_pack : ''));
+                let baseQty = isPack ? ((Number(itm.qty) || 1) * conv) : (Number(itm.qty) || 1);
+                let baseRate = isPack ? ((Number(itm.rate) || 0) / conv) : (Number(itm.rate) || 0);
+                return {
+                    name: itm.name || "Item",
+                    qty: Number(itm.qty) || 1,
+                    rate: Number(itm.rate) || 0,
+                    unit: itm.unit || "Pcs",
+                    tot: Number(itm.tot) || 0,
+                    baseQty: baseQty,
+                    baseRate: baseRate
+                };
+            });
+
+            // Set edit mode
+            window.editMode.active = true;
+            window.editMode.billId = b.id;
+            window.editMode.originalBill = b;
+            window.editMode.originalCart = JSON.parse(JSON.stringify(window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit }))));
+
+            // Load into POS UI
+            document.getElementById('pos-cust').value = b.customer_name || "";
+            document.getElementById('pos-bill-no').innerText = b.bill_no || "EDIT";
+            document.getElementById('pos-bill-no').className = "text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded";
+
+            // Show edit mode UI
+            document.getElementById('pos-edit-banner').classList.remove('hidden');
+            document.getElementById('pos-edit-billno').innerText = (b.bill_no || "#000") + " | " + String(b.created_at || "").substring(0,10);
+            document.getElementById('edit-mode-indicator').classList.remove('hidden');
+            document.getElementById('btn-save-bill').classList.add('hidden');
+            document.getElementById('btn-update-bill').classList.remove('hidden');
+
+            window.renderCart();
+            window.switchTab('pos', document.querySelectorAll('.nav-btn')[1]);
+        };
+
+        window.cancelEditMode = function() {
+            if (window.editMode.active && window.hasUnsavedChanges()) {
+                if (!confirm("You have unsaved changes. Discard them?")) return;
+            }
+
+            // Reset edit mode
+            window.editMode = { active: false, billId: null, originalBill: null, originalCart: [] };
+
+            // Clear POS
+            window.erpData.cart = [];
+            window.erpData.cartTotal = 0;
+            document.getElementById('pos-cust').value = '';
+            document.getElementById('pos-item').value = '';
+            document.getElementById('pos-qty').value = '1';
+            document.getElementById('pos-rate').value = '';
+            document.getElementById('pos-unit').innerHTML = '';
+            document.getElementById('pos-bill-no').innerText = 'M-NEW';
+            document.getElementById('pos-bill-no').className = "text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded";
+
+            // Hide edit mode UI
+            document.getElementById('pos-edit-banner').classList.add('hidden');
+            document.getElementById('edit-mode-indicator').classList.add('hidden');
+            document.getElementById('btn-save-bill').classList.remove('hidden');
+            document.getElementById('btn-update-bill').classList.add('hidden');
+
+            window.renderCart();
+            window.switchTab('sales', document.querySelectorAll('.nav-btn')[2]);
+        };
+
+        window.saveBillEditFromPOS = async function() {
+            if(!window.editMode.active || !window.editMode.billId) return;
+            if(window.erpData.cart.length === 0) return alert("Cart is empty!");
+
+            const btn = document.getElementById('btn-update-bill');
+            const b = window.editMode.originalBill;
+            let cust = document.getElementById('pos-cust').value.trim() || b.customer_name;
+            let total = window.erpData.cartTotal;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPDATING...'; btn.disabled = true;
+
+            try {
+                const csafe = cust.replace(/'/g, "''");
+                const bsafe = (b.customer_name || "").replace(/'/g, "''");
+
+                // 1. Reverse old customer balance
+                if(b.customer_name && b.customer_name !== 'Walk-in') {
+                    await runQuery("UPDATE customers SET balance = balance - " + Number(b.grand_total || 0) + " WHERE name = '" + bsafe + "'");
+                }
+
+                // 2. Restore old stock
+                let oldItems = [];
+                try { 
+                    let rawData = b.bill_data || "[]";
+                    let parsed = JSON.parse(rawData);
+                    if(typeof parsed === 'string') parsed = JSON.parse(parsed);
+                    if(Array.isArray(parsed)) oldItems = parsed;
+                } catch(e) {}
+
+                for(let item of oldItems) {
+                    const safeItem = (item.name || "").replace(/'/g, "''");
+                    const p = window.erpData.products.find(x => x.name === item.name);
+                    let conv = p ? (parseFloat(p.conv_factor) || 1) : 1;
+                    let isPack = (item.unit === (p ? p.unit_pack : ''));
+                    let restoreQty = isPack ? ((Number(item.qty) || 0) * conv) : (Number(item.qty) || 0);
+                    if(restoreQty > 0) {
+                        await runQuery("UPDATE products SET stock = stock + " + restoreQty + " WHERE name = '" + safeItem + "'");
+                    }
+                }
+
+                // 3. Deduct new stock
+                for(let item of window.erpData.cart) {
+                    let safeItem = item.name.replace(/'/g, "''");
+                    await runQuery("UPDATE products SET stock = stock - " + item.baseQty + ", rate = " + item.baseRate + " WHERE name = '" + safeItem + "'");
+                }
+
+                // 4. Update/add new customer balance
+                if(cust !== 'Walk-in') {
+                    const newCust = await runQuery("SELECT id FROM customers WHERE name = '" + csafe + "'");
+                    if(newCust.length > 0) {
+                        await runQuery("UPDATE customers SET balance = balance + " + total + " WHERE name = '" + csafe + "'");
+                    } else {
+                        await runQuery("INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('" + csafe + "', '', '', " + total + ", 'General')");
+                    }
+                }
+
+                // 5. Build new bill_data JSON
+                let cleanCart = window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit, tot: i.tot }));
+                const cartJson = JSON.stringify(cleanCart).replace(/'/g, "''");
+
+                // 6. Update bill record
+                await runQuery("UPDATE bills SET customer_name = '" + csafe + "', sub_total = " + total + ", grand_total = " + total + ", paid = 0, balance_due = " + total + ", bill_data = '" + cartJson + "' WHERE id = " + b.id);
+
+                // Reset edit mode
+                window.editMode = { active: false, billId: null, originalBill: null, originalCart: [] };
+
+                // Clear POS
+                window.erpData.cart = [];
+                window.erpData.cartTotal = 0;
+                document.getElementById('pos-cust').value = '';
+                document.getElementById('pos-item').value = '';
+                document.getElementById('pos-qty').value = '1';
+                document.getElementById('pos-rate').value = '';
+                document.getElementById('pos-unit').innerHTML = '';
+                document.getElementById('pos-bill-no').innerText = 'M-NEW';
+                document.getElementById('pos-bill-no').className = "text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded";
+
+                // Hide edit mode UI
+                document.getElementById('pos-edit-banner').classList.add('hidden');
+                document.getElementById('edit-mode-indicator').classList.add('hidden');
+                document.getElementById('btn-save-bill').classList.remove('hidden');
+                document.getElementById('btn-update-bill').classList.add('hidden');
+
+                await window.syncData();
+                window.switchTab('sales', document.querySelectorAll('.nav-btn')[2]);
+                alert("Bill updated successfully!");
+            } catch (err) { 
+                alert("Update failed: " + err.message); 
+                console.error(err); 
+            }
+            btn.innerHTML = '💾 UPDATE BILL'; btn.disabled = false;
+        };
+
+        // ========================================================
+        // DELETE BILL
+        // ========================================================
+        window.promptDeleteBill = function(id) {
+            window.billToDelete = id;
+            document.getElementById('modal-delete-bill').classList.remove('hidden');
+        };
+
+        window.confirmDeleteBill = async function() {
+            if(!window.billToDelete) return;
+            document.getElementById('modal-delete-bill').classList.add('hidden');
+
+            const b = window.erpData.bills.find(x => x.id == window.billToDelete);
+            if(!b) return;
+
+            try {
+                // Reverse customer balance
+                if(b.customer_name && b.customer_name !== 'Walk-in') {
+                    const csafe = b.customer_name.replace(/'/g, "''");
+                    await runQuery("UPDATE customers SET balance = balance - " + Number(b.grand_total || 0) + " WHERE name = '" + csafe + "'");
+                }
+
+                // Restore stock
+                let items = [];
+                try { 
+                    let rawData = b.bill_data || "[]";
+                    let parsed = JSON.parse(rawData);
+                    if(typeof parsed === 'string') parsed = JSON.parse(parsed);
+                    if(Array.isArray(parsed)) items = parsed;
+                } catch(e) {}
+
+                for(let item of items) {
+                    const safeItem = (item.name || "").replace(/'/g, "''");
+                    const p = window.erpData.products.find(x => x.name === item.name);
+                    let conv = p ? (parseFloat(p.conv_factor) || 1) : 1;
+                    let isPack = (item.unit === (p ? p.unit_pack : ''));
+                    let restoreQty = isPack ? ((Number(item.qty) || 0) * conv) : (Number(item.qty) || 0);
+                    if(restoreQty > 0) {
+                        await runQuery("UPDATE products SET stock = stock + " + restoreQty + " WHERE name = '" + safeItem + "'");
+                    }
+                }
+
+                // Delete bill
+                await runQuery("DELETE FROM bills WHERE id = " + b.id);
+
+                window.billToDelete = null;
+                await window.syncData();
+                alert("Bill deleted successfully!");
+            } catch(err) {
+                alert("Error deleting bill: " + err.message);
+                console.error(err);
+            }
+        };
+
+        // ========================================================
+        // SALES REGISTER RENDER
+        // ========================================================
         window.renderSales = function() {
             const val = (document.getElementById('search-sales').value || "").toLowerCase();
             const timeFilter = document.getElementById('filter-sales-time').value;
@@ -907,23 +1182,22 @@
             filtered.slice(0, 50).forEach((b, i) => {
                 const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
                 const badge = bno.startsWith('M-') ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700';
-                const html = `
-                    <div class="glass-card p-3 rounded-xl border border-slate-200 mb-2 shadow-sm">
-                        <div onclick="window.viewBill('${b.id}')" class="flex justify-between items-center cursor-pointer hover:shadow-md transition-shadow">
-                            <div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${cust}</p><p class="text-[9px] font-bold text-slate-500 mt-0.5">${dt}</p></div>
-                            <div class="text-right"><p class="text-base font-black text-slate-800">₹${amt.toLocaleString()}</p><span class="text-[8px] font-black px-1.5 py-0.5 rounded ${badge} mt-1 inline-block">${bno}</span></div>
-                        </div>
-                        <div class="flex justify-end mt-2 pt-2 border-t border-slate-100 space-x-2">
-                            <button onclick="event.stopPropagation(); window.openEditBill('${b.id}')" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold active:bg-blue-100"><i class="fas fa-edit mr-1"></i>Edit</button>
-                            <button onclick="event.stopPropagation(); window.viewBill('${b.id}')" class="text-[10px] bg-slate-50 text-slate-600 px-2 py-1 rounded font-bold active:bg-slate-100"><i class="fas fa-eye mr-1"></i>View</button>
-                        </div>
-                    </div>`;
+                const html = '<div class="glass-card p-3 rounded-xl border border-slate-200 mb-2 shadow-sm">' +
+                    '<div class="flex justify-between items-center cursor-pointer" onclick="window.viewBill(' + b.id + ')">' +
+                    '<div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">' + cust + '</p><p class="text-[9px] font-bold text-slate-500 mt-0.5">' + dt + '</p></div>' +
+                    '<div class="text-right"><p class="text-base font-black text-slate-800">₹' + amt.toLocaleString() + '</p><span class="text-[8px] font-black px-1.5 py-0.5 rounded ' + badge + ' mt-1 inline-block">' + bno + '</span></div></div>' +
+                    '<div class="flex justify-end mt-2 pt-2 border-t border-slate-100 space-x-2">' +
+                    '<button onclick="event.stopPropagation(); window.loadBillToPOS(' + b.id + ')" class="text-[10px] bg-amber-50 text-amber-700 px-2 py-1 rounded font-bold active:bg-amber-100 border border-amber-200"><i class="fas fa-edit mr-1"></i>Edit in POS</button>' +
+                    '<button onclick="event.stopPropagation(); window.viewBill(' + b.id + ')" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold active:bg-blue-100"><i class="fas fa-eye mr-1"></i>View</button>' +
+                    '<button onclick="event.stopPropagation(); window.promptDeleteBill(' + b.id + ')" class="text-[10px] bg-rose-50 text-rose-600 px-2 py-1 rounded font-bold active:bg-rose-100"><i class="fas fa-trash mr-1"></i>Del</button></div></div>';
                 list.innerHTML += html;
                 if(i < 5 && val === "" && timeFilter === 'all') feed.innerHTML += html;
             });
         };
 
-        // FULL 80MM THERMAL VIEW & SHARE
+        // ========================================================
+        // 80MM THERMAL BILL VIEW & SHARE
+        // ========================================================
         window.viewBill = function(id) {
             const b = window.erpData.bills.find(x => x.id == id);
             if(!b) { alert("Bill not found."); return; }
@@ -932,19 +1206,19 @@
             const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
             const mob = cObj ? (cObj.whatsapp || cObj.mobile || 'N/A') : 'N/A';
 
-            let waText = `*ANNAPURNA TRADERS*
+            let waText = '*ANNAPURNA TRADERS*
 Chowkinath, Guruwarpeth, Kittur
 Phone: 7795966127
 --------------------------------
 *TAX INVOICE*
-Inv: ${b.bill_no}
-Date: ${dateStr}
-Cust: ${b.customer_name}
-Mob: ${mob}
+Inv: ' + b.bill_no + '
+Date: ' + dateStr + '
+Cust: ' + b.customer_name + '
+Mob: ' + mob + '
 --------------------------------
 Sl Product Name       Qty   Price   Amount
 --------------------------------
-`;
+';
 
             document.getElementById('r-inv').innerText = b.bill_no || "N/A";
             document.getElementById('r-date').innerText = dateStr;
@@ -961,9 +1235,7 @@ Sl Product Name       Qty   Price   Amount
                 let parsed = JSON.parse(rawData);
                 if(typeof parsed === 'string') parsed = JSON.parse(parsed);
                 if(Array.isArray(parsed)) items = parsed;
-            } catch(e) {
-                console.error("Parse Error on Bill Data:", e);
-            }
+            } catch(e) { console.error("Parse Error on Bill Data:", e); }
 
             items.forEach((i, idx) => {
                 let rate = Number(i.rate || 0).toFixed(2);
@@ -975,51 +1247,42 @@ Sl Product Name       Qty   Price   Amount
                 let q = (String(qty) + (i.unit||"")).padStart(5);
                 let r = String(Number(rate).toFixed(1)).padStart(7);
                 let t = String(Number(tot).toFixed(1)).padStart(8);
-                waText += `${sl} ${n} ${q} ${r} ${t}
-`;
+                waText += sl + ' ' + n + ' ' + q + ' ' + r + ' ' + t + '
+';
 
-                htmlItems += `
-                    <tr class="border-b border-black">
-                        <td class="border-r border-black p-1 align-top text-center">${idx+1}</td>
-                        <td class="border-r border-black p-1 leading-tight">
-                            <span class="font-bold">${i.name || "Item"}</span><br>
-                            <span class="text-[7px] text-slate-600 uppercase tracking-tighter">HSN: N/A | GST: 5%</span>
-                        </td>
-                        <td class="border-r border-black p-1 text-center align-top">${qty}</td>
-                        <td class="border-r border-black p-1 text-right align-top">${rate}</td>
-                        <td class="p-1 text-right align-top font-bold">${tot}</td>
-                    </tr>`;
+                htmlItems += '<tr class="border-b border-black">' +
+                    '<td class="border-r border-black p-1 align-top text-center">' + (idx+1) + '</td>' +
+                    '<td class="border-r border-black p-1 leading-tight"><span class="font-bold">' + (i.name || "Item") + '</span><br><span class="text-[7px] text-slate-600 uppercase tracking-tighter">HSN: N/A | GST: 5%</span></td>' +
+                    '<td class="border-r border-black p-1 text-center align-top">' + qty + '</td>' +
+                    '<td class="border-r border-black p-1 text-right align-top">' + rate + '</td>' +
+                    '<td class="p-1 text-right align-top font-bold">' + tot + '</td></tr>';
             }); 
 
             document.getElementById('r-items').innerHTML = htmlItems;
-            document.getElementById('r-sub').innerText = `₹${sub.toFixed(2)}`;
-            document.getElementById('r-net').innerText = `₹${gt.toFixed(2)}`;
+            document.getElementById('r-sub').innerText = '₹' + sub.toFixed(2);
+            document.getElementById('r-net').innerText = '₹' + gt.toFixed(2);
 
             let taxable = (gt / 1.05).toFixed(2);
             let gstAmt = (gt - taxable).toFixed(2);
 
-            document.getElementById('r-taxes').innerHTML = `
-                <tr>
-                    <td class="border-r border-black p-1 text-left font-bold">5%</td>
-                    <td class="border-r border-black p-1">${taxable}</td>
-                    <td class="border-r border-black p-1">${gstAmt}</td>
-                    <td class="p-1 font-bold">${gt.toFixed(2)}</td>
-                </tr>
-                <tr class="border-t border-black font-bold">
-                    <td class="border-r border-black p-1 text-left">Total</td>
-                    <td class="border-r border-black p-1">${taxable}</td>
-                    <td class="border-r border-black p-1">${gstAmt}</td>
-                    <td class="p-1">${gt.toFixed(2)}</td>
-                </tr>
-            `;
+            document.getElementById('r-taxes').innerHTML = '<tr>' +
+                '<td class="border-r border-black p-1 text-left font-bold">5%</td>' +
+                '<td class="border-r border-black p-1">' + taxable + '</td>' +
+                '<td class="border-r border-black p-1">' + gstAmt + '</td>' +
+                '<td class="p-1 font-bold">' + gt.toFixed(2) + '</td></tr>' +
+                '<tr class="border-t border-black font-bold">' +
+                '<td class="border-r border-black p-1 text-left">Total</td>' +
+                '<td class="border-r border-black p-1">' + taxable + '</td>' +
+                '<td class="border-r border-black p-1">' + gstAmt + '</td>' +
+                '<td class="p-1">' + gt.toFixed(2) + '</td></tr>';
 
-            const upiLink = `upi://pay?pa=6363304520@okbizaxis&pn=ANNAPURNA%20TRADERS&am=${gt.toFixed(2)}&cu=INR`;
-            document.getElementById('r-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiLink)}`;
+            const upiLink = 'upi://pay?pa=6363304520@okbizaxis&pn=ANNAPURNA%20TRADERS&am=' + gt.toFixed(2) + '&cu=INR';
+            document.getElementById('r-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(upiLink);
 
-            waText += `--------------------------------
-*NET PAYABLE: ₹${gt.toFixed(2)}*
+            waText += '--------------------------------
+*NET PAYABLE: ₹' + gt.toFixed(2) + '*
 --------------------------------
-THANK YOU! VISIT AGAIN`;
+THANK YOU! VISIT AGAIN';
 
             window.currentBillMobile = mob;
             window.currentBillText = waText;
@@ -1030,7 +1293,7 @@ THANK YOU! VISIT AGAIN`;
 
         window.shareWA = function() {
             if(window.currentBillMobile === 'N/A' || !window.currentBillMobile) return alert("No phone number saved for this customer.");
-            window.open(`https://wa.me/91${window.currentBillMobile}?text=${encodeURIComponent(window.currentBillText)}`, '_blank');
+            window.open('https://wa.me/91' + window.currentBillMobile + '?text=' + encodeURIComponent(window.currentBillText), '_blank');
         };
 
         window.sharePDF = function() { window.print(); };
@@ -1055,224 +1318,8 @@ THANK YOU! VISIT AGAIN`;
         };
 
         // ========================================================
-        // ✏️ BILL EDIT FEATURE (NEW)
+        // LEDGER
         // ========================================================
-        window.openEditBill = function(id) {
-            const b = window.erpData.bills.find(x => x.id == id);
-            if(!b) { alert("Bill not found."); return; }
-
-            window.currentEditingBill = b;
-
-            // Parse items
-            let items = [];
-            try { 
-                let rawData = b.bill_data || "[]";
-                let parsed = JSON.parse(rawData);
-                if(typeof parsed === 'string') parsed = JSON.parse(parsed);
-                if(Array.isArray(parsed)) items = parsed;
-            } catch(e) { console.error("Parse Error:", e); }
-
-            window.currentEditingBillItems = items.map((itm, idx) => ({
-                id: idx,
-                name: itm.name || "Item",
-                qty: Number(itm.qty) || 1,
-                rate: Number(itm.rate) || 0,
-                unit: itm.unit || "Pcs",
-                tot: Number(itm.tot) || 0
-            }));
-
-            document.getElementById('edit-bill-info').innerText = `Bill #${b.bill_no} | ${String(b.created_at || "").substring(0,10)}`;
-            document.getElementById('edit-bill-cust').value = b.customer_name || "";
-            document.getElementById('edit-bill-sub').value = Number(b.sub_total || 0).toFixed(2);
-            document.getElementById('edit-bill-grand').value = Number(b.grand_total || 0).toFixed(2);
-            document.getElementById('edit-bill-paid').value = Number(b.paid || 0).toFixed(2);
-            document.getElementById('edit-bill-balance').value = Number(b.balance_due || 0).toFixed(2);
-            document.getElementById('edit-bill-mode').value = b.payment_mode || "Due/Cash";
-            document.getElementById('edit-bill-oldbal').value = Number(b.old_balance || 0).toFixed(2);
-
-            window.renderEditBillItems();
-
-            const modal = document.getElementById('modal-edit-bill');
-            modal.classList.remove('hidden');
-        };
-
-        window.renderEditBillItems = function() {
-            const container = document.getElementById('edit-bill-items');
-            container.innerHTML = '';
-
-            let subTotal = 0;
-
-            window.currentEditingBillItems.forEach((item, idx) => {
-                subTotal += item.tot;
-                container.innerHTML += `
-                    <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-xs font-bold text-slate-700">#${idx + 1}</span>
-                            <button onclick="window.removeEditBillItem(${idx})" class="text-rose-500 text-xs"><i class="fas fa-trash"></i></button>
-                        </div>
-                        <input type="text" value="${item.name}" onchange="window.updateEditBillItem(${idx}, 'name', this.value)" class="w-full p-1.5 bg-slate-50 border border-slate-200 rounded text-xs font-bold mb-1">
-                        <div class="flex space-x-1">
-                            <input type="number" value="${item.qty}" onchange="window.updateEditBillItem(${idx}, 'qty', this.value)" class="w-1/4 p-1.5 bg-white border border-slate-300 rounded text-center text-xs font-bold">
-                            <input type="text" value="${item.unit}" onchange="window.updateEditBillItem(${idx}, 'unit', this.value)" class="w-1/4 p-1.5 bg-white border border-slate-300 rounded text-center text-xs font-bold">
-                            <input type="number" value="${item.rate}" onchange="window.updateEditBillItem(${idx}, 'rate', this.value)" class="w-1/4 p-1.5 bg-white border border-slate-300 rounded text-center text-xs font-bold">
-                            <div class="w-1/4 p-1.5 bg-emerald-50 border border-emerald-200 rounded text-center text-xs font-bold text-emerald-700">₹${item.tot.toFixed(2)}</div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            document.getElementById('edit-bill-sub').value = subTotal.toFixed(2);
-            document.getElementById('edit-bill-grand').value = subTotal.toFixed(2);
-            window.updateEditBillBalance();
-        };
-
-        window.updateEditBillItem = function(idx, field, value) {
-            const item = window.currentEditingBillItems[idx];
-            if(field === 'qty') item.qty = Number(value) || 1;
-            if(field === 'rate') item.rate = Number(value) || 0;
-            if(field === 'unit') item.unit = value || "Pcs";
-            if(field === 'name') item.name = value || "Item";
-
-            item.tot = item.qty * item.rate;
-            window.renderEditBillItems();
-        };
-
-        window.removeEditBillItem = function(idx) {
-            if(window.currentEditingBillItems.length <= 1) {
-                alert("Bill must have at least one item!");
-                return;
-            }
-            window.currentEditingBillItems.splice(idx, 1);
-            window.renderEditBillItems();
-        };
-
-        window.addEditBillItem = function() {
-            window.currentEditingBillItems.push({
-                id: Date.now(),
-                name: "New Item",
-                qty: 1,
-                rate: 0,
-                unit: "Pcs",
-                tot: 0
-            });
-            window.renderEditBillItems();
-        };
-
-        window.updateEditBillBalance = function() {
-            const grand = Number(document.getElementById('edit-bill-grand').value) || 0;
-            const paid = Number(document.getElementById('edit-bill-paid').value) || 0;
-            document.getElementById('edit-bill-balance').value = (grand - paid).toFixed(2);
-        };
-
-        document.getElementById('edit-bill-paid').addEventListener('input', window.updateEditBillBalance);
-
-        window.saveBillEdit = async function() {
-            if(!window.currentEditingBill) return;
-
-            const b = window.currentEditingBill;
-            const cust = document.getElementById('edit-bill-cust').value.trim() || b.customer_name;
-            const subTotal = Number(document.getElementById('edit-bill-sub').value) || 0;
-            const grandTotal = Number(document.getElementById('edit-bill-grand').value) || 0;
-            const paid = Number(document.getElementById('edit-bill-paid').value) || 0;
-            const balance = Number(document.getElementById('edit-bill-balance').value) || 0;
-            const mode = document.getElementById('edit-bill-mode').value;
-            const oldBal = Number(document.getElementById('edit-bill-oldbal').value) || 0;
-
-            const csafe = cust.replace(/'/g, "''");
-
-            // Build clean items array
-            const cleanItems = window.currentEditingBillItems.map(i => ({
-                name: i.name,
-                qty: i.qty,
-                rate: i.rate,
-                unit: i.unit,
-                tot: i.tot
-            }));
-            const cartJson = JSON.stringify(cleanItems).replace(/'/g, "''");
-
-            try {
-                // Update bill
-                await runQuery(`UPDATE bills SET 
-                    customer_name = '${csafe}',
-                    sub_total = ${subTotal},
-                    grand_total = ${grandTotal},
-                    paid = ${paid},
-                    balance_due = ${balance},
-                    payment_mode = '${mode}',
-                    old_balance = ${oldBal},
-                    bill_data = '${cartJson}'
-                    WHERE id = ${b.id}`);
-
-                // Update customer balance if name changed or amount changed
-                if(cust !== b.customer_name || grandTotal !== Number(b.grand_total)) {
-                    // Reverse old customer balance
-                    if(b.customer_name && b.customer_name !== 'Walk-in') {
-                        const oldSafe = b.customer_name.replace(/'/g, "''");
-                        await runQuery(`UPDATE customers SET balance = balance - ${Number(b.grand_total || 0)} WHERE name = '${oldSafe}'`);
-                    }
-                    // Add new customer balance
-                    if(cust !== 'Walk-in') {
-                        const newCust = await runQuery(`SELECT id FROM customers WHERE name = '${csafe}'`);
-                        if(newCust.length > 0) {
-                            await runQuery(`UPDATE customers SET balance = balance + ${grandTotal} WHERE name = '${csafe}'`);
-                        } else {
-                            await runQuery(`INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('${csafe}', '', '', ${balance}, 'General')`);
-                        }
-                    }
-                }
-
-                document.getElementById('modal-edit-bill').classList.add('hidden');
-                await window.syncData();
-                alert("Bill updated successfully!");
-            } catch(err) {
-                alert("Error updating bill: " + err.message);
-                console.error(err);
-            }
-        };
-
-        window.deleteBill = async function() {
-            if(!window.currentEditingBill) return;
-
-            if(!confirm("⚠️ Are you sure you want to DELETE this bill? This action cannot be undone!")) return;
-
-            const b = window.currentEditingBill;
-
-            try {
-                // Reverse customer balance
-                if(b.customer_name && b.customer_name !== 'Walk-in') {
-                    const csafe = b.customer_name.replace(/'/g, "''");
-                    await runQuery(`UPDATE customers SET balance = balance - ${Number(b.grand_total || 0)} WHERE name = '${csafe}'`);
-                }
-
-                // Restore stock
-                let items = [];
-                try { 
-                    let rawData = b.bill_data || "[]";
-                    let parsed = JSON.parse(rawData);
-                    if(typeof parsed === 'string') parsed = JSON.parse(parsed);
-                    if(Array.isArray(parsed)) items = parsed;
-                } catch(e) {}
-
-                for(let item of items) {
-                    const safeItem = (item.name || "").replace(/'/g, "''");
-                    const qty = Number(item.qty) || 0;
-                    await runQuery(`UPDATE products SET stock = stock + ${qty} WHERE name = '${safeItem}'`);
-                }
-
-                // Delete bill
-                await runQuery(`DELETE FROM bills WHERE id = ${b.id}`);
-
-                document.getElementById('modal-edit-bill').classList.add('hidden');
-                await window.syncData();
-                alert("Bill deleted successfully!");
-            } catch(err) {
-                alert("Error deleting bill: " + err.message);
-                console.error(err);
-            }
-        };
-        // ========================================================
-
-        // --- ACCOUNT LEDGER ---
         window.renderLedger = function() {
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
@@ -1292,17 +1339,15 @@ THANK YOU! VISIT AGAIN`;
 
             filtered.forEach(c => {
                 const safeName = (c.name||"").replace(/'/g, "\'");
-                list.innerHTML += `
-                    <div onclick="window.openCustomerLedger('${safeName}', ${c.balance})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                        <div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${c.name}</p><p class="text-[9px] font-bold text-slate-500 mt-0.5"><i class="fas fa-users mr-1"></i>${c.group_name||'General'}</p></div>
-                        <div class="text-right"><p class="text-[9px] font-bold text-slate-400 uppercase">Due</p><p class="text-base font-black text-rose-500">₹${Number(c.balance).toLocaleString('en-IN')}</p></div>
-                    </div>`;
+                list.innerHTML += '<div onclick="window.openCustomerLedger('' + safeName + '', ' + c.balance + ')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">' +
+                    '<div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">' + c.name + '</p><p class="text-[9px] font-bold text-slate-500 mt-0.5"><i class="fas fa-users mr-1"></i>' + (c.group_name||'General') + '</p></div>' +
+                    '<div class="text-right"><p class="text-[9px] font-bold text-slate-400 uppercase">Due</p><p class="text-base font-black text-rose-500">₹' + Number(c.balance).toLocaleString('en-IN') + '</p></div></div>';
             });
         };
 
         window.openCustomerLedger = function(name, due) {
             document.getElementById('cl-name').innerText = name;
-            document.getElementById('cl-due').innerText = `₹${Number(due).toLocaleString('en-IN')}`;
+            document.getElementById('cl-due').innerText = '₹' + Number(due).toLocaleString('en-IN');
 
             let history = [];
             window.erpData.bills.filter(b => b.customer_name === name).forEach(b => {
@@ -1322,17 +1367,13 @@ THANK YOU! VISIT AGAIN`;
                 history.forEach(item => {
                     let dt = String(item.date).substring(0, 10);
                     if (item.type === 'Bill') {
-                        listHtml += `
-                        <div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill('${item.id}');" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">
-                            <div><p class="text-[11px] font-bold text-rose-900 underline decoration-rose-300">Bill: ${item.ref}</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div>
-                            <p class="text-[13px] font-black text-rose-600">+₹${Number(item.amt).toLocaleString('en-IN')}</p>
-                        </div>`;
+                        listHtml += '<div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill(' + item.id + ');" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">' +
+                            '<div><p class="text-[11px] font-bold text-rose-900 underline decoration-rose-300">Bill: ' + item.ref + '</p><p class="text-[9px] font-bold text-slate-500 mt-1">' + dt + '</p></div>' +
+                            '<p class="text-[13px] font-black text-rose-600">+₹' + Number(item.amt).toLocaleString('en-IN') + '</p></div>';
                     } else {
-                        listHtml += `
-                        <div class="flex justify-between items-center p-3 mb-2 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm">
-                            <div><p class="text-[11px] font-bold text-emerald-900">Payment Received</p><p class="text-[9px] font-bold text-slate-500 mt-1">${dt}</p></div>
-                            <p class="text-[13px] font-black text-emerald-600">-₹${Number(item.amt).toLocaleString('en-IN')}</p>
-                        </div>`;
+                        listHtml += '<div class="flex justify-between items-center p-3 mb-2 rounded-xl bg-emerald-50 border border-emerald-200 shadow-sm">' +
+                            '<div><p class="text-[11px] font-bold text-emerald-900">Payment Received</p><p class="text-[9px] font-bold text-slate-500 mt-1">' + dt + '</p></div>' +
+                            '<p class="text-[13px] font-black text-emerald-600">-₹' + Number(item.amt).toLocaleString('en-IN') + '</p></div>';
                     }
                 });
             }
@@ -1347,7 +1388,7 @@ THANK YOU! VISIT AGAIN`;
 
         window.openPayModal = function(name, due) {
             document.getElementById('pay-cust-name').innerText = name;
-            document.getElementById('pay-due').innerText = `₹${Number(due).toFixed(2)}`;
+            document.getElementById('pay-due').innerText = '₹' + Number(due).toFixed(2);
             document.getElementById('pay-amt').value = Number(due).toFixed(2);
             document.getElementById('modal-pay').classList.remove('hidden');
         };
@@ -1358,14 +1399,16 @@ THANK YOU! VISIT AGAIN`;
             if(!amt || amt <= 0) return alert("Invalid amount.");
             try {
                 const dt = new Date().toISOString().replace('T',' ').substring(0, 19);
-                await runQuery(`UPDATE customers SET balance = balance - ${amt} WHERE name = '${name.replace(/'/g, "''")}'`);
-                await runQuery(`INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES ('${name.replace(/'/g, "''")}', ${amt}, '${dt}', 'Cash', 'Mobile Received')`);
+                await runQuery("UPDATE customers SET balance = balance - " + amt + " WHERE name = '" + name.replace(/'/g, "''") + "'");
+                await runQuery("INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES ('" + name.replace(/'/g, "''") + "', " + amt + ", '" + dt + "', 'Cash', 'Mobile Received')");
                 document.getElementById('modal-pay').classList.add('hidden');
                 await window.syncData(); alert("Payment Logged!");
             } catch(e) { alert("Error saving payment."); }
         };
 
-        // --- STOCK ---
+        // ========================================================
+        // STOCK
+        // ========================================================
         window.renderStock = function() {
             const val = (document.getElementById('search-stock').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-stock').value;
@@ -1380,11 +1423,9 @@ THANK YOU! VISIT AGAIN`;
                 const stk = Number(p.stock || 0);
                 let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
                 const safeName = (p.name||"").replace(/'/g, "\'");
-                list.innerHTML += `
-                    <div onclick="window.openEditItem(${p.id}, '${safeName}', ${p.rate||0}, ${stk})" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-                        <p class="text-sm font-bold text-blue-800 underline decoration-blue-200">${p.name}</p>
-                        <div class="text-right"><p class="text-base font-black text-slate-800">₹${p.rate||0}</p><p class="text-[9px] font-bold ${color} mt-0.5">Stock: ${stk}</p></div>
-                    </div>`;
+                list.innerHTML += '<div onclick="window.openEditItem(' + p.id + ', '' + safeName + '', ' + (p.rate||0) + ', ' + stk + ')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">' +
+                    '<p class="text-sm font-bold text-blue-800 underline decoration-blue-200">' + p.name + '</p>' +
+                    '<div class="text-right"><p class="text-base font-black text-slate-800">₹' + (p.rate||0) + '</p><p class="text-[9px] font-bold ' + color + ' mt-0.5">Stock: ' + stk + '</p></div></div>';
             });
         };
 
@@ -1401,26 +1442,25 @@ THANK YOU! VISIT AGAIN`;
             const rate = parseFloat(document.getElementById('edit-rate').value);
             const stock = parseFloat(document.getElementById('edit-stock').value);
             try {
-                await runQuery(`UPDATE products SET rate=${rate}, stock=${stock} WHERE id=${id}`);
+                await runQuery("UPDATE products SET rate=" + rate + ", stock=" + stock + " WHERE id=" + id);
                 document.getElementById('modal-edit-item').classList.add('hidden');
                 await window.syncData();
             } catch(e) { alert("Error saving."); }
         };
 
-        // --- ATTENDANCE ---
+        // ========================================================
+        // ATTENDANCE
+        // ========================================================
         window.renderAttendance = function() {
             const list = document.getElementById('attendance-list'); list.innerHTML = '';
             if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
             window.erpData.emps.forEach(e => {
-                list.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">
-                        <p class="font-bold text-slate-800 text-sm mb-2">${e.name}</p>
-                        <div class="flex space-x-1.5">
-                            <label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Present" checked> P</label>
-                            <label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Half Day"> HD</label>
-                            <label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_${e.id}" value="Absent"> A</label>
-                        </div>
-                    </div>`;
+                list.innerHTML += '<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">' +
+                    '<p class="font-bold text-slate-800 text-sm mb-2">' + e.name + '</p>' +
+                    '<div class="flex space-x-1.5">' +
+                    '<label class="flex-1 text-center bg-emerald-50 text-emerald-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_' + e.id + '" value="Present" checked> P</label>' +
+                    '<label class="flex-1 text-center bg-yellow-50 text-yellow-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_' + e.id + '" value="Half Day"> HD</label>' +
+                    '<label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_' + e.id + '" value="Absent"> A</label></div></div>';
             });
         };
 
@@ -1428,8 +1468,8 @@ THANK YOU! VISIT AGAIN`;
             const dt = new Date().toISOString().substring(0, 10);
             try {
                 for(let e of window.erpData.emps) {
-                    const status = document.querySelector(`input[name="att_${e.id}"]:checked`).value;
-                    await runQuery(`INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (${e.id}, '${e.name.replace(/'/g, "''")}', '${dt}', '${status}')`);
+                    const status = document.querySelector('input[name="att_' + e.id + '"]:checked').value;
+                    await runQuery("INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (" + e.id + ", '" + e.name.replace(/'/g, "''") + "', '" + dt + "', '" + status + "')");
                 }
                 alert("Attendance Saved!"); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
             } catch(err) { alert("Error saving attendance."); }
