@@ -6,36 +6,36 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-
+    
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ANPMART">
-
+    
     <title>Annapurna Mart ERP</title>
-
+    
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+    
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body { height: 100%; width: 100%; overflow: hidden; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f1f5f9; color: #1e293b; }
-
+        
         .glass-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-
+        
         .ac-dropdown { 
-            position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; 
-            background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; display: none; 
+            position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto;
+            background: white; border: 1px solid #e2e8f0; border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; display: none;
         }
         .ac-item { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; font-weight: bold; color: #1e293b; font-size: 14px; }
         .ac-item:active { background-color: #e0f2fe; }
-
+        
         @media print {
             body * { visibility: hidden !important; }
             #modal-bill { display: flex !important; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: white !important; align-items: flex-start; justify-content: flex-start; padding: 0 !important; }
@@ -43,14 +43,14 @@
             #thermal-bill { position: absolute; left: 0; top: 0; width: 80mm; margin: 0; padding: 5mm; box-shadow: none !important; }
             .no-print { display: none !important; }
         }
-
+        
         .app-container { height: 100dvh; display: flex; flex-direction: column; }
         .main-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
         .nav-fixed { flex-shrink: 0; }
-
+        
         .modal-overlay { position: fixed; inset: 0; z-index: 200; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
-
+        
         .edit-mode-badge { animation: pulse-edit 2s infinite; }
         @keyframes pulse-edit {
             0%, 100% { opacity: 1; }
@@ -60,24 +60,23 @@
 <base target="_blank">
 </head>
 <body>
-
+    
     <!-- LOGIN SCREEN -->
     <div id="login-screen" class="fixed inset-0 z-[200] bg-slate-900 flex flex-col justify-center items-center p-4">
         <div class="glass-card w-full max-w-sm p-6 rounded-2xl shadow-2xl text-center">
             <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg"><i class="fas fa-lock text-2xl text-white"></i></div>
             <h2 class="text-xl font-black text-slate-800 mb-1">ANNAPURNA ERP</h2>
             <p class="text-xs text-slate-500 font-bold mb-5">Restricted Access</p>
-
+            
             <input type="password" id="login-pin" placeholder="Enter PIN" class="w-full p-3 bg-slate-100 border border-slate-300 rounded-lg text-center text-xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-
+            
             <button onclick="window.checkLogin()" class="w-full bg-blue-600 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-blue-700 active:scale-95 transition mb-3">Unlock System</button>
-
             <button onclick="window.openCloudSettings()" class="w-full bg-slate-800 text-white font-bold text-sm p-3 rounded-lg shadow-md hover:bg-slate-700 active:scale-95 transition">☁️ Configure Cloud DB</button>
-
+            
             <div id="error-log" class="mt-4 p-2 bg-red-50 rounded text-[10px] text-red-600 font-mono text-left hidden h-24 overflow-y-auto w-full border border-red-200"></div>
         </div>
     </div>
-
+    
     <!-- APP SHELL -->
     <div id="app-screen" class="hidden app-container">
         <header class="bg-blue-600 text-white p-2 px-3 shadow-md z-40 flex justify-between items-center shrink-0">
@@ -87,9 +86,9 @@
                 <button onclick="window.syncData()" id="btn-sync" class="bg-blue-500 w-8 h-8 rounded-full shadow active:scale-90 flex justify-center items-center text-xs"><i class="fas fa-sync-alt"></i></button>
             </div>
         </header>
-
+        
         <main class="main-scroll p-2 pb-20 relative" id="main-content">
-
+            
             <!-- DASHBOARD -->
             <div id="tab-dashboard" class="tab-content space-y-3 block">
                 <div class="grid grid-cols-2 gap-2">
@@ -108,7 +107,7 @@
                 </div>
                 <div id="dashboard-feed" class="space-y-2 pb-2"></div>
             </div>
-
+            
             <!-- POS -->
             <div id="tab-pos" class="tab-content hidden h-full flex-col space-y-2">
                 <!-- Edit Mode Banner -->
@@ -121,7 +120,7 @@
                         <button onclick="window.cancelEditMode()" class="bg-rose-500 text-white text-[10px] font-bold px-2 py-1 rounded active:scale-95"><i class="fas fa-times mr-1"></i>Cancel</button>
                     </div>
                 </div>
-
+                
                 <div class="flex justify-between items-center bg-white p-2 rounded-lg shadow-sm border border-slate-200 shrink-0">
                     <span class="text-[10px] font-bold text-slate-500 uppercase">Customer</span>
                     <span class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded" id="pos-bill-no">M-NEW</span>
@@ -152,7 +151,7 @@
                     <button onclick="window.saveBillEditFromPOS()" id="btn-update-bill" class="hidden w-full bg-amber-500 font-black text-xs py-3 rounded-md shadow-md active:scale-95 transition mt-2">💾 UPDATE BILL</button>
                 </div>
             </div>
-
+            
             <!-- SALES REGISTER -->
             <div id="tab-sales" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
@@ -178,7 +177,7 @@
                 </div>
                 <div id="sales-list" class="space-y-1.5 pb-2"></div>
             </div>
-
+            
             <!-- LEDGER -->
             <div id="tab-ledger" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 space-y-1.5 pt-1">
@@ -198,7 +197,7 @@
                 </div>
                 <div id="ledger-list" class="space-y-1.5 pb-2"></div>
             </div>
-
+            
             <!-- MORE MENU -->
             <div id="tab-more" class="tab-content hidden space-y-2 pt-2">
                 <button onclick="window.switchTab('stock', this)" class="w-full bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between active:bg-slate-50 mb-2">
@@ -214,7 +213,7 @@
                     <i class="fas fa-cog text-slate-300 text-xs"></i>
                 </button>
             </div>
-
+            
             <!-- STOCK -->
             <div id="tab-stock" class="tab-content hidden space-y-2">
                 <div class="sticky top-0 z-10 bg-slate-100 pb-1 pt-1 space-y-1.5">
@@ -228,7 +227,7 @@
                 </div>
                 <div id="stock-list" class="space-y-1.5 pb-2"></div>
             </div>
-
+            
             <!-- ATTENDANCE -->
             <div id="tab-attendance" class="tab-content hidden space-y-2 pt-2">
                 <button onclick="window.switchTab('more', this)" class="text-xs font-bold text-blue-600 mb-1"><i class="fas fa-arrow-left mr-1"></i> Back</button>
@@ -236,9 +235,9 @@
                 <div id="attendance-list" class="space-y-1.5"></div>
                 <button onclick="window.saveAttendance()" class="w-full bg-emerald-600 text-white font-bold p-3 rounded-lg shadow mt-3 text-sm">💾 Save Attendance</button>
             </div>
-
+            
         </main>
-
+        
         <!-- BOTTOM NAVIGATION -->
         <nav class="no-print nav-fixed bg-white border-t border-slate-200 flex justify-around p-1.5 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
             <button onclick="window.handleNavClick('dashboard', this)" class="nav-btn active flex flex-col items-center p-1 text-blue-600 w-1/5"><i class="fas fa-home text-base mb-0.5"></i><span class="text-[9px] font-bold">Home</span></button>
@@ -247,16 +246,16 @@
             <button onclick="window.handleNavClick('ledger', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-wallet text-base mb-0.5"></i><span class="text-[9px] font-bold">Ledger</span></button>
             <button onclick="window.handleNavClick('more', this)" class="nav-btn flex flex-col items-center p-1 text-slate-400 w-1/5"><i class="fas fa-bars text-base mb-0.5"></i><span class="text-[9px] font-bold">Menu</span></button>
         </nav>
-
+        
         <!-- MODALS -->
-
+        
         <!-- 1. BILL VIEW MODAL -->
         <div id="modal-bill" class="hidden modal-overlay bg-slate-900/90 flex flex-col items-center p-4 hide-scroll overflow-y-auto">
             <div class="no-print w-full max-w-[340px] flex justify-between items-center mb-3 mt-4 mx-auto">
                 <h3 class="text-white font-bold">View & Share Invoice</h3>
                 <button onclick="document.getElementById('modal-bill').classList.add('hidden')" class="w-8 h-8 bg-white/20 rounded-full text-white flex items-center justify-center hover:bg-white/30"><i class="fas fa-times"></i></button>
             </div>
-
+            
             <div id="thermal-bill" class="bg-white text-black w-full max-w-[340px] mx-auto shadow-2xl relative p-4 mb-4" style="font-family: monospace; letter-spacing: -0.5px;">
                 <div class="text-center font-bold mb-1 leading-tight">
                     <h2 class="text-lg tracking-widest uppercase">ANNAPURNA TRADERS</h2>
@@ -265,19 +264,19 @@
                     <p class="text-[10px]">GSTIN: 29AEKPI9500B1Z0</p>
                     <p class="text-[10px]">Phone: 7795966127</p>
                 </div>
-
+                
                 <div class="text-center font-bold text-[11px] my-2 uppercase">TAX INVOICE</div>
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
-
+                
                 <div class="text-[10px] leading-tight">
                     <div class="flex justify-between"><span>Invoice No:</span> <span id="r-inv" class="font-bold"></span></div>
                     <div class="flex justify-between"><span>Date:</span> <span id="r-date"></span></div>
                     <div class="flex justify-between"><span>Customer:</span> <span id="r-cust" class="font-bold uppercase"></span></div>
                     <div class="flex justify-between"><span>Mobile:</span> <span id="r-mob" class="font-bold"></span></div>
                 </div>
-
+                
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
-
+                
                 <table class="w-full text-left border-collapse border border-black mb-1 mt-1 text-[10px]">
                     <thead>
                         <tr class="border-b border-black font-bold">
@@ -290,7 +289,7 @@
                     </thead>
                     <tbody id="r-items"></tbody>
                 </table>
-
+                
                 <div class="flex justify-between font-bold mt-2 text-[11px]">
                     <span>Subtotal:</span> <span id="r-sub"></span>
                 </div>
@@ -299,7 +298,7 @@
                     <span>Round Off:</span> <span>0.00</span>
                 </div>
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
-
+                
                 <table class="w-full text-right border-collapse border border-black mb-2 mt-1 text-[9px]">
                     <thead>
                         <tr class="border-b border-black">
@@ -311,13 +310,13 @@
                     </thead>
                     <tbody id="r-taxes"></tbody>
                 </table>
-
+                
                 <div class="bg-[#fffbe6] border border-black p-1.5 flex justify-between items-center font-black text-[13px] mb-2">
                     <span>NET PAYABLE:</span> <span id="r-net"></span>
                 </div>
-
+                
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
-
+                
                 <div class="border border-blue-400 rounded-lg p-2 text-center text-blue-900 bg-[#eef6ff]">
                     <p class="font-bold text-[10px] mb-1 tracking-wider"><i class="fas fa-credit-card mr-1"></i> SCAN TO PAY</p>
                     <div class="bg-white p-1 border border-black inline-block mx-auto">
@@ -326,11 +325,11 @@
                     <p class="font-black mt-1 text-[12px]" id="r-qr-amt"></p>
                     <p class="text-[8px] mt-0.5 tracking-tight">UPI: 6363304520@okbizaxis</p>
                 </div>
-
+                
                 <div class="border-t-[1.5px] border-dashed border-black my-1.5"></div>
                 <div class="text-center font-bold mt-1 text-[10px] pb-2">THANK YOU! VISIT AGAIN</div>
             </div>
-
+            
             <div class="no-print w-full max-w-[340px] mx-auto grid grid-cols-3 gap-2 pb-6">
                 <button onclick="window.sharePDF()" class="bg-slate-100 text-slate-800 font-bold p-3 rounded-lg shadow-lg flex flex-col items-center justify-center text-[10px] active:scale-95">
                     <i class="fas fa-print text-xl mb-1 text-slate-600"></i> Print 80mm
@@ -343,7 +342,7 @@
                 </button>
             </div>
         </div>
-
+        
         <!-- 2. Receive Payment Modal -->
         <div id="modal-pay" class="hidden modal-overlay bg-slate-900/60 flex flex-col justify-end p-0">
             <div class="bg-white w-full rounded-t-2xl shadow-2xl p-5 pb-8">
@@ -357,7 +356,7 @@
                 <button onclick="window.savePayment()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Save Payment</button>
             </div>
         </div>
-
+        
         <!-- 3. Account Ledger Modal -->
         <div id="modal-cust-ledger" class="hidden modal-overlay bg-slate-900/60 flex flex-col justify-center items-center p-3">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl flex flex-col max-h-[85vh]">
@@ -374,7 +373,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- 4. Edit Master Modal -->
         <div id="modal-edit-item" class="hidden modal-overlay bg-slate-900/60 flex flex-col justify-center items-center p-4">
             <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl p-5">
@@ -398,7 +397,7 @@
                 <button onclick="window.saveMasterEdit()" class="w-full bg-emerald-600 text-white font-bold p-2.5 rounded-lg shadow active:scale-95 text-sm"><i class="fas fa-save mr-2"></i> Update Item</button>
             </div>
         </div>
-
+        
         <!-- 5. INSTALL APP PROMPT MODAL -->
         <div id="install-prompt-modal" class="hidden fixed inset-0 z-[250] bg-slate-900/80 flex-col justify-end p-4 transition-opacity">
             <div class="bg-white w-full max-w-sm mx-auto rounded-2xl shadow-2xl p-5 mb-4 transform transition-transform">
@@ -420,27 +419,27 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- 6. CLOUD SETTINGS MODAL -->
-        <div id="modal-cloud-settings" class="hidden fixed inset-0 z-[300] bg-slate-900/90 flex-col justify-center items-center p-4">
+        <div id="modal-cloud-settings" class="hidden fixed inset-0 z-[300] bg-slate-900/90 flex flex-col justify-center items-center p-4">
             <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-black text-slate-800 text-lg"><i class="fas fa-cloud text-blue-500 mr-2"></i> Cloud Setup</h3>
-                    <button onclick="document.getElementById('modal-cloud-settings').classList.add('hidden'); document.getElementById('modal-cloud-settings').classList.remove('flex');" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
+                    <button onclick="window.closeCloudSettings()" class="text-slate-400 text-xl"><i class="fas fa-times"></i></button>
                 </div>
-
+                
                 <p class="text-xs text-slate-500 mb-4 font-medium">Connect to your Turso Database to sync records.</p>
-
+                
                 <label class="text-[10px] font-bold text-slate-500 uppercase">Database URL</label>
                 <input type="text" id="inp-turso-url" placeholder="https://your-db.turso.io" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold mb-3 focus:ring-2 focus:ring-blue-500">
-
+                
                 <label class="text-[10px] font-bold text-slate-500 uppercase">Auth Token</label>
                 <textarea id="inp-turso-token" rows="4" placeholder="eyJhbGciOi..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-[10px] font-mono mb-5 focus:ring-2 focus:ring-blue-500 leading-tight"></textarea>
-
+                
                 <button onclick="window.saveCloudSettings()" class="w-full bg-blue-600 text-white font-bold p-3 rounded-lg shadow-md active:scale-95 text-sm transition">💾 Save & Connect</button>
             </div>
         </div>
-
+        
         <!-- 7. UNSAVED CHANGES CONFIRM MODAL -->
         <div id="modal-unsaved" class="hidden fixed inset-0 z-[400] bg-slate-900/70 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5">
@@ -458,7 +457,7 @@
                 </div>
             </div>
         </div>
-
+        
         <!-- 8. DELETE BILL CONFIRM MODAL -->
         <div id="modal-delete-bill" class="hidden fixed inset-0 z-[400] bg-slate-900/70 flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-5">
@@ -475,14 +474,14 @@
                 </div>
             </div>
         </div>
-
+        
     </div>
-
+    
     <script>
-
+        
         // --- PWA APP INSTALLER & PROMPT LOGIC ---
         let deferredPrompt;
-
+        
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').then(reg => {
@@ -492,7 +491,7 @@
                 });
             });
         }
-
+        
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -502,15 +501,15 @@
                     installModal.classList.remove('hidden');
                     installModal.classList.add('flex');
                 }
-            }, 3000); 
+            }, 3000);
         });
-
+        
         window.hideInstallPrompt = function() {
             const installModal = document.getElementById('install-prompt-modal');
             installModal.classList.add('hidden');
             installModal.classList.remove('flex');
         };
-
+        
         window.installApp = async function() {
             window.hideInstallPrompt();
             if (deferredPrompt) {
@@ -520,90 +519,149 @@
                 deferredPrompt = null;
             }
         };
-
+        
         // --- GLOBAL ERROR LOGGER ---
         window.onerror = function(msg, url, line) {
             const errLog = document.getElementById('error-log');
             if(errLog) {
                 errLog.classList.remove('hidden');
-                errLog.innerHTML += 'Error: ' + msg + '<br>';
+                errLog.innerHTML += 'Error: ' + msg + ' (Line ' + line + ')<br>';
             }
+            console.error('Global error:', msg, 'at line', line);
         };
-
+        
         // ========================================================
         // MULTI-TENANT CLOUD CONNECTION ENGINE 
         // ========================================================
+        
+        // FIXED: Properly open cloud settings modal
         window.openCloudSettings = function() {
-            document.getElementById('inp-turso-url').value = localStorage.getItem('turso_url') || "";
-            document.getElementById('inp-turso-token').value = localStorage.getItem('turso_token') || "";
-
+            console.log('Opening cloud settings...');
+            const urlInput = document.getElementById('inp-turso-url');
+            const tokenInput = document.getElementById('inp-turso-token');
+            
+            if (urlInput) urlInput.value = localStorage.getItem('turso_url') || "";
+            if (tokenInput) tokenInput.value = localStorage.getItem('turso_token') || "";
+            
             const modal = document.getElementById('modal-cloud-settings');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                console.log('Cloud settings modal opened');
+            } else {
+                console.error('Cloud settings modal not found!');
+                alert('Error: Modal not found');
+            }
         };
-
+        
+        // FIXED: Properly close cloud settings modal
+        window.closeCloudSettings = function() {
+            const modal = document.getElementById('modal-cloud-settings');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        };
+        
+        // FIXED: Save cloud settings with better error handling
         window.saveCloudSettings = function() {
             const url = document.getElementById('inp-turso-url').value.trim();
             const token = document.getElementById('inp-turso-token').value.trim();
-
+            
             if(!url || !token) {
                 alert("Both Database URL and Auth Token are required!");
                 return;
             }
-
+            
+            // Validate URL format
+            if (!url.startsWith('https://') && !url.startsWith('http://')) {
+                alert("URL must start with https:// or http://");
+                return;
+            }
+            
             localStorage.setItem('turso_url', url);
             localStorage.setItem('turso_token', token);
-
-            const modal = document.getElementById('modal-cloud-settings');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-
+            
+            window.closeCloudSettings();
+            
+            // Show confirmation
+            alert("Cloud credentials saved successfully!");
+            
+            // If already logged in, sync data
             if (localStorage.getItem('erp_auth') === 'true') {
                 window.syncData();
             } else {
-                alert("Cloud credentials saved successfully! Please enter your PIN to unlock the system.");
+                console.log('Credentials saved. Please enter your PIN to unlock.');
             }
         };
-
+        
+        // FIXED: Improved runQuery with better error handling
         async function runQuery(sql) {
             try {
                 let baseUrl = localStorage.getItem('turso_url') || '';
                 const token = localStorage.getItem('turso_token') || '';
-
+                
                 if (!baseUrl || !token) {
                     throw new Error("Missing Cloud Credentials. Please open Cloud Settings.");
                 }
-
+                
+                // Ensure proper URL format
                 if (!baseUrl.includes('/v2/pipeline')) {
                     baseUrl = baseUrl.replace(/\/$/, '') + '/v2/pipeline';
                 }
-
+                
+                console.log('Running query:', sql.substring(0, 100) + '...');
+                
                 const response = await fetch(baseUrl, {
                     method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requests: [{ type: "execute", stmt: { sql: sql } }, { type: "close" }] })
+                    headers: { 
+                        'Authorization': 'Bearer ' + token, 
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({ 
+                        requests: [
+                            { type: "execute", stmt: { sql: sql } }, 
+                            { type: "close" }
+                        ] 
+                    })
                 });
-
-                if (!response.ok) throw new Error("HTTP Error " + response.status);
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error("HTTP Error " + response.status + ": " + text);
+                }
+                
                 const data = await response.json();
-                if (data.results[0].type === "error") throw new Error(data.results[0].error.message);
-
-                const result = data.results[0].response.result;
+                console.log('Response data:', data);
+                
+                if (!data.results || data.results.length === 0) {
+                    return [];
+                }
+                
+                if (data.results[0].type === "error") {
+                    throw new Error(data.results[0].error?.message || "Database error");
+                }
+                
+                const result = data.results[0].response?.result;
                 if (!result || !result.cols || !result.rows) return [];
-
+                
                 const cols = result.cols.map(c => c.name);
                 return result.rows.map(row => {
                     let obj = {};
-                    row.forEach((v, i) => { obj[cols[i]] = (v && v.type === "null") ? null : (v ? v.value : null); });
+                    row.forEach((v, i) => { 
+                        obj[cols[i]] = (v && v.type === "null") ? null : (v ? v.value : null); 
+                    });
                     return obj;
                 });
-            } catch (error) { 
+            } catch (error) {
                 console.error("Turso Query Failed:", error);
                 throw error;
             }
         }
         // ========================================================
-
+        
         // ========================================================
         // GLOBAL STATE
         // ========================================================
@@ -611,74 +669,176 @@
         window.editMode = { active: false, billId: null, originalBill: null, originalCart: [] };
         window.pendingNav = null;
         window.billToDelete = null;
-
-        window.checkLogin = function() {
+        
+        // FIXED: Better login function with clear error messages
+        window.checkLogin = async function() {
             const pin = document.getElementById('login-pin').value;
-
-            if(!localStorage.getItem('turso_url') || !localStorage.getItem('turso_token')) {
+            
+            // Check if cloud credentials exist
+            const hasUrl = localStorage.getItem('turso_url');
+            const hasToken = localStorage.getItem('turso_token');
+            
+            if(!hasUrl || !hasToken) {
                 alert("⚠️ Please configure Cloud Database first!");
                 window.openCloudSettings();
                 return;
             }
-
-            if(pin === "1234") {
-                localStorage.setItem('erp_auth', 'true');
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-screen').classList.remove('hidden');
-                window.syncData();
-            } else { alert("Incorrect PIN."); }
-        };
-
-        if(localStorage.getItem('erp_auth') === 'true') {
+            
+            if(pin !== "1234") {
+                alert("Incorrect PIN. Use: 1234");
+                return;
+            }
+            
+            // Test connection before allowing login
+            try {
+                console.log('Testing database connection...');
+                await runQuery("SELECT 1 as test");
+                console.log('Connection test passed');
+            } catch (err) {
+                console.error('Connection test failed:', err);
+                alert("Cannot connect to database: " + err.message + "\n\nPlease check your Cloud Settings.");
+                window.openCloudSettings();
+                return;
+            }
+            
+            // Login successful
+            localStorage.setItem('erp_auth', 'true');
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
-
-            if(localStorage.getItem('turso_url') && localStorage.getItem('turso_token')) {
-                setTimeout(() => { window.syncData(); }, 300);
-            } else {
-                setTimeout(() => { 
-                    alert("Cloud configuration missing. Opening setup."); 
-                    window.openCloudSettings(); 
-                }, 500);
-            }
-        }
-
-        window.syncData = async function() {
-            const btn = document.getElementById('btn-sync');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            try {
-                let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills");
-                document.getElementById('kpi-sales').innerText = '₹' + Number((s_res[0]&&s_res[0].t)||0).toLocaleString('en-IN');
-
-                let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
-                document.getElementById('kpi-due').innerText = '₹' + Number((d_res[0]&&d_res[0].t)||0).toLocaleString('en-IN');
-
-                window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack, conv_factor FROM products ORDER BY name");
-                window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp, group_name FROM customers ORDER BY name");
-                window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, sub_total, grand_total, paid, balance_due, created_at, bill_data, old_balance, payment_mode, narration FROM bills ORDER BY id DESC LIMIT 150");
-
-                try { window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); } catch(e){}
-                try { window.erpData.emps = await runQuery("SELECT id, name FROM employees"); } catch(e){}
-
-                const groups = [...new Set(window.erpData.customers.map(c => c.group_name).filter(g => g))];
-                document.getElementById('filter-sales-group').innerHTML = '<option value="all">All Customer Groups</option>' + groups.map(g => '<option value="' + g + '">' + g + '</option>').join('');
-                document.getElementById('filter-ledger-group').innerHTML = '<option value="all">All Groups</option>' + groups.map(g => '<option value="' + g + '">' + g + '</option>').join('');
-
-                window.renderSales(); window.renderLedger(); window.renderStock(); window.renderAttendance();
-            } catch (err) { 
-                alert("Sync Failed: " + err.message); 
-                if (err.message.includes("Missing Cloud Credentials")) {
+            
+            // Initialize app
+            await window.syncData();
+        };
+        
+        // FIXED: Better auto-login check
+        function initApp() {
+            console.log('Initializing app...');
+            
+            const isAuthenticated = localStorage.getItem('erp_auth') === 'true';
+            const hasUrl = localStorage.getItem('turso_url');
+            const hasToken = localStorage.getItem('turso_token');
+            
+            if (isAuthenticated) {
+                // Check if we have credentials before showing app
+                if (hasUrl && hasToken) {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-screen').classList.remove('hidden');
+                    
+                    // Try to sync, but don't block on error
+                    setTimeout(() => {
+                        window.syncData().catch(err => {
+                            console.error('Initial sync failed:', err);
+                            // Still show app, just with empty data
+                        });
+                    }, 100);
+                } else {
+                    // Authenticated but no credentials - stay on login
+                    console.log('Auth true but missing credentials');
+                    alert('Please configure Cloud Database to continue.');
                     window.openCloudSettings();
                 }
             }
-            btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+            // Otherwise stay on login screen
+        }
+        
+        // Run initialization when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+        
+        // FIXED: Better syncData with error handling
+        window.syncData = async function() {
+            const btn = document.getElementById('btn-sync');
+            if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            try {
+                // Test connection first
+                console.log('Syncing data...');
+                
+                // Get KPIs
+                try {
+                    let s_res = await runQuery("SELECT SUM(CAST(grand_total AS REAL)) as t FROM bills WHERE created_at >= date('now', 'start of month')");
+                    const salesEl = document.getElementById('kpi-sales');
+                    if (salesEl) salesEl.innerText = '₹' + Number((s_res[0] && s_res[0].t) || 0).toLocaleString('en-IN');
+                } catch (e) { console.log('Sales query failed:', e); }
+                
+                try {
+                    let d_res = await runQuery("SELECT SUM(CAST(balance AS REAL)) as t FROM customers WHERE balance > 0");
+                    const dueEl = document.getElementById('kpi-due');
+                    if (dueEl) dueEl.innerText = '₹' + Number((d_res[0] && d_res[0].t) || 0).toLocaleString('en-IN');
+                } catch (e) { console.log('Due query failed:', e); }
+                
+                // Get main data
+                window.erpData.products = await runQuery("SELECT id, name, rate, stock, unit_main, unit_pack, conv_factor FROM products ORDER BY name");
+                window.erpData.customers = await runQuery("SELECT name, mobile, balance, whatsapp, group_name FROM customers ORDER BY name");
+                window.erpData.bills = await runQuery("SELECT id, bill_no, customer_name, sub_total, grand_total, paid, balance_due, created_at, bill_data, old_balance, payment_mode, narration FROM bills ORDER BY id DESC LIMIT 150");
+                
+                try { 
+                    window.erpData.payments = await runQuery("SELECT id, customer_name, amount_paid, created_at FROM payment_history ORDER BY id DESC LIMIT 200"); 
+                } catch(e) { window.erpData.payments = []; }
+                
+                try { 
+                    window.erpData.emps = await runQuery("SELECT id, name FROM employees"); 
+                } catch(e) { window.erpData.emps = []; }
+                
+                // Update group filters
+                const groups = [...new Set(window.erpData.customers.map(c => c.group_name).filter(g => g))];
+                const salesGroup = document.getElementById('filter-sales-group');
+                const ledgerGroup = document.getElementById('filter-ledger-group');
+                
+                if (salesGroup) salesGroup.innerHTML = '<option value="all">All Customer Groups</option>' + groups.map(g => '<option value="' + g + '">' + g + '</option>').join('');
+                if (ledgerGroup) ledgerGroup.innerHTML = '<option value="all">All Groups</option>' + groups.map(g => '<option value="' + g + '">' + g + '</option>').join('');
+                
+                // Render all views
+                window.renderSales(); 
+                window.renderLedger(); 
+                window.renderStock(); 
+                window.renderAttendance();
+                window.renderDashboard();
+                
+                console.log('Sync completed successfully');
+                
+            } catch (err) { 
+                console.error("Sync Failed:", err);
+                alert("Sync Failed: " + err.message);
+                
+                if (err.message.includes("Missing Cloud Credentials") || err.message.includes("HTTP Error")) {
+                    // Don't auto-open, let user decide
+                    console.log('Connection error - staying on current screen');
+                }
+            }
+            
+            if (btn) btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
         };
-
+        
+        // FIXED: Add dashboard renderer
+        window.renderDashboard = function() {
+            const feed = document.getElementById('dashboard-feed');
+            if (!feed) return;
+            
+            feed.innerHTML = '';
+            
+            // Show recent 5 bills
+            const recent = (window.erpData.bills || []).slice(0, 5);
+            
+            recent.forEach(b => {
+                const amt = Number(b.grand_total || 0);
+                const dt = String(b.created_at || "").substring(0, 10);
+                const badge = (b.bill_no || '').startsWith('M-') ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700';
+                
+                feed.innerHTML += '<div class="glass-card p-3 rounded-xl border border-slate-200 mb-2 shadow-sm cursor-pointer" onclick="window.viewBill(' + b.id + ')">' + 
+                    '<div class="flex justify-between items-center">' + 
+                    '<div><p class="text-sm font-bold text-blue-800">' + (b.customer_name || 'Walk-in') + '</p><p class="text-[9px] font-bold text-slate-500">' + dt + '</p></div>' + 
+                    '<div class="text-right"><p class="text-base font-black text-slate-800">₹' + amt.toLocaleString() + '</p><span class="text-[8px] font-black px-1.5 py-0.5 rounded ' + badge + '">' + (b.bill_no || 'N/A') + '</span></div></div></div>';
+            });
+        };
+        
         // ========================================================
         // NAVIGATION WITH UNSAVED CHANGES PROTECTION
         // ========================================================
         window.handleNavClick = function(tabId, btnElement) {
-            // Check if leaving POS with unsaved changes
             if (window.editMode.active && tabId !== 'pos') {
                 if (window.hasUnsavedChanges()) {
                     window.pendingNav = { tabId: tabId, btnElement: btnElement };
@@ -688,15 +848,14 @@
             }
             window.switchTab(tabId, btnElement);
         };
-
+        
         window.hasUnsavedChanges = function() {
             if (!window.editMode.active) return false;
-            // Compare current cart with original
             const currentCart = JSON.stringify(window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit })));
             const originalCart = JSON.stringify(window.editMode.originalCart);
             return currentCart !== originalCart;
         };
-
+        
         window.saveUnsavedAndNavigate = async function() {
             document.getElementById('modal-unsaved').classList.add('hidden');
             await window.saveBillEditFromPOS();
@@ -705,7 +864,7 @@
                 window.pendingNav = null;
             }
         };
-
+        
         window.discardUnsavedAndNavigate = function() {
             document.getElementById('modal-unsaved').classList.add('hidden');
             window.cancelEditMode();
@@ -714,59 +873,90 @@
                 window.pendingNav = null;
             }
         };
-
+        
         window.keepEditing = function() {
             document.getElementById('modal-unsaved').classList.add('hidden');
             window.pendingNav = null;
         };
-
+        
         window.switchTab = function(tabId, btnElement) {
             document.querySelectorAll('.tab-content').forEach(t => {
-                t.classList.add('hidden'); t.classList.remove('block', 'flex');
+                t.classList.add('hidden'); 
+                t.classList.remove('block', 'flex');
             });
+            
             const target = document.getElementById('tab-' + tabId);
             if(target) {
                 target.classList.remove('hidden');
                 target.classList.add(tabId === 'pos' ? 'flex' : 'block');
             }
-
+            
             document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('text-blue-600', 'active'); b.classList.add('text-slate-400');
+                b.classList.remove('text-blue-600', 'active'); 
+                b.classList.add('text-slate-400');
             });
+            
             if(btnElement) {
-                btnElement.classList.remove('text-slate-400'); btnElement.classList.add('text-blue-600', 'active');
+                btnElement.classList.remove('text-slate-400'); 
+                btnElement.classList.add('text-blue-600', 'active');
             }
-            const titles = { 'dashboard':'DASH', 'pos':'POS', 'sales':'SALES', 'ledger':'LEDGER', 'more':'MENU', 'stock':'MASTER', 'attendance':'ATTEND' };
-            document.getElementById('header-title').innerText = titles[tabId];
+            
+            const titles = { 
+                'dashboard':'DASH', 
+                'pos':'POS', 
+                'sales':'SALES', 
+                'ledger':'LEDGER', 
+                'more':'MENU', 
+                'stock':'MASTER', 
+                'attendance':'ATTEND' 
+            };
+            
+            const headerTitle = document.getElementById('header-title');
+            if (headerTitle) headerTitle.innerText = titles[tabId] || 'ANP';
         };
-
+        
         // ========================================================
         // AUTOCOMPLETE
         // ========================================================
         window.filterAC = function(inputId, dropId) {
             const val = document.getElementById(inputId).value.toLowerCase();
             const drop = document.getElementById(dropId);
+            if (!drop) return;
+            
             drop.innerHTML = '';
-            if(!val) { drop.style.display = 'none'; return; }
-            let list = inputId === 'pos-cust' ? window.erpData.customers.map(c=>c.name) : window.erpData.products.map(p=>p.name);
+            if(!val) { 
+                drop.style.display = 'none'; 
+                return; 
+            }
+            
+            let list = inputId === 'pos-cust' 
+                ? window.erpData.customers.map(c => c.name) 
+                : window.erpData.products.map(p => p.name);
+                
             let matches = list.filter(i => i && i.toLowerCase().includes(val)).slice(0, 8);
+            
             matches.forEach(m => {
-                let div = document.createElement('div');
-                div.className = 'ac-item'; div.innerText = m;
-                div.onclick = function() {
-                    document.getElementById(inputId).value = m; drop.style.display = 'none';
+                let div = document.createElement('div'); 
+                div.className = 'ac-item'; 
+                div.innerText = m;
+                div.onclick = function() { 
+                    document.getElementById(inputId).value = m; 
+                    drop.style.display = 'none';
                     if(inputId === 'pos-item') window.autoFillPrice();
                     if(inputId === 'pos-cust' && document.getElementById('pos-item').value) window.handleUnitChange();
                 };
                 drop.appendChild(div);
             });
+            
             drop.style.display = matches.length ? 'block' : 'none';
         };
-
+        
         document.addEventListener('click', function(e) {
-            if(!e.target.closest('.relative')) { document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); }
+            if(!e.target.closest('.relative')) { 
+                document.querySelectorAll('.ac-dropdown').forEach(el => el.style.display = 'none'); 
+            }
         });
-
+        
         // ========================================================
         // SMART PRICING ENGINE
         // ========================================================
@@ -774,6 +964,7 @@
             const name = document.getElementById('pos-item').value;
             const cust = document.getElementById('pos-cust').value.trim();
             const p = window.erpData.products.find(x => x.name === name);
+            
             if(p) {
                 const uSel = document.getElementById('pos-unit');
                 uSel.innerHTML = '<option value="' + (p.unit_main || 'Pcs') + '">' + (p.unit_main || 'Pcs') + '</option>';
@@ -781,21 +972,22 @@
                 window.updatePosRate(p, uSel.value, cust);
             }
         };
-
+        
         window.handleUnitChange = function() {
             const name = document.getElementById('pos-item').value;
             const cust = document.getElementById('pos-cust').value.trim();
             const p = window.erpData.products.find(x => x.name === name);
+            
             if(p) {
                 const unit = document.getElementById('pos-unit').value;
                 window.updatePosRate(p, unit, cust);
             }
         };
-
+        
         window.updatePosRate = function(product, unit, customerName) {
             let finalRate = null;
             let conv = parseFloat(product.conv_factor) || 1;
-
+            
             if (customerName) {
                 for (let i = 0; i < window.erpData.bills.length; i++) {
                     let b = window.erpData.bills[i];
@@ -812,7 +1004,7 @@
                     }
                 }
             }
-
+            
             if (finalRate === null) {
                 if (unit === product.unit_pack && product.unit_pack) {
                     finalRate = parseFloat(product.rate) * conv;
@@ -820,10 +1012,10 @@
                     finalRate = parseFloat(product.rate);
                 }
             }
-
+            
             document.getElementById('pos-rate').value = finalRate ? finalRate.toFixed(2) : 0;
         };
-
+        
         // ========================================================
         // CART / POS OPERATIONS
         // ========================================================
@@ -832,33 +1024,47 @@
             const qty = parseFloat(document.getElementById('pos-qty').value) || 1;
             const rate = parseFloat(document.getElementById('pos-rate').value) || 0;
             const unit = document.getElementById('pos-unit').value || 'Pcs';
-
+            
             const p = window.erpData.products.find(x => x.name === name);
             if(!p || rate <= 0) return alert("Valid item and rate required.");
-
+            
             let conv = parseFloat(p.conv_factor) || 1;
             let isPack = (unit === p.unit_pack);
             let baseQty = isPack ? (qty * conv) : qty;
             let baseRate = isPack ? (rate / conv) : rate;
-
+            
             window.erpData.cart.push({
-                name: name, qty: qty, rate: rate, unit: unit, tot: qty*rate, baseQty: baseQty, baseRate: baseRate
+                name: name, 
+                qty: qty, 
+                rate: rate, 
+                unit: unit, 
+                tot: qty * rate, 
+                baseQty: baseQty, 
+                baseRate: baseRate 
             });
-
-            document.getElementById('pos-item').value = ''; document.getElementById('pos-qty').value = '1';
-            document.getElementById('pos-rate').value = ''; document.getElementById('pos-unit').innerHTML = '';
+            
+            document.getElementById('pos-item').value = ''; 
+            document.getElementById('pos-qty').value = '1';
+            document.getElementById('pos-rate').value = ''; 
+            document.getElementById('pos-unit').innerHTML = '';
             window.renderCart();
         };
-
-        window.removeCartItem = function(index) { 
-            window.erpData.cart.splice(index, 1); 
-            window.renderCart(); 
+        
+        window.removeCartItem = function(index) {
+            window.erpData.cart.splice(index, 1);
+            window.renderCart();
         };
-
+        
         window.renderCart = function() {
-            const ui = document.getElementById('pos-cart-ui'); ui.innerHTML = ''; window.erpData.cartTotal = 0;
-            if(window.erpData.cart.length === 0) ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-2">Cart Empty</p>';
-            else {
+            const ui = document.getElementById('pos-cart-ui'); 
+            if (!ui) return;
+            
+            ui.innerHTML = ''; 
+            window.erpData.cartTotal = 0;
+            
+            if(window.erpData.cart.length === 0) {
+                ui.innerHTML = '<p class="text-center text-slate-400 text-[10px] mt-2">Cart Empty</p>';
+            } else {
                 window.erpData.cart.forEach((item, i) => {
                     window.erpData.cartTotal += item.tot;
                     ui.innerHTML += '<div class="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between items-center text-xs shadow-sm mb-1">' +
@@ -866,77 +1072,102 @@
                         '<div class="flex items-center space-x-2"><p class="font-black text-blue-600">₹' + item.tot.toFixed(2) + '</p><button onclick="window.removeCartItem(' + i + ')" class="text-red-400 py-1 px-2"><i class="fas fa-times"></i></button></div></div>';
                 });
             }
-            document.getElementById('pos-total').innerText = '₹' + window.erpData.cartTotal.toFixed(2);
+            
+            const totalEl = document.getElementById('pos-total');
+            if (totalEl) totalEl.innerText = '₹' + window.erpData.cartTotal.toFixed(2);
         };
-
+        
         // ========================================================
         // SAVE NEW BILL (from POS)
         // ========================================================
         window.saveMobileBill = async function() {
-            if(window.erpData.cart.length === 0) return;
+            if(window.erpData.cart.length === 0) return alert("Cart is empty!");
+            
             const btn = document.getElementById('btn-save-bill');
             let cust = document.getElementById('pos-cust').value.trim() || "Walk-in";
             let total = window.erpData.cartTotal;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...'; btn.disabled = true;
-
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...'; 
+            btn.disabled = true;
+            
             try {
                 let cntRs = await runQuery("SELECT COUNT(id) as c FROM bills WHERE bill_no LIKE 'M-APP-%'");
-                const bno = 'M-APP-' + String((Number(cntRs[0]&&cntRs[0].c)||0) + 1).padStart(4, '0');
-
-                const d = new Date(); const pad = n => String(n).padStart(2, '0');
+                const bno = 'M-APP-' + String((Number(cntRs[0] && cntRs[0].c) || 0) + 1).padStart(4, '0');
+                
+                const d = new Date(); 
+                const pad = n => String(n).padStart(2, '0');
                 const dt = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-
+                
                 let old_bal = 0.0;
                 let csafe = cust.replace(/'/g, "''");
                 let custRs = await runQuery("SELECT id, balance FROM customers WHERE name = '" + csafe + "'");
-
+                
                 if (custRs.length > 0) {
                     old_bal = Number(custRs[0].balance || 0);
                     await runQuery("UPDATE customers SET balance = balance + " + total + " WHERE name = '" + csafe + "'");
                 } else if (cust !== 'Walk-in') {
                     await runQuery("INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('" + csafe + "', '', '', " + total + ", 'General')");
                 }
-
+                
                 for(let item of window.erpData.cart) {
                     let safeItem = item.name.replace(/'/g, "''");
                     await runQuery("UPDATE products SET stock = stock - " + item.baseQty + ", rate = " + item.baseRate + " WHERE name = '" + safeItem + "'");
                 }
-
-                let cleanCart = window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit, tot: i.tot }));
+                
+                let cleanCart = window.erpData.cart.map(i => ({ 
+                    name: i.name, 
+                    qty: i.qty, 
+                    rate: i.rate, 
+                    unit: i.unit, 
+                    tot: i.tot 
+                }));
                 const cartJson = JSON.stringify(cleanCart).replace(/'/g, "''");
-
+                
                 await runQuery("INSERT INTO bills (bill_no, customer_name, sub_total, discount, grand_total, paid, balance_due, payment_mode, bill_data, created_at, old_balance, narration) VALUES ('" + bno + "', '" + csafe + "', " + total + ", 0, " + total + ", 0, " + total + ", 'Due/Cash', '" + cartJson + "', '" + dt + "', " + old_bal + ", 'Mobile PWA')");
-
-                document.getElementById('pos-cust').value = ''; window.erpData.cart = []; window.renderCart();
-                await window.syncData(); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
-                alert("Bill Saved & Rates Updated Successfully!");
-            } catch (err) { alert("Save failed. Check Connection."); console.error(err); }
-            btn.innerHTML = 'COMPLETE SALE'; btn.disabled = false;
+                
+                // Clear POS
+                document.getElementById('pos-cust').value = ''; 
+                window.erpData.cart = []; 
+                window.renderCart();
+                
+                await window.syncData(); 
+                window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+                alert("Bill Saved Successfully!");
+                
+            } catch (err) { 
+                console.error(err);
+                alert("Save failed: " + err.message); 
+            }
+            
+            btn.innerHTML = 'COMPLETE SALE'; 
+            btn.disabled = false;
         };
-
+        
         // ========================================================
-        // ✏️ BILL EDIT SYSTEM - LOAD EXISTING BILL INTO POS
+        // BILL EDIT SYSTEM
         // ========================================================
         window.loadBillToPOS = function(id) {
             const b = window.erpData.bills.find(x => x.id == id);
-            if(!b) { alert("Bill not found."); return; }
-
-            // Parse items from bill_data
+            if(!b) { 
+                alert("Bill not found."); 
+                return; 
+            }
+            
             let items = [];
-            try { 
+            try {
                 let rawData = b.bill_data || "[]";
                 let parsed = JSON.parse(rawData);
                 if(typeof parsed === 'string') parsed = JSON.parse(parsed);
                 if(Array.isArray(parsed)) items = parsed;
             } catch(e) { console.error("Parse Error:", e); }
-
-            // Convert to cart format with baseQty/baseRate for stock management
+            
             window.erpData.cart = items.map(itm => {
                 const p = window.erpData.products.find(x => x.name === itm.name);
                 let conv = p ? (parseFloat(p.conv_factor) || 1) : 1;
                 let isPack = (itm.unit === (p ? p.unit_pack : ''));
                 let baseQty = isPack ? ((Number(itm.qty) || 1) * conv) : (Number(itm.qty) || 1);
                 let baseRate = isPack ? ((Number(itm.rate) || 0) / conv) : (Number(itm.rate) || 0);
+                
                 return {
                     name: itm.name || "Item",
                     qty: Number(itm.qty) || 1,
@@ -947,38 +1178,38 @@
                     baseRate: baseRate
                 };
             });
-
-            // Set edit mode
+            
             window.editMode.active = true;
             window.editMode.billId = b.id;
             window.editMode.originalBill = b;
-            window.editMode.originalCart = JSON.parse(JSON.stringify(window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit }))));
-
-            // Load into POS UI
+            window.editMode.originalCart = JSON.parse(JSON.stringify(window.erpData.cart.map(i => ({ 
+                name: i.name, 
+                qty: i.qty, 
+                rate: i.rate, 
+                unit: i.unit 
+            }))));
+            
             document.getElementById('pos-cust').value = b.customer_name || "";
             document.getElementById('pos-bill-no').innerText = b.bill_no || "EDIT";
             document.getElementById('pos-bill-no').className = "text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded";
-
-            // Show edit mode UI
+            
             document.getElementById('pos-edit-banner').classList.remove('hidden');
             document.getElementById('pos-edit-billno').innerText = (b.bill_no || "#000") + " | " + String(b.created_at || "").substring(0,10);
             document.getElementById('edit-mode-indicator').classList.remove('hidden');
             document.getElementById('btn-save-bill').classList.add('hidden');
             document.getElementById('btn-update-bill').classList.remove('hidden');
-
+            
             window.renderCart();
             window.switchTab('pos', document.querySelectorAll('.nav-btn')[1]);
         };
-
+        
         window.cancelEditMode = function() {
             if (window.editMode.active && window.hasUnsavedChanges()) {
                 if (!confirm("You have unsaved changes. Discard them?")) return;
             }
-
-            // Reset edit mode
+            
             window.editMode = { active: false, billId: null, originalBill: null, originalCart: [] };
-
-            // Clear POS
+            
             window.erpData.cart = [];
             window.erpData.cartTotal = 0;
             document.getElementById('pos-cust').value = '';
@@ -988,46 +1219,46 @@
             document.getElementById('pos-unit').innerHTML = '';
             document.getElementById('pos-bill-no').innerText = 'M-NEW';
             document.getElementById('pos-bill-no').className = "text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded";
-
-            // Hide edit mode UI
+            
             document.getElementById('pos-edit-banner').classList.add('hidden');
             document.getElementById('edit-mode-indicator').classList.add('hidden');
             document.getElementById('btn-save-bill').classList.remove('hidden');
             document.getElementById('btn-update-bill').classList.add('hidden');
-
+            
             window.renderCart();
             window.switchTab('sales', document.querySelectorAll('.nav-btn')[2]);
         };
-
+        
         window.saveBillEditFromPOS = async function() {
             if(!window.editMode.active || !window.editMode.billId) return;
             if(window.erpData.cart.length === 0) return alert("Cart is empty!");
-
+            
             const btn = document.getElementById('btn-update-bill');
             const b = window.editMode.originalBill;
             let cust = document.getElementById('pos-cust').value.trim() || b.customer_name;
             let total = window.erpData.cartTotal;
-
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPDATING...'; btn.disabled = true;
-
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPDATING...'; 
+            btn.disabled = true;
+            
             try {
                 const csafe = cust.replace(/'/g, "''");
                 const bsafe = (b.customer_name || "").replace(/'/g, "''");
-
-                // 1. Reverse old customer balance
+                
+                // Reverse old customer balance
                 if(b.customer_name && b.customer_name !== 'Walk-in') {
                     await runQuery("UPDATE customers SET balance = balance - " + Number(b.grand_total || 0) + " WHERE name = '" + bsafe + "'");
                 }
-
-                // 2. Restore old stock
+                
+                // Restore old stock
                 let oldItems = [];
-                try { 
+                try {
                     let rawData = b.bill_data || "[]";
                     let parsed = JSON.parse(rawData);
                     if(typeof parsed === 'string') parsed = JSON.parse(parsed);
                     if(Array.isArray(parsed)) oldItems = parsed;
                 } catch(e) {}
-
+                
                 for(let item of oldItems) {
                     const safeItem = (item.name || "").replace(/'/g, "''");
                     const p = window.erpData.products.find(x => x.name === item.name);
@@ -1038,14 +1269,14 @@
                         await runQuery("UPDATE products SET stock = stock + " + restoreQty + " WHERE name = '" + safeItem + "'");
                     }
                 }
-
-                // 3. Deduct new stock
+                
+                // Deduct new stock
                 for(let item of window.erpData.cart) {
                     let safeItem = item.name.replace(/'/g, "''");
                     await runQuery("UPDATE products SET stock = stock - " + item.baseQty + ", rate = " + item.baseRate + " WHERE name = '" + safeItem + "'");
                 }
-
-                // 4. Update/add new customer balance
+                
+                // Update/add new customer balance
                 if(cust !== 'Walk-in') {
                     const newCust = await runQuery("SELECT id FROM customers WHERE name = '" + csafe + "'");
                     if(newCust.length > 0) {
@@ -1054,17 +1285,23 @@
                         await runQuery("INSERT INTO customers (name, mobile, address, balance, group_name) VALUES ('" + csafe + "', '', '', " + total + ", 'General')");
                     }
                 }
-
-                // 5. Build new bill_data JSON
-                let cleanCart = window.erpData.cart.map(i => ({ name: i.name, qty: i.qty, rate: i.rate, unit: i.unit, tot: i.tot }));
+                
+                // Build new bill_data JSON
+                let cleanCart = window.erpData.cart.map(i => ({ 
+                    name: i.name, 
+                    qty: i.qty, 
+                    rate: i.rate, 
+                    unit: i.unit, 
+                    tot: i.tot 
+                }));
                 const cartJson = JSON.stringify(cleanCart).replace(/'/g, "''");
-
-                // 6. Update bill record
+                
+                // Update bill record
                 await runQuery("UPDATE bills SET customer_name = '" + csafe + "', sub_total = " + total + ", grand_total = " + total + ", paid = 0, balance_due = " + total + ", bill_data = '" + cartJson + "' WHERE id = " + b.id);
-
+                
                 // Reset edit mode
                 window.editMode = { active: false, billId: null, originalBill: null, originalCart: [] };
-
+                
                 // Clear POS
                 window.erpData.cart = [];
                 window.erpData.cartTotal = 0;
@@ -1075,23 +1312,25 @@
                 document.getElementById('pos-unit').innerHTML = '';
                 document.getElementById('pos-bill-no').innerText = 'M-NEW';
                 document.getElementById('pos-bill-no').className = "text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded";
-
-                // Hide edit mode UI
+                
                 document.getElementById('pos-edit-banner').classList.add('hidden');
                 document.getElementById('edit-mode-indicator').classList.add('hidden');
                 document.getElementById('btn-save-bill').classList.remove('hidden');
                 document.getElementById('btn-update-bill').classList.add('hidden');
-
+                
                 await window.syncData();
                 window.switchTab('sales', document.querySelectorAll('.nav-btn')[2]);
                 alert("Bill updated successfully!");
-            } catch (err) { 
-                alert("Update failed: " + err.message); 
-                console.error(err); 
+                
+            } catch (err) {
+                alert("Update failed: " + err.message);
+                console.error(err);
             }
-            btn.innerHTML = '💾 UPDATE BILL'; btn.disabled = false;
+            
+            btn.innerHTML = '💾 UPDATE BILL'; 
+            btn.disabled = false;
         };
-
+        
         // ========================================================
         // DELETE BILL
         // ========================================================
@@ -1099,30 +1338,30 @@
             window.billToDelete = id;
             document.getElementById('modal-delete-bill').classList.remove('hidden');
         };
-
+        
         window.confirmDeleteBill = async function() {
             if(!window.billToDelete) return;
             document.getElementById('modal-delete-bill').classList.add('hidden');
-
+            
             const b = window.erpData.bills.find(x => x.id == window.billToDelete);
             if(!b) return;
-
+            
             try {
                 // Reverse customer balance
                 if(b.customer_name && b.customer_name !== 'Walk-in') {
                     const csafe = b.customer_name.replace(/'/g, "''");
                     await runQuery("UPDATE customers SET balance = balance - " + Number(b.grand_total || 0) + " WHERE name = '" + csafe + "'");
                 }
-
+                
                 // Restore stock
                 let items = [];
-                try { 
+                try {
                     let rawData = b.bill_data || "[]";
                     let parsed = JSON.parse(rawData);
                     if(typeof parsed === 'string') parsed = JSON.parse(parsed);
                     if(Array.isArray(parsed)) items = parsed;
                 } catch(e) {}
-
+                
                 for(let item of items) {
                     const safeItem = (item.name || "").replace(/'/g, "''");
                     const p = window.erpData.products.find(x => x.name === item.name);
@@ -1133,10 +1372,10 @@
                         await runQuery("UPDATE products SET stock = stock + " + restoreQty + " WHERE name = '" + safeItem + "'");
                     }
                 }
-
+                
                 // Delete bill
                 await runQuery("DELETE FROM bills WHERE id = " + b.id);
-
+                
                 window.billToDelete = null;
                 await window.syncData();
                 alert("Bill deleted successfully!");
@@ -1145,7 +1384,7 @@
                 console.error(err);
             }
         };
-
+        
         // ========================================================
         // SALES REGISTER RENDER
         // ========================================================
@@ -1154,35 +1393,46 @@
             const timeFilter = document.getElementById('filter-sales-time').value;
             const sortFilter = document.getElementById('sort-sales').value;
             const groupFilter = document.getElementById('filter-sales-group').value;
-            const list = document.getElementById('sales-list'); list.innerHTML = '';
-            const feed = document.getElementById('dashboard-feed'); feed.innerHTML = '';
-
+            const list = document.getElementById('sales-list');
+            if (!list) return;
+            
+            list.innerHTML = '';
+            
             let filtered = window.erpData.bills.filter(b => {
                 if(!b) return false;
                 if(!((b.customer_name||"").toLowerCase().includes(val) || (b.bill_no||"").toLowerCase().includes(val))) return false;
-
+                
                 if (groupFilter !== 'all') {
                     const cust = window.erpData.customers.find(c => c.name === b.customer_name);
                     if (!cust || cust.group_name !== groupFilter) return false;
                 }
-
+                
                 if(timeFilter !== 'all') {
-                    const bDate = new Date(b.created_at); const now = new Date();
-                    if(timeFilter === 'today') { if(bDate.toDateString() !== now.toDateString()) return false; }
-                    else if(timeFilter === '7days') { if(((now - bDate) / (1000 * 60 * 60 * 24)) > 7) return false; }
-                    else if(timeFilter === 'month') { if(bDate.getMonth() !== now.getMonth() || bDate.getFullYear() !== now.getFullYear()) return false; }
+                    const bDate = new Date(b.created_at);
+                    const now = new Date();
+                    if(timeFilter === 'today') { 
+                        if(bDate.toDateString() !== now.toDateString()) return false; 
+                    } else if(timeFilter === '7days') { 
+                        if(((now - bDate) / (1000 * 60 * 60 * 24)) > 7) return false; 
+                    } else if(timeFilter === 'month') { 
+                        if(bDate.getMonth() !== now.getMonth() || bDate.getFullYear() !== now.getFullYear()) return false; 
+                    }
                 }
                 return true;
             });
-
+            
             if(sortFilter === 'newest') filtered.sort((a,b) => b.id - a.id);
             else if(sortFilter === 'oldest') filtered.sort((a,b) => a.id - b.id);
             else if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.grand_total) - Number(a.grand_total));
-
-            filtered.slice(0, 50).forEach((b, i) => {
-                const bno = b.bill_no || "Unknown", cust = b.customer_name || "Walk-in", amt = Number(b.grand_total || 0), dt = String(b.created_at || "").substring(0,10);
+            
+            filtered.slice(0, 50).forEach((b) => {
+                const bno = b.bill_no || "Unknown", 
+                      cust = b.customer_name || "Walk-in", 
+                      amt = Number(b.grand_total || 0), 
+                      dt = String(b.created_at || "").substring(0,10);
                 const badge = bno.startsWith('M-') ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700';
-                const html = '<div class="glass-card p-3 rounded-xl border border-slate-200 mb-2 shadow-sm">' +
+                
+                list.innerHTML += '<div class="glass-card p-3 rounded-xl border border-slate-200 mb-2 shadow-sm">' +
                     '<div class="flex justify-between items-center cursor-pointer" onclick="window.viewBill(' + b.id + ')">' +
                     '<div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">' + cust + '</p><p class="text-[9px] font-bold text-slate-500 mt-0.5">' + dt + '</p></div>' +
                     '<div class="text-right"><p class="text-base font-black text-slate-800">₹' + amt.toLocaleString() + '</p><span class="text-[8px] font-black px-1.5 py-0.5 rounded ' + badge + ' mt-1 inline-block">' + bno + '</span></div></div>' +
@@ -1190,81 +1440,69 @@
                     '<button onclick="event.stopPropagation(); window.loadBillToPOS(' + b.id + ')" class="text-[10px] bg-amber-50 text-amber-700 px-2 py-1 rounded font-bold active:bg-amber-100 border border-amber-200"><i class="fas fa-edit mr-1"></i>Edit in POS</button>' +
                     '<button onclick="event.stopPropagation(); window.viewBill(' + b.id + ')" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold active:bg-blue-100"><i class="fas fa-eye mr-1"></i>View</button>' +
                     '<button onclick="event.stopPropagation(); window.promptDeleteBill(' + b.id + ')" class="text-[10px] bg-rose-50 text-rose-600 px-2 py-1 rounded font-bold active:bg-rose-100"><i class="fas fa-trash mr-1"></i>Del</button></div></div>';
-                list.innerHTML += html;
-                if(i < 5 && val === "" && timeFilter === 'all') feed.innerHTML += html;
             });
         };
-
+        
         // ========================================================
         // 80MM THERMAL BILL VIEW & SHARE
         // ========================================================
         window.viewBill = function(id) {
             const b = window.erpData.bills.find(x => x.id == id);
-            if(!b) { alert("Bill not found."); return; }
-
+            if(!b) { 
+                alert("Bill not found."); 
+                return; 
+            }
+            
             const dateStr = String(b.created_at || "N/A").substring(0,10);
             const cObj = window.erpData.customers.find(c => c.name === b.customer_name);
             const mob = cObj ? (cObj.whatsapp || cObj.mobile || 'N/A') : 'N/A';
-
-            let waText = '*ANNAPURNA TRADERS*
-Chowkinath, Guruwarpeth, Kittur
-Phone: 7795966127
---------------------------------
-*TAX INVOICE*
-Inv: ' + b.bill_no + '
-Date: ' + dateStr + '
-Cust: ' + b.customer_name + '
-Mob: ' + mob + '
---------------------------------
-Sl Product Name       Qty   Price   Amount
---------------------------------
-';
-
+            
+            let waText = '*ANNAPURNA TRADERS* Chowkinath, Guruwarpeth, Kittur Phone: 7795966127 -------------------------------- *TAX INVOICE* Inv: ' + b.bill_no + ' Date: ' + dateStr + ' Cust: ' + b.customer_name + ' Mob: ' + mob + ' -------------------------------- Sl Product Name       Qty   Price   Amount -------------------------------- ';
+            
             document.getElementById('r-inv').innerText = b.bill_no || "N/A";
             document.getElementById('r-date').innerText = dateStr;
             document.getElementById('r-cust').innerText = b.customer_name || "N/A";
             document.getElementById('r-mob').innerText = mob;
-
+            
             let htmlItems = '';
             let gt = Number(b.grand_total || 0);
             let sub = Number(b.sub_total || gt);
-
+            
             let items = [];
-            try { 
+            try {
                 let rawData = b.bill_data || "[]";
                 let parsed = JSON.parse(rawData);
                 if(typeof parsed === 'string') parsed = JSON.parse(parsed);
                 if(Array.isArray(parsed)) items = parsed;
             } catch(e) { console.error("Parse Error on Bill Data:", e); }
-
+            
             items.forEach((i, idx) => {
                 let rate = Number(i.rate || 0).toFixed(2);
                 let tot = Number(i.tot || 0).toFixed(2);
                 let qty = i.qty || 1;
-
+                
                 let sl = String(idx + 1).padEnd(2);
                 let n = (i.name||"Item").substring(0,16).padEnd(16);
                 let q = (String(qty) + (i.unit||"")).padStart(5);
                 let r = String(Number(rate).toFixed(1)).padStart(7);
                 let t = String(Number(tot).toFixed(1)).padStart(8);
-                waText += sl + ' ' + n + ' ' + q + ' ' + r + ' ' + t + '
-';
-
+                waText += sl + ' ' + n + ' ' + q + ' ' + r + ' ' + t + ' ';
+                
                 htmlItems += '<tr class="border-b border-black">' +
                     '<td class="border-r border-black p-1 align-top text-center">' + (idx+1) + '</td>' +
                     '<td class="border-r border-black p-1 leading-tight"><span class="font-bold">' + (i.name || "Item") + '</span><br><span class="text-[7px] text-slate-600 uppercase tracking-tighter">HSN: N/A | GST: 5%</span></td>' +
                     '<td class="border-r border-black p-1 text-center align-top">' + qty + '</td>' +
                     '<td class="border-r border-black p-1 text-right align-top">' + rate + '</td>' +
                     '<td class="p-1 text-right align-top font-bold">' + tot + '</td></tr>';
-            }); 
-
+            });
+            
             document.getElementById('r-items').innerHTML = htmlItems;
             document.getElementById('r-sub').innerText = '₹' + sub.toFixed(2);
             document.getElementById('r-net').innerText = '₹' + gt.toFixed(2);
-
+            
             let taxable = (gt / 1.05).toFixed(2);
             let gstAmt = (gt - taxable).toFixed(2);
-
+            
             document.getElementById('r-taxes').innerHTML = '<tr>' +
                 '<td class="border-r border-black p-1 text-left font-bold">5%</td>' +
                 '<td class="border-r border-black p-1">' + taxable + '</td>' +
@@ -1275,48 +1513,57 @@ Sl Product Name       Qty   Price   Amount
                 '<td class="border-r border-black p-1">' + taxable + '</td>' +
                 '<td class="border-r border-black p-1">' + gstAmt + '</td>' +
                 '<td class="p-1">' + gt.toFixed(2) + '</td></tr>';
-
+            
             const upiLink = 'upi://pay?pa=6363304520@okbizaxis&pn=ANNAPURNA%20TRADERS&am=' + gt.toFixed(2) + '&cu=INR';
             document.getElementById('r-qr').src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(upiLink);
-
-            waText += '--------------------------------
-*NET PAYABLE: ₹' + gt.toFixed(2) + '*
---------------------------------
-THANK YOU! VISIT AGAIN';
-
+            
+            waText += ' -------------------------------- *NET PAYABLE: ₹' + gt.toFixed(2) + '* -------------------------------- THANK YOU! VISIT AGAIN';
+            
             window.currentBillMobile = mob;
             window.currentBillText = waText;
             window.currentBillId = b.id;
-
+            
             document.getElementById('modal-bill').classList.remove('hidden');
         };
-
+        
         window.shareWA = function() {
-            if(window.currentBillMobile === 'N/A' || !window.currentBillMobile) return alert("No phone number saved for this customer.");
+            if(window.currentBillMobile === 'N/A' || !window.currentBillMobile) {
+                return alert("No phone number saved for this customer.");
+            }
             window.open('https://wa.me/91' + window.currentBillMobile + '?text=' + encodeURIComponent(window.currentBillText), '_blank');
         };
-
-        window.sharePDF = function() { window.print(); };
-
+        
+        window.sharePDF = function() { 
+            window.print(); 
+        };
+        
         window.shareImage = async function() {
             const btn = document.getElementById('btn-share-img');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xl mb-1"></i> Wait...';
+            
             try {
                 const element = document.getElementById('thermal-bill');
                 const canvas = await html2canvas(element, { scale: 2 });
+                
                 canvas.toBlob(async (blob) => {
                     const file = new File([blob], "invoice.png", { type: "image/png" });
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({ files: [file], title: 'Invoice', text: 'Invoice from Annapurna Traders' });
                     } else {
-                        const link = document.createElement('a'); link.download = 'invoice.png'; link.href = canvas.toDataURL(); link.click();
+                        const link = document.createElement('a'); 
+                        link.download = 'invoice.png'; 
+                        link.href = canvas.toDataURL(); 
+                        link.click();
                     }
                     btn.innerHTML = originalText;
                 });
-            } catch (e) { alert("Failed to generate image."); btn.innerHTML = originalText; }
+            } catch (e) { 
+                alert("Failed to generate image."); 
+                btn.innerHTML = originalText; 
+            }
         };
-
+        
         // ========================================================
         // LEDGER
         // ========================================================
@@ -1324,50 +1571,55 @@ THANK YOU! VISIT AGAIN';
             const val = (document.getElementById('search-ledger').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-ledger').value;
             const groupFilter = document.getElementById('filter-ledger-group').value;
-            const list = document.getElementById('ledger-list'); list.innerHTML = '';
-
+            const list = document.getElementById('ledger-list');
+            if (!list) return;
+            
+            list.innerHTML = '';
+            
             let filtered = window.erpData.customers.filter(c => {
                 if (Number(c.balance || 0) <= 0) return false;
                 if (!(c.name||"").toLowerCase().includes(val)) return false;
                 if (groupFilter !== 'all' && c.group_name !== groupFilter) return false;
                 return true;
             });
-
+            
             if(sortFilter === 'highest') filtered.sort((a,b) => Number(b.balance) - Number(a.balance));
             else if(sortFilter === 'lowest') filtered.sort((a,b) => Number(a.balance) - Number(b.balance));
             else if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
-
+            
             filtered.forEach(c => {
-                const safeName = (c.name||"").replace(/'/g, "\'");
-                list.innerHTML += '<div onclick="window.openCustomerLedger('' + safeName + '', ' + c.balance + ')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">' +
+                const safeName = (c.name||"").replace(/\'/g, "\\'");
+                list.innerHTML += '<div onclick="window.openCustomerLedger(\'' + safeName + '\', ' + c.balance + ')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">' +
                     '<div><p class="text-sm font-bold text-blue-800 underline decoration-blue-200">' + c.name + '</p><p class="text-[9px] font-bold text-slate-500 mt-0.5"><i class="fas fa-users mr-1"></i>' + (c.group_name||'General') + '</p></div>' +
                     '<div class="text-right"><p class="text-[9px] font-bold text-slate-400 uppercase">Due</p><p class="text-base font-black text-rose-500">₹' + Number(c.balance).toLocaleString('en-IN') + '</p></div></div>';
             });
         };
-
+        
         window.openCustomerLedger = function(name, due) {
             document.getElementById('cl-name').innerText = name;
             document.getElementById('cl-due').innerText = '₹' + Number(due).toLocaleString('en-IN');
-
+            
             let history = [];
             window.erpData.bills.filter(b => b.customer_name === name).forEach(b => {
                 history.push({ type: 'Bill', ref: b.bill_no, amt: b.grand_total, date: b.created_at, id: b.id });
             });
+            
             if (window.erpData.payments) {
                 window.erpData.payments.filter(p => p.customer_name === name).forEach(p => {
                     history.push({ type: 'Payment', ref: 'Receipt', amt: p.amount_paid, date: p.created_at });
                 });
             }
-
+            
             history.sort((a, b) => new Date(b.date) - new Date(a.date));
-
+            
             let listHtml = '';
-            if (history.length === 0) { listHtml = '<p class="text-center text-xs text-slate-400 py-6">No recent transactions.</p>'; } 
-            else {
+            if (history.length === 0) { 
+                listHtml = '<p class="text-center text-xs text-slate-400 py-6">No recent transactions.</p>'; 
+            } else {
                 history.forEach(item => {
                     let dt = String(item.date).substring(0, 10);
                     if (item.type === 'Bill') {
-                        listHtml += '<div onclick="document.getElementById('modal-cust-ledger').classList.add('hidden'); window.viewBill(' + item.id + ');" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">' +
+                        listHtml += '<div onclick="document.getElementById(\'modal-cust-ledger\').classList.add(\'hidden\'); window.viewBill(' + item.id + ');" class="flex justify-between items-center p-3 mb-2 rounded-xl bg-rose-50 border border-rose-200 active:bg-rose-100 cursor-pointer shadow-sm">' +
                             '<div><p class="text-[11px] font-bold text-rose-900 underline decoration-rose-300">Bill: ' + item.ref + '</p><p class="text-[9px] font-bold text-slate-500 mt-1">' + dt + '</p></div>' +
                             '<p class="text-[13px] font-black text-rose-600">+₹' + Number(item.amt).toLocaleString('en-IN') + '</p></div>';
                     } else {
@@ -1377,7 +1629,7 @@ THANK YOU! VISIT AGAIN';
                     }
                 });
             }
-
+            
             document.getElementById('cl-list').innerHTML = listHtml;
             document.getElementById('btn-cl-pay').onclick = () => {
                 document.getElementById('modal-cust-ledger').classList.add('hidden');
@@ -1385,50 +1637,61 @@ THANK YOU! VISIT AGAIN';
             };
             document.getElementById('modal-cust-ledger').classList.remove('hidden');
         };
-
+        
         window.openPayModal = function(name, due) {
             document.getElementById('pay-cust-name').innerText = name;
             document.getElementById('pay-due').innerText = '₹' + Number(due).toFixed(2);
             document.getElementById('pay-amt').value = Number(due).toFixed(2);
             document.getElementById('modal-pay').classList.remove('hidden');
         };
-
+        
         window.savePayment = async function() {
             const name = document.getElementById('pay-cust-name').innerText;
             const amt = parseFloat(document.getElementById('pay-amt').value);
+            
             if(!amt || amt <= 0) return alert("Invalid amount.");
+            
             try {
                 const dt = new Date().toISOString().replace('T',' ').substring(0, 19);
                 await runQuery("UPDATE customers SET balance = balance - " + amt + " WHERE name = '" + name.replace(/'/g, "''") + "'");
                 await runQuery("INSERT INTO payment_history (customer_name, amount_paid, created_at, payment_mode, narration) VALUES ('" + name.replace(/'/g, "''") + "', " + amt + ", '" + dt + "', 'Cash', 'Mobile Received')");
+                
                 document.getElementById('modal-pay').classList.add('hidden');
-                await window.syncData(); alert("Payment Logged!");
-            } catch(e) { alert("Error saving payment."); }
+                await window.syncData();
+                alert("Payment Logged!");
+            } catch(e) { 
+                alert("Error saving payment: " + e.message); 
+            }
         };
-
+        
         // ========================================================
         // STOCK
         // ========================================================
         window.renderStock = function() {
             const val = (document.getElementById('search-stock').value || "").toLowerCase();
             const sortFilter = document.getElementById('sort-stock').value;
-            const list = document.getElementById('stock-list'); list.innerHTML = '';
-
+            const list = document.getElementById('stock-list');
+            if (!list) return;
+            
+            list.innerHTML = '';
+            
             let filtered = window.erpData.products.filter(p => (p.name||"").toLowerCase().includes(val));
+            
             if(sortFilter === 'az') filtered.sort((a,b) => (a.name||"").localeCompare(b.name||""));
             else if(sortFilter === 'low') filtered.sort((a,b) => Number(a.stock||0) - Number(b.stock||0));
             else if(sortFilter === 'high') filtered.sort((a,b) => Number(b.stock||0) - Number(a.stock||0));
-
+            
             filtered.slice(0,50).forEach(p => {
                 const stk = Number(p.stock || 0);
                 let color = stk <= 0 ? 'text-red-500' : 'text-emerald-500';
-                const safeName = (p.name||"").replace(/'/g, "\'");
-                list.innerHTML += '<div onclick="window.openEditItem(' + p.id + ', '' + safeName + '', ' + (p.rate||0) + ', ' + stk + ')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">' +
+                const safeName = (p.name||"").replace(/\'/g, "\\'");
+                
+                list.innerHTML += '<div onclick="window.openEditItem(' + p.id + ', \'' + safeName + '\', ' + (p.rate||0) + ', ' + stk + ')" class="glass-card p-3 rounded-xl border border-slate-200 flex justify-between items-center active:bg-blue-50 mb-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow">' +
                     '<p class="text-sm font-bold text-blue-800 underline decoration-blue-200">' + p.name + '</p>' +
                     '<div class="text-right"><p class="text-base font-black text-slate-800">₹' + (p.rate||0) + '</p><p class="text-[9px] font-bold ' + color + ' mt-0.5">Stock: ' + stk + '</p></div></div>';
             });
         };
-
+        
         window.openEditItem = function(id, name, rate, stock) {
             document.getElementById('edit-id').value = id;
             document.getElementById('edit-name').value = name;
@@ -1436,24 +1699,34 @@ THANK YOU! VISIT AGAIN';
             document.getElementById('edit-stock').value = stock;
             document.getElementById('modal-edit-item').classList.remove('hidden');
         };
-
+        
         window.saveMasterEdit = async function() {
             const id = document.getElementById('edit-id').value;
             const rate = parseFloat(document.getElementById('edit-rate').value);
             const stock = parseFloat(document.getElementById('edit-stock').value);
+            
             try {
                 await runQuery("UPDATE products SET rate=" + rate + ", stock=" + stock + " WHERE id=" + id);
                 document.getElementById('modal-edit-item').classList.add('hidden');
                 await window.syncData();
-            } catch(e) { alert("Error saving."); }
+            } catch(e) { 
+                alert("Error saving: " + e.message); 
+            }
         };
-
+        
         // ========================================================
         // ATTENDANCE
         // ========================================================
         window.renderAttendance = function() {
-            const list = document.getElementById('attendance-list'); list.innerHTML = '';
-            if(!window.erpData.emps || window.erpData.emps.length === 0) return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
+            const list = document.getElementById('attendance-list');
+            if (!list) return;
+            
+            list.innerHTML = '';
+            
+            if(!window.erpData.emps || window.erpData.emps.length === 0) {
+                return list.innerHTML = "<p class='text-[10px] text-slate-500'>No employees found.</p>";
+            }
+            
             window.erpData.emps.forEach(e => {
                 list.innerHTML += '<div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mb-2">' +
                     '<p class="font-bold text-slate-800 text-sm mb-2">' + e.name + '</p>' +
@@ -1463,17 +1736,23 @@ THANK YOU! VISIT AGAIN';
                     '<label class="flex-1 text-center bg-red-50 text-red-700 p-2 rounded-lg text-xs font-bold"><input type="radio" name="att_' + e.id + '" value="Absent"> A</label></div></div>';
             });
         };
-
+        
         window.saveAttendance = async function() {
             const dt = new Date().toISOString().substring(0, 10);
             try {
                 for(let e of window.erpData.emps) {
-                    const status = document.querySelector('input[name="att_' + e.id + '"]:checked').value;
+                    const statusEl = document.querySelector('input[name="att_' + e.id + '"]:checked');
+                    if (!statusEl) continue;
+                    const status = statusEl.value;
                     await runQuery("INSERT INTO attendance (emp_id, emp_name, date, status) VALUES (" + e.id + ", '" + e.name.replace(/'/g, "''") + "', '" + dt + "', '" + status + "')");
                 }
-                alert("Attendance Saved!"); window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
-            } catch(err) { alert("Error saving attendance."); }
+                alert("Attendance Saved!");
+                window.switchTab('dashboard', document.querySelectorAll('.nav-btn')[0]);
+            } catch(err) { 
+                alert("Error saving attendance: " + err.message); 
+            }
         };
+        
     </script>
 </body>
 </html>
